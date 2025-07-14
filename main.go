@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	mem := cpu.NewMemory()
+	mem := &cpu.Memory{}
 
 	data, err := os.ReadFile("program.asm")
 	if err != nil {

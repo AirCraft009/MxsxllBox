@@ -63,15 +63,25 @@ func decodeReg(reg byte) (rx byte, ry byte) {
 	rx = 6
 
 	reg = 11010101
-	reg >> 3 = 00110101
+	reg >> 2 = 00110101
 	reg & 0x07 = 00110101 & 00000111
 	ry = 00000101
 	ry = 5
 
 	*/
 	rx = (reg >> 5) & 0x07
-	ry = (reg >> 3) & 0x07
+	ry = (reg >> 2) & 0x07
 	return rx, ry
+}
+
+func handleAlloc(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Registers[instructions.Ry] = cpu.Mem.AllocBlocks(cpu.Registers[instructions.Rx])
+	cpu.PC += instructionSizeShort
+}
+
+func handleFree(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Mem.Free(cpu.Registers[instructions.Rx])
+	cpu.PC += instructionSizeShort
 }
 
 func handlePush(cpu *CPU, instruction *HandlerInstructions) {
@@ -227,7 +237,7 @@ func handleJz(cpu *CPU, instructions *HandlerInstructions) {
 
 func handlePrint(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.PC += instructionSizeShort
-	fmt.Println(cpu.Registers[instructions.Rx])
+	fmt.Printf("c\n", cpu.Registers[instructions.Rx])
 }
 
 func handleMovi(cpu *CPU, instructions *HandlerInstructions) {

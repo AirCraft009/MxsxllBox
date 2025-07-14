@@ -25,5 +25,8 @@ const (
 	POP    byte = 0x15
 	CALL   byte = 0x16
 	RET    byte = 0x17
+	ALLOC  byte = 0x18 // ALLOC Rsize Rdest Rsize ist die Menge an Blocks Rsize ist das Register in welches die Addr gespeichert wird
+	FREE   byte = 0x19 // FREE RAddr
+	STRING byte = 0x1A
 	HALT   byte = 0xFF //stop the program
 )

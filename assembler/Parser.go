@@ -55,6 +55,8 @@ func newParser() *Parser {
 	parser.Parsers["PRINT"] = parseFormatOPReg
 	parser.Parsers["RET"] = parseFormatOP
 	parser.Parsers["HALT"] = parseFormatOP
+	parser.Parsers["ALLOC"] = parseFormatOPRegReg
+	parser.Parsers["FREE"] = parseFormatOPReg
 
 	return parser
 }

@@ -25,6 +25,8 @@ var opCodes = map[string]byte{
 	"POP":    0x15,
 	"CALL":   0x16,
 	"RET":    0x17,
+	"ALLOC":  0x18,
+	"FREE":   0x19,
 	"HALT":   0xFF,
 }
 
@@ -50,6 +52,8 @@ var offsetMap = map[string]byte{
 	"SUB":    2,
 	"DIV":    2,
 	"MUL":    2,
+	"ALLOC":  2,
+	"FREE":   2,
 	"MOVI":   4,
 	"LOAD":   4,
 	"LOADB":  4,
