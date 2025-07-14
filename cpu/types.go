@@ -1,6 +1,6 @@
 package cpu
 
-type Register uint16
+type Register byte
 
 const (
 	R0 Register = iota

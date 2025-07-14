@@ -33,6 +33,7 @@ func NewCPU(mem *Memory) *CPU {
 	cpu.Handlers[JC] = handleJc
 	cpu.Handlers[PRINT] = handlePrint
 	cpu.Handlers[HALT] = handleHalt
+	cpu.Handlers[MOVI] = handleMovi
 
 	return cpu
 }

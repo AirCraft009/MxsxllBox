@@ -24,7 +24,7 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	addr is twice as long so 16 bits we calculate it by reading two times,
 	then upshifting the first by 8 and fusing them with the second read
 
-	read PC+2
+	read PC+3
 	adrr = 0000000010111001
 	addr << 8
 	adrr = 1011100100000000
@@ -54,14 +54,14 @@ func decodeReg(reg byte) (rx byte, ry byte) {
 	rx = 6
 
 	reg = 11010101
-	reg >> 2 = 00110101
+	reg >> 3 = 00110101
 	reg & 0x07 = 00110101 & 00000111
 	ry = 00000101
 	ry = 5
 
 	*/
 	rx = (reg >> 5) & 0x07
-	ry = (reg >> 2) & 0x07
+	ry = (reg >> 3) & 0x07
 	return rx, ry
 }
 
@@ -70,7 +70,7 @@ func handleNop(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleLoadB(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.Registers[instructions.Rx] = instructions.Addr
+	cpu.Registers[instructions.Rx] = uint16(cpu.Mem.Read(instructions.Addr))
 	cpu.PC += 4
 }
 
@@ -88,6 +88,13 @@ func handleStoreB(cpu *CPU, instructions *HandlerInstructions) {
 
 func handleStoreW(cpu *CPU, instructions *HandlerInstructions) {
 	val := cpu.Registers[instructions.Rx]
+	cpu.Mem.Write(instructions.Addr, byte(val&0xFF))
+	cpu.Mem.Write(instructions.Addr+1, byte(val>>8))
+	cpu.PC += 4
+}
+
+func handleStoreIW(cpu *CPU, instructions *HandlerInstructions) {
+	val := instructions.Rx
 	cpu.Mem.Write(instructions.Addr, byte(val&0xFF))
 	cpu.Mem.Write(instructions.Addr+1, byte(val>>8))
 	cpu.PC += 4
@@ -128,8 +135,13 @@ func handleJz(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handlePrint(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.PC += 1
+	cpu.PC += 2
 	fmt.Println(cpu.Registers[instructions.Rx])
+}
+
+func handleMovi(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Registers[instructions.Rx] = instructions.Addr
+	cpu.PC += 4
 }
 
 func handleHalt(cpu *CPU, instructions *HandlerInstructions) {

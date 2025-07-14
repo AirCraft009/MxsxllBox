@@ -30,3 +30,10 @@ func (mem *Memory) Read(addr uint16) byte {
 func (mem *Memory) Write(addr uint16, value byte) {
 	mem.Data[addr] = value
 }
+
+func (mem *Memory) LoadProgram(program []uint16) {
+	for i, word := range program {
+		mem.Data[i*2] = byte(word & 0xFF) // low byte first
+		mem.Data[i*2+1] = byte(word >> 8)
+	}
+}
