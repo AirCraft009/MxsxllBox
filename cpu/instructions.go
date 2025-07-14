@@ -23,5 +23,7 @@ const (
 	STORE  byte = 0x13
 	PUSH   byte = 0x14
 	POP    byte = 0x15
+	CALL   byte = 0x16
+	RET    byte = 0x17
 	HALT   byte = 0xFF //stop the program
 )

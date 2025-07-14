@@ -26,8 +26,8 @@ func newHandlerInstructions(rx byte, ry byte, addr uint16) *HandlerInstructions 
 }
 
 func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
-	opcode = cpu.Mem.Read(cpu.PC)
-	regs := cpu.Mem.Read(cpu.PC + 1)
+	opcode = cpu.Mem.ReadByte(cpu.PC)
+	regs := cpu.Mem.ReadByte(cpu.PC + 1)
 	rx, ry := decodeReg(regs)
 	/**
 	addr is twice as long so 16 bits we calculate it by reading two times,
@@ -41,7 +41,7 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	bitwise or
 	adrr = 1011100101101011
 	*/
-	addr := uint16(cpu.Mem.Read(cpu.PC+instructionSizeShort))<<8 | (uint16(cpu.Mem.Read(cpu.PC + 3)))
+	addr := uint16(cpu.Mem.ReadByte(cpu.PC+instructionSizeShort))<<8 | (uint16(cpu.Mem.ReadByte(cpu.PC + 3)))
 	instructions = newHandlerInstructions(rx, ry, addr)
 	return opcode, instructions
 }
@@ -77,17 +77,30 @@ func decodeReg(reg byte) (rx byte, ry byte) {
 func handlePush(cpu *CPU, instruction *HandlerInstructions) {
 	val := cpu.Registers[instruction.Rx]
 	cpu.SP -= instructionSizeShort
-	cpu.Mem.Write(cpu.SP, byte(val>>8))
-	cpu.Mem.Write(cpu.SP+1, byte(val&0xff))
+	cpu.Mem.WriteByte(cpu.SP, byte(val>>8))
+	cpu.Mem.WriteByte(cpu.SP+1, byte(val&0xff))
 	cpu.PC += instructionSizeShort
 }
 
 func handlePop(cpu *CPU, instruction *HandlerInstructions) {
-	hi := cpu.Mem.Read(instruction.Addr)
-	lo := cpu.Mem.Read(instruction.Addr - 1)
+	hi := cpu.Mem.ReadByte(cpu.SP)
+	lo := cpu.Mem.ReadByte(cpu.SP + 1)
 	cpu.Registers[instruction.Rx] = uint16(hi)<<8 | uint16(lo)
 	cpu.PC += instructionSizeLong
 	cpu.SP += instructionSizeShort
+}
+
+func handleCall(cpu *CPU, instruction *HandlerInstructions) {
+	cpu.SP -= instructionSizeShort
+	cpu.Mem.WriteByte(cpu.SP, byte(cpu.PC))
+	handleJmp(cpu, instruction)
+}
+
+func handleRet(cpu *CPU, instruction *HandlerInstructions) {
+	instruction.Addr = cpu.Mem.ReadWord(cpu.SP)
+	cpu.PC += instructionSizeLong
+	cpu.SP += instructionSizeShort
+	handleJmp(cpu, instruction)
 }
 
 func handleReadWriteSize(addr uint16) bool {
@@ -116,26 +129,26 @@ func handleStore(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleLoadB(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.Registers[instructions.Rx] = uint16(cpu.Mem.Read(instructions.Addr))
+	cpu.Registers[instructions.Rx] = uint16(cpu.Mem.ReadByte(instructions.Addr))
 	cpu.PC += instructionSizeLong
 }
 
 func handleLoadW(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.Registers[instructions.Rx] = uint16(cpu.Mem.Read(instructions.Addr)) << 8
-	cpu.Registers[instructions.Rx] |= uint16(cpu.Mem.Read(instructions.Addr + 1))
+	cpu.Registers[instructions.Rx] = uint16(cpu.Mem.ReadByte(instructions.Addr)) << 8
+	cpu.Registers[instructions.Rx] |= uint16(cpu.Mem.ReadByte(instructions.Addr + 1))
 	cpu.PC += instructionSizeLong
 }
 
 func handleStoreB(cpu *CPU, instructions *HandlerInstructions) {
 	val := byte(cpu.Registers[instructions.Rx] & 0xFF)
-	cpu.Mem.Write(instructions.Addr, val)
+	cpu.Mem.WriteByte(instructions.Addr, val)
 	cpu.PC += instructionSizeLong
 }
 
 func handleStoreW(cpu *CPU, instructions *HandlerInstructions) {
 	val := cpu.Registers[instructions.Rx]
-	cpu.Mem.Write(instructions.Addr, byte((val>>8)&0xFF))
-	cpu.Mem.Write(instructions.Addr+1, byte(val&0xff))
+	cpu.Mem.WriteByte(instructions.Addr, byte((val>>8)&0xFF))
+	cpu.Mem.WriteByte(instructions.Addr+1, byte(val&0xff))
 	cpu.PC += instructionSizeLong
 }
 
@@ -190,7 +203,9 @@ func handleDiv(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleJmp(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.PC = instructions.Addr
+	if instructions.Addr <= ProgramEnd {
+		cpu.PC = instructions.Addr
+	}
 }
 
 func handleJc(cpu *CPU, instructions *HandlerInstructions) {

@@ -41,12 +41,23 @@ func NewMemory() *Memory {
 	}
 }
 
-func (mem *Memory) Read(addr uint16) byte {
+func (mem *Memory) ReadByte(addr uint16) byte {
 	return mem.Data[addr]
 }
 
-func (mem *Memory) Write(addr uint16, value byte) {
+func (mem *Memory) WriteByte(addr uint16, value byte) {
 	mem.Data[addr] = value
+}
+
+func (m *Memory) WriteWord(addr uint16, val uint16) {
+	m.Data[addr] = byte(val >> 8)
+	m.Data[addr+1] = byte(val & 0xFF)
+}
+
+func (m *Memory) ReadWord(addr uint16) uint16 {
+	hi := uint16(m.Data[addr])
+	lo := uint16(m.Data[addr+1])
+	return (hi << 8) | lo
 }
 
 func (mem *Memory) LoadProgram(program []uint16) {

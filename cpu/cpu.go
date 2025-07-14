@@ -42,6 +42,8 @@ func NewCPU(mem *Memory) *CPU {
 	cpu.Handlers[LOAD] = handleLoad
 	cpu.Handlers[PUSH] = handlePush
 	cpu.Handlers[POP] = handlePop
+	cpu.Handlers[CALL] = handleCall
+	cpu.Handlers[RET] = handleRet
 
 	return cpu
 }
