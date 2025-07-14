@@ -1,12 +1,16 @@
 package main
 
 import (
+	"MxsxllBox/Assembler"
 	"MxsxllBox/cpu"
 	"MxsxllBox/helper"
+	"fmt"
 )
 
 func main() {
 	mem := cpu.NewMemory()
+
+	fmt.Println(Assembler.ParseLines("mfsjdafkjskljkljk#dsfsdfdf\nadfsadfsd\n\n#ich will nicht mehr\n main:"))
 
 	program := []byte{}
 

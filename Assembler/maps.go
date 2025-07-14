@@ -1,0 +1,40 @@
+package Assembler
+
+var opCodes = map[string]byte{
+	"NOP":    0x00,
+	"LOADB":  0x01,
+	"LOADW":  0x02,
+	"STOREB": 0x03,
+	"STOREW": 0x04,
+	"ADD":    0x05,
+	"SUB":    0x06,
+	"MUL":    0x07,
+	"DIV":    0x08,
+	"JMP":    0x09,
+	"JZ":     0x0A,
+	"JC":     0x0B,
+	"PRINT":  0x0C,
+	"MOVI":   0x0D,
+	"ADDI":   0x0E,
+	"SUBI":   0x0F,
+	"MULI":   0x10,
+	"DIVI":   0x11,
+	"LOAD":   0x12,
+	"STORE":  0x13,
+	"PUSH":   0x14,
+	"POP":    0x15,
+	"CALL":   0x16,
+	"RET":    0x17,
+	"HALT":   0xFF,
+}
+
+var regMap = map[string]byte{
+	"R0": 0,
+	"R1": 1,
+	"R2": 2,
+	"R3": 3,
+	"R4": 4,
+	"R5": 5,
+	"R6": 6,
+	"R7": 7,
+}
