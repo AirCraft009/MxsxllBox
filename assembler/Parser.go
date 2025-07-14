@@ -2,16 +2,15 @@ package assembler
 
 import (
 	"MxsxllBox/helper"
-	"fmt"
 	"strconv"
 	"strings"
 )
 
 const (
-	OpCLoc   = 0
-	RegsLoc1 = 1
-	RegsLoc2 = 2
-	RegsLocOut
+	OpCLoc       = 0
+	RegsLoc1     = 1
+	RegsLoc2     = 2
+	RegsLocOut   = 1
 	AddrLoc1     = 1
 	AddrLoc2     = 2
 	AddrOutLocHi = 2
@@ -19,14 +18,14 @@ const (
 )
 
 type Parser struct {
-	Parsers    map[string]func(parameters []string, currPC uint16) (pc uint16, code []byte, syntax error)
+	Parsers    map[string]func(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error)
 	Labels     map[string]uint16
 	LabelCodes map[uint16]bool
 }
 
 func newParser() *Parser {
 	parser := &Parser{
-		Parsers:    make(map[string]func(parameters []string, currPC uint16) (pc uint16, code []byte, syntax error)),
+		Parsers:    make(map[string]func(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error)),
 		Labels:     make(map[string]uint16),
 		LabelCodes: make(map[uint16]bool),
 	}
@@ -47,10 +46,10 @@ func newParser() *Parser {
 	parser.Parsers["SUB"] = parseFormatOPRegReg
 	parser.Parsers["DIV"] = parseFormatOPRegReg
 	parser.Parsers["MUL"] = parseFormatOPRegReg
-	parser.Parsers["JMP"] = parseFormatOPAddr
-	parser.Parsers["JZ"] = parseFormatOPAddr
-	parser.Parsers["JC"] = parseFormatOPAddr
-	parser.Parsers["CALL"] = parseFormatOPAddr
+	parser.Parsers["JMP"] = parseFormatOPLbl
+	parser.Parsers["JZ"] = parseFormatOPLbl
+	parser.Parsers["JC"] = parseFormatOPLbl
+	parser.Parsers["CALL"] = parseFormatOPLbl
 	parser.Parsers["PUSH"] = parseFormatOPReg
 	parser.Parsers["POP"] = parseFormatOPReg
 	parser.Parsers["PRINT"] = parseFormatOPReg
@@ -60,11 +59,11 @@ func newParser() *Parser {
 	return parser
 }
 
-func parseFormatOP(parameters []string, currPC uint16) (pc uint16, code []byte, syntax error) {
+func parseFormatOP(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	return currPC + 1, []byte{opCodes[parameters[OpCLoc]]}, nil
 }
 
-func parseFormatOPRegAddr(parameters []string, currPC uint16) (pc uint16, code []byte, syntax error) {
+func parseFormatOPRegAddr(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
 	code = make([]byte, 4)
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
@@ -81,7 +80,7 @@ func parseFormatOPRegAddr(parameters []string, currPC uint16) (pc uint16, code [
 	return currPC, code, syntax
 }
 
-func parseFormatOPRegReg(parameters []string, currPC uint16) (pc uint16, code []byte, syntax error) {
+func parseFormatOPRegReg(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
 	code = make([]byte, 2)
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
@@ -92,7 +91,7 @@ func parseFormatOPRegReg(parameters []string, currPC uint16) (pc uint16, code []
 	return currPC, code, nil
 }
 
-func parseFormatOPAddr(parameters []string, currPC uint16) (pc uint16, code []byte, syntax error) {
+func parseFormatOPAddr(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
 	code = make([]byte, 4)
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
@@ -108,7 +107,23 @@ func parseFormatOPAddr(parameters []string, currPC uint16) (pc uint16, code []by
 	return currPC, code, syntax
 }
 
-func parseFormatOPReg(parameters []string, currPC uint16) (pc uint16, code []byte, syntax error) {
+func parseFormatOPLbl(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
+	var rx, ry byte
+	code = make([]byte, 4)
+	code[OpCLoc] = opCodes[parameters[OpCLoc]]
+	addr, ok := parser.Labels[parameters[AddrLoc1]]
+	if !ok {
+		panic("label not found: " + parameters[AddrLoc1])
+	}
+	hi, lo := helper.EncodeAddr(uint16(addr))
+	code[RegsLocOut] = helper.EncodeRegs(rx, ry)
+	code[AddrOutLocHi] = hi
+	code[AddrOutLocLo] = lo
+	currPC += uint16(len(code))
+	return currPC, code, syntax
+}
+
+func parseFormatOPReg(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
 	code = make([]byte, 2)
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
@@ -123,7 +138,6 @@ func ParseLines(data string) [][]string {
 	stringLines := strings.Split(data, "\n")
 	stringParts := make([][]string, len(stringLines))
 	stringPartIndex := 0
-	fmt.Println(stringLines)
 	for index, line := range stringLines {
 		line = strings.TrimSpace(line)
 		commentIndex := strings.Index(line, "#")
@@ -137,23 +151,28 @@ func ParseLines(data string) [][]string {
 			stringPartIndex++
 		}
 	}
-	outPut := make([][]string, stringPartIndex)
-	copy(outPut, stringParts)
-	return outPut
+	return stringParts[:stringPartIndex]
 }
 
 func FirstPass(data [][]string, parser *Parser) *Parser {
 	var PC uint16
 	for _, line := range data {
 		if len(line) == 1 && strings.Contains(line[0], ":") {
-			parser.Labels[line[0]] = PC
+			parser.Labels[line[0][:len(line[0])-1]] = PC
 			parser.LabelCodes[PC] = true
-		} else {
-			parser.LabelCodes[PC] = false
+			continue
 		}
-		PC += uint16(len(line))
+		PC += uint16(getOffset(line[0]))
 	}
 	return parser
+}
+
+func getOffset(OP string) byte {
+	offset := offsetMap[OP]
+	if offset == 0 {
+		return 2
+	}
+	return offset
 }
 
 func Assemble(data string) (code []byte) {
@@ -164,17 +183,13 @@ func Assemble(data string) (code []byte) {
 }
 
 func SecondPass(data [][]string, parser *Parser) (code []byte) {
-	code = make([]byte, 4)
+	code = make([]byte, 0)
 	PC := uint16(0)
 	for _, line := range data {
-		if parser.LabelCodes[PC] {
-			PC++
-			continue
-		}
 		if parsfunc, ok := parser.Parsers[line[0]]; ok {
 			codeSnippet := make([]byte, 2)
 			var err error
-			PC, codeSnippet, err = parsfunc(line, PC)
+			PC, codeSnippet, err = parsfunc(line, PC, parser)
 			if err != nil {
 				panic(err)
 			}

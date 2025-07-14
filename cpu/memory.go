@@ -3,19 +3,23 @@ package cpu
 import "unsafe"
 
 const (
-	MemorySize   = 4096
+	MemorySize = 16 * 1024 // 16 KB total memory
+
 	ProgramStart = 0x0000
-	ProgramEnd   = 0x03FF
+	ProgramEnd   = 0x0FFF // 4 KB for program (0x0000–0x0FFF)
 
-	HeapStart = 0x0400
-	HeapEnd   = 0x05FF
+	HeapStart = 0x1000
+	HeapEnd   = 0x1FFF // 4 KB heap (0x1000–0x1FFF)
 
-	VideoStart = 0x0600
-	VideoEnd   = 0x0BFF
+	StackStart = 0x2000
+	StackEnd   = 0x27FF // 2 KB stack (0x2000–0x27FF)
+	StackInit  = 0x2800 // stack pointer start address (just past stack end)
 
-	StackStart = 0x0C00
-	StackEnd   = 0x0FFF
-	StackInit  = 0x1000
+	VideoStart = 0x2800
+	VideoEnd   = 0x3FFF // 5 KB video RAM (0x2800–0x3FFF)
+
+	ReservedStart = 0x4000
+	ReservedEnd   = 0x43FF // 1 KB reserved for IO, keyboard buffers, etc.
 )
 
 type Memory struct {

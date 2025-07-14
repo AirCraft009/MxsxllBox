@@ -92,12 +92,12 @@ func handlePop(cpu *CPU, instruction *HandlerInstructions) {
 
 func handleCall(cpu *CPU, instruction *HandlerInstructions) {
 	cpu.SP -= instructionSizeShort
-	cpu.Mem.WriteByte(cpu.SP, byte(cpu.PC))
+	cpu.Mem.WriteWord(cpu.SP, cpu.PC)
 	handleJmp(cpu, instruction)
 }
 
 func handleRet(cpu *CPU, instruction *HandlerInstructions) {
-	instruction.Addr = cpu.Mem.ReadWord(cpu.SP)
+	instruction.Addr = cpu.Mem.ReadWord(cpu.SP) + instructionSizeLong
 	cpu.PC += instructionSizeLong
 	cpu.SP += instructionSizeShort
 	handleJmp(cpu, instruction)
@@ -109,6 +109,7 @@ func handleReadWriteSize(addr uint16) bool {
 }
 
 func handleNop(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.PC++
 	return
 }
 
@@ -226,7 +227,7 @@ func handleJz(cpu *CPU, instructions *HandlerInstructions) {
 
 func handlePrint(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.PC += instructionSizeShort
-	fmt.Printf("%c", cpu.Registers[instructions.Rx])
+	fmt.Println(cpu.Registers[instructions.Rx])
 }
 
 func handleMovi(cpu *CPU, instructions *HandlerInstructions) {
