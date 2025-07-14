@@ -3,15 +3,21 @@ package main
 import (
 	"MxsxllBox/assembler"
 	"MxsxllBox/cpu"
-	"MxsxllBox/helper"
-	"fmt"
+	"log"
+	"os"
 )
 
 func main() {
 	mem := cpu.NewMemory()
 
-	fmt.Println(assembler.ParseLines("mfsjdafkjskljkljk#dsfsdfdf\nadfsadfsd\n\n#ich will nicht mehr\n main:"))
+	data, err := os.ReadFile("program.asm")
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	assembled := assembler.Assemble(string(data)) // returns []byte
+	copy(mem.Data[:], assembled)
+	/**
 	program := []byte{}
 
 	lo, hi := helper.EncodeAddr(1000)
@@ -27,7 +33,7 @@ func main() {
 	program = append(program, cpu.RET)
 
 	copy(mem.Data[:cpu.MemorySize], program)
-
+	*/
 	vm := cpu.NewCPU(mem)
 	vm.Run()
 }
