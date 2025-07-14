@@ -1,6 +1,15 @@
 package cpu
 
-import "fmt"
+import (
+	"fmt"
+)
+
+const (
+	//for any operation that doesn't use the addr
+	instructionSizeShort = 2
+	//for any operation that does use the addr
+	instructionSizeLong = 4
+)
 
 type HandlerInstructions struct {
 	Rx   byte
@@ -32,7 +41,7 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	bitwise or
 	adrr = 1011100101101011
 	*/
-	addr := uint16(cpu.Mem.Read(cpu.PC+2))<<8 | (uint16(cpu.Mem.Read(cpu.PC + 3)))
+	addr := uint16(cpu.Mem.Read(cpu.PC+instructionSizeShort))<<8 | (uint16(cpu.Mem.Read(cpu.PC + 3)))
 	instructions = newHandlerInstructions(rx, ry, addr)
 	return opcode, instructions
 }
@@ -42,7 +51,7 @@ func decodeReg(reg byte) (rx byte, ry byte) {
 	reg contains both rx and ry
 	rx = bits 7-5
 	ry = bits 4-2
-	flags, etc. = bits 0 - 2
+	flags, etc. = bits 0 - 1
 
 	>> rightshifts all bits by the following number
 	& bitwise and looks at each number does and
@@ -65,52 +74,119 @@ func decodeReg(reg byte) (rx byte, ry byte) {
 	return rx, ry
 }
 
+func handlePush(cpu *CPU, instruction *HandlerInstructions) {
+	val := cpu.Registers[instruction.Rx]
+	cpu.SP -= instructionSizeShort
+	cpu.Mem.Write(cpu.SP, byte(val>>8))
+	cpu.Mem.Write(cpu.SP+1, byte(val&0xff))
+	cpu.PC += instructionSizeShort
+}
+
+func handlePop(cpu *CPU, instruction *HandlerInstructions) {
+	hi := cpu.Mem.Read(instruction.Addr)
+	lo := cpu.Mem.Read(instruction.Addr - 1)
+	cpu.Registers[instruction.Rx] = uint16(hi)<<8 | uint16(lo)
+	cpu.PC += instructionSizeLong
+	cpu.SP += instructionSizeShort
+}
+
+func handleReadWriteSize(addr uint16) bool {
+	//true means 1 byte access false means full word access
+	return addr >= VideoStart && addr <= VideoEnd
+}
+
 func handleNop(cpu *CPU, instructions *HandlerInstructions) {
 	return
 }
 
+func handleLoad(cpu *CPU, instructions *HandlerInstructions) {
+	if handleReadWriteSize(instructions.Addr) {
+		handleLoadB(cpu, instructions)
+		return
+	}
+	handleLoadW(cpu, instructions)
+}
+
+func handleStore(cpu *CPU, instructions *HandlerInstructions) {
+	if handleReadWriteSize(instructions.Addr) {
+		handleStoreB(cpu, instructions)
+		return
+	}
+	handleStoreW(cpu, instructions)
+}
+
 func handleLoadB(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.Registers[instructions.Rx] = uint16(cpu.Mem.Read(instructions.Addr))
-	cpu.PC += 4
+	cpu.PC += instructionSizeLong
 }
 
 func handleLoadW(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.Registers[instructions.Rx] = uint16(cpu.Mem.Read(instructions.Addr)) << 8
 	cpu.Registers[instructions.Rx] |= uint16(cpu.Mem.Read(instructions.Addr + 1))
-	cpu.PC += 4
+	cpu.PC += instructionSizeLong
 }
 
 func handleStoreB(cpu *CPU, instructions *HandlerInstructions) {
 	val := byte(cpu.Registers[instructions.Rx] & 0xFF)
 	cpu.Mem.Write(instructions.Addr, val)
-	cpu.PC += 4
+	cpu.PC += instructionSizeLong
 }
 
 func handleStoreW(cpu *CPU, instructions *HandlerInstructions) {
 	val := cpu.Registers[instructions.Rx]
-	cpu.Mem.Write(instructions.Addr, byte(val&0xFF))
-	cpu.Mem.Write(instructions.Addr+1, byte(val>>8))
-	cpu.PC += 4
+	cpu.Mem.Write(instructions.Addr, byte((val>>8)&0xFF))
+	cpu.Mem.Write(instructions.Addr+1, byte(val&0xff))
+	cpu.PC += instructionSizeLong
 }
 
 func handleAdd(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.Registers[instructions.Rx] += cpu.Registers[instructions.Ry]
-	cpu.PC += 2
+	rx := instructions.Rx
+	a := cpu.Registers[rx]
+	b := cpu.Registers[instructions.Ry]
+	result := uint32(a) + uint32(b)
+
+	cpu.Registers[rx] = uint16(result)
+	cpu.Flags.Zero = cpu.Registers[rx] == 0x00
+	cpu.Flags.Carry = result > 0xffff
+
+	cpu.PC += instructionSizeShort
 }
 
 func handleSub(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.Registers[instructions.Rx] -= cpu.Registers[instructions.Ry]
-	cpu.PC += 2
+	rx := instructions.Rx
+	a := cpu.Registers[rx]
+	b := cpu.Registers[instructions.Ry]
+	result := uint32(a) - uint32(b)
+
+	cpu.Registers[instructions.Rx] = uint16(result)
+	cpu.Flags.Zero = cpu.Registers[rx] == 0x00
+	cpu.Flags.Carry = result < 0x00
+
+	cpu.PC += instructionSizeShort
 }
 
 func handleMul(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.Registers[instructions.Rx] *= cpu.Registers[instructions.Ry]
-	cpu.PC += 2
+	rx := instructions.Rx
+	a := cpu.Registers[rx]
+	b := cpu.Registers[instructions.Ry]
+	result := uint32(a) * uint32(b)
+
+	cpu.Registers[instructions.Rx] = uint16(result)
+	cpu.Flags.Zero = cpu.Registers[rx] == 0x00
+	cpu.Flags.Carry = result > 0xffff
+
+	cpu.PC += instructionSizeShort
 }
 
 func handleDiv(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.Registers[instructions.Rx] /= cpu.Registers[instructions.Ry]
-	cpu.PC += 2
+	rx := instructions.Rx
+	a := cpu.Registers[rx]
+	b := cpu.Registers[instructions.Ry]
+	result := uint32(a) / uint32(b)
+	cpu.Registers[instructions.Rx] = uint16(result)
+	cpu.Flags.Zero = cpu.Registers[rx] == 0x00
+	cpu.Flags.Carry = false
+	cpu.PC += instructionSizeShort
 }
 
 func handleJmp(cpu *CPU, instructions *HandlerInstructions) {
@@ -118,23 +194,65 @@ func handleJmp(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleJc(cpu *CPU, instructions *HandlerInstructions) {
-	//implement later
-	cpu.PC += 1
+	if cpu.Flags.Carry && instructions.Addr <= ProgramEnd {
+		cpu.PC = instructions.Addr
+		return
+	}
+	cpu.PC += instructionSizeLong
 }
 
 func handleJz(cpu *CPU, instructions *HandlerInstructions) {
-	//implement later
-	cpu.PC += 1
+	if cpu.Flags.Zero && instructions.Addr <= ProgramEnd {
+		cpu.PC = instructions.Addr
+		return
+	}
+	cpu.PC += instructionSizeLong
 }
 
 func handlePrint(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.PC += 2
+	cpu.PC += instructionSizeShort
 	fmt.Printf("%c", cpu.Registers[instructions.Rx])
 }
 
 func handleMovi(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.Registers[instructions.Rx] = instructions.Addr
-	cpu.PC += 4
+	cpu.PC += instructionSizeLong
+}
+
+func handleAddi(cpu *CPU, instructions *HandlerInstructions) {
+	rx := cpu.Registers[instructions.Rx]
+	result := uint32(rx) + uint32(instructions.Addr)
+	cpu.Registers[instructions.Rx] = uint16(result)
+	cpu.Flags.Zero = cpu.Registers[instructions.Rx] == 0x00
+	cpu.Flags.Carry = result > 0xffff
+	cpu.PC += instructionSizeLong
+}
+
+func handleSubi(cpu *CPU, instructions *HandlerInstructions) {
+	rx := cpu.Registers[instructions.Rx]
+	result := uint32(rx) + -uint32(instructions.Addr)
+	cpu.Registers[instructions.Rx] = uint16(result)
+	cpu.Flags.Zero = cpu.Registers[instructions.Rx] == 0x00
+	cpu.Flags.Carry = result < 0x00
+	cpu.PC += instructionSizeLong
+}
+
+func handleMuli(cpu *CPU, instructions *HandlerInstructions) {
+	rx := cpu.Registers[instructions.Rx]
+	result := uint32(rx) * uint32(instructions.Addr)
+	cpu.Registers[instructions.Rx] = uint16(result)
+	cpu.Flags.Zero = cpu.Registers[instructions.Rx] == 0x00
+	cpu.Flags.Carry = result > 0xffff
+	cpu.PC += instructionSizeLong
+}
+
+func handleDivi(cpu *CPU, instructions *HandlerInstructions) {
+	rx := cpu.Registers[instructions.Rx]
+	result := uint32(rx) / uint32(instructions.Addr)
+	cpu.Registers[instructions.Rx] = uint16(result)
+	cpu.Flags.Zero = cpu.Registers[instructions.Rx] == 0x00
+	cpu.Flags.Carry = false
+	cpu.PC += instructionSizeLong
 }
 
 func handleHalt(cpu *CPU, instructions *HandlerInstructions) {

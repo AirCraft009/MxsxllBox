@@ -1,5 +1,7 @@
 package cpu
 
+import "unsafe"
+
 const (
 	MemorySize   = 4096
 	ProgramStart = 0x0000
@@ -17,10 +19,26 @@ const (
 )
 
 type Memory struct {
-	Data    [MemorySize]byte
-	Program uint16
-	Video   uint16
-	Stack   uint16
+	Data  [MemorySize]byte
+	HeapP uint16
+}
+
+func (mem *Memory) Alloc(size uint16) uint16 {
+	addr := mem.HeapP
+	if mem.HeapP+size+instructionSizeShort > HeapEnd {
+		panic("Heap overflow")
+	}
+	return addr
+}
+
+func (mem *Memory) Free(ptr unsafe.Pointer) bool {
+	return false
+}
+
+func NewMemory() *Memory {
+	return &Memory{
+		HeapP: HeapStart,
+	}
 }
 
 func (mem *Memory) Read(addr uint16) byte {

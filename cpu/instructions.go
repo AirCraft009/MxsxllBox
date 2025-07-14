@@ -19,5 +19,9 @@ const (
 	SUBI   byte = 0x0F
 	MULI   byte = 0x10
 	DIVI   byte = 0x11
+	LOAD   byte = 0x12
+	STORE  byte = 0x13
+	PUSH   byte = 0x14
+	POP    byte = 0x15
 	HALT   byte = 0xFF //stop the program
 )

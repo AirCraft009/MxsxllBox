@@ -2,30 +2,21 @@ package main
 
 import (
 	"MxsxllBox/cpu"
+	"MxsxllBox/helper"
 )
 
-func EncodeRegs(rx, ry byte) byte {
-	return ((rx & 0x07) << 5) | ((ry & 0x07) << 2)
-}
-
-func EncodeAddr(addr uint16) (byte, byte) {
-	if addr <= 255 {
-		return byte(0), byte(addr)
-	}
-	return byte(addr>>8) & 0xff, byte(addr & 0xff)
-}
-
 func main() {
-	mem := &cpu.Memory{}
+	mem := cpu.NewMemory()
 
-	program := []byte{
-		cpu.MOVI,
-	}
-	hi, low := EncodeAddr('w')
-	program = append(program, EncodeRegs(2, 0), hi, low)
-	program = append(program, cpu.MOVI, EncodeRegs(4, 0), hi, low)
-	program = append(program, cpu.ADD, EncodeRegs(2, 4))
-	program = append(program, cpu.PRINT, EncodeRegs(2, 0), cpu.HALT)
+	program := []byte{}
+	hi, low := helper.EncodeAddr('w')
+	divhi, divlow := helper.EncodeAddr(20000)
+	beginhi, beginlow := helper.EncodeAddr(0)
+	program = append(program, cpu.MOVI, helper.EncodeRegs(2, 0), hi, low)
+	program = append(program, cpu.PRINT, helper.EncodeRegs(2, 0))
+	program = append(program, cpu.MULI, helper.EncodeRegs(2, 0), divhi, divlow)
+	program = append(program, cpu.JZ, 0x00, 0x00, beginhi, beginlow)
+	program = append(program, cpu.HALT)
 
 	copy(mem.Data[:cpu.MemorySize], program)
 

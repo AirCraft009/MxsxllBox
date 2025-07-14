@@ -15,7 +15,7 @@ type CPU struct {
 func NewCPU(mem *Memory) *CPU {
 	cpu := &CPU{
 		Mem:      mem,
-		SP:       MemorySize - 1, // stack grows downward
+		SP:       StackInit, // stack grows downward
 		Handlers: make(map[byte]func(cpu *CPU, instruction *HandlerInstructions)),
 	}
 
@@ -34,6 +34,14 @@ func NewCPU(mem *Memory) *CPU {
 	cpu.Handlers[PRINT] = handlePrint
 	cpu.Handlers[HALT] = handleHalt
 	cpu.Handlers[MOVI] = handleMovi
+	cpu.Handlers[ADDI] = handleAddi
+	cpu.Handlers[DIVI] = handleDivi
+	cpu.Handlers[SUBI] = handleSubi
+	cpu.Handlers[MULI] = handleMuli
+	cpu.Handlers[STORE] = handleStore
+	cpu.Handlers[LOAD] = handleLoad
+	cpu.Handlers[PUSH] = handlePush
+	cpu.Handlers[POP] = handlePop
 
 	return cpu
 }
