@@ -1,4 +1,4 @@
-package Assembler
+package assembler
 
 var opCodes = map[string]byte{
 	"NOP":    0x00,
