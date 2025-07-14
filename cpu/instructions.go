@@ -14,6 +14,10 @@ const (
 	JZ     byte = 0x0A // Jump if zero flag
 	JC     byte = 0x0B //Jump if carry flag
 	PRINT  byte = 0x0C // Print register as char
-	MOVI   byte = 0x0D
+	MOVI   byte = 0x0D // MOVI Regs, immideate
+	ADDI   byte = 0x0E
+	SUBI   byte = 0x0F
+	MULI   byte = 0x10
+	DIVI   byte = 0x11
 	HALT   byte = 0xFF //stop the program
 )

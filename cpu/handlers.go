@@ -93,13 +93,6 @@ func handleStoreW(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.PC += 4
 }
 
-func handleStoreIW(cpu *CPU, instructions *HandlerInstructions) {
-	val := instructions.Rx
-	cpu.Mem.Write(instructions.Addr, byte(val&0xFF))
-	cpu.Mem.Write(instructions.Addr+1, byte(val>>8))
-	cpu.PC += 4
-}
-
 func handleAdd(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.Registers[instructions.Rx] += cpu.Registers[instructions.Ry]
 	cpu.PC += 2
@@ -136,7 +129,7 @@ func handleJz(cpu *CPU, instructions *HandlerInstructions) {
 
 func handlePrint(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.PC += 2
-	fmt.Println(cpu.Registers[instructions.Rx])
+	fmt.Printf("%c", cpu.Registers[instructions.Rx])
 }
 
 func handleMovi(cpu *CPU, instructions *HandlerInstructions) {
