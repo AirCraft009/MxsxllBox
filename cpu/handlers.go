@@ -28,7 +28,7 @@ func newHandlerInstructions(rx byte, ry byte, addr uint16) *HandlerInstructions 
 func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	opcode = cpu.Mem.ReadByte(cpu.PC)
 	regs := cpu.Mem.ReadByte(cpu.PC + 1)
-	rx, ry := decodeReg(regs)
+	rx, ry, addresnec := decodeReg(regs)
 	/**
 	addr is twice as long so 16 bits we calculate it by reading two times,
 	then upshifting the first by 8 and fusing them with the second read
@@ -41,12 +41,15 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	bitwise or
 	adrr = 1011100101101011
 	*/
-	addr := uint16(cpu.Mem.ReadByte(cpu.PC+instructionSizeShort))<<8 | (uint16(cpu.Mem.ReadByte(cpu.PC + 3)))
+	var addr uint16
+	if addresnec {
+		addr = cpu.Mem.ReadWord(cpu.PC + instructionSizeShort)
+	}
 	instructions = newHandlerInstructions(rx, ry, addr)
 	return opcode, instructions
 }
 
-func decodeReg(reg byte) (rx byte, ry byte) {
+func decodeReg(reg byte) (rx byte, ry byte, addresNec bool) {
 	/**
 	reg contains both rx and ry
 	rx = bits 7-5
@@ -71,7 +74,8 @@ func decodeReg(reg byte) (rx byte, ry byte) {
 	*/
 	rx = (reg >> 5) & 0x07
 	ry = (reg >> 2) & 0x07
-	return rx, ry
+	addrnec := (reg) & 0x03
+	return rx, ry, addrnec != 0x0
 }
 
 func handleAlloc(cpu *CPU, instructions *HandlerInstructions) {
@@ -113,9 +117,9 @@ func handleRet(cpu *CPU, instruction *HandlerInstructions) {
 	handleJmp(cpu, instruction)
 }
 
-func handleReadWriteSize(addr uint16) bool {
+func handleReadWriteSize(addr uint16, regAddr uint16) bool {
 	//true means 1 byte access false means full word access
-	return addr >= VideoStart && addr <= VideoEnd
+	return addr >= VideoStart && addr <= VideoEnd || regAddr >= VideoStart && regAddr <= VideoEnd
 }
 
 func handleNop(cpu *CPU, instructions *HandlerInstructions) {
@@ -124,7 +128,7 @@ func handleNop(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleLoad(cpu *CPU, instructions *HandlerInstructions) {
-	if handleReadWriteSize(instructions.Addr) {
+	if handleReadWriteSize(instructions.Addr, cpu.Registers[instructions.Ry]) {
 		handleLoadB(cpu, instructions)
 		return
 	}
@@ -132,7 +136,7 @@ func handleLoad(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleStore(cpu *CPU, instructions *HandlerInstructions) {
-	if handleReadWriteSize(instructions.Addr) {
+	if handleReadWriteSize(instructions.Addr, cpu.Registers[instructions.Ry]) {
 		handleStoreB(cpu, instructions)
 		return
 	}
@@ -140,26 +144,44 @@ func handleStore(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleLoadB(cpu *CPU, instructions *HandlerInstructions) {
+	if instructions.Addr == 0 && cpu.Registers[instructions.Ry] != 0 {
+		cpu.Registers[instructions.Rx] = uint16(cpu.Mem.ReadByte(cpu.Registers[instructions.Ry]))
+		cpu.PC += instructionSizeShort
+		return
+	}
 	cpu.Registers[instructions.Rx] = uint16(cpu.Mem.ReadByte(instructions.Addr))
 	cpu.PC += instructionSizeLong
 }
 
 func handleLoadW(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.Registers[instructions.Rx] = uint16(cpu.Mem.ReadByte(instructions.Addr)) << 8
-	cpu.Registers[instructions.Rx] |= uint16(cpu.Mem.ReadByte(instructions.Addr + 1))
+	if instructions.Addr == 0 && cpu.Registers[instructions.Ry] != 0 {
+		cpu.Registers[instructions.Rx] = cpu.Mem.ReadWord(cpu.Registers[instructions.Ry])
+		cpu.PC += instructionSizeShort
+		return
+	}
+	cpu.Registers[instructions.Rx] = cpu.Mem.ReadWord(instructions.Addr)
 	cpu.PC += instructionSizeLong
 }
 
 func handleStoreB(cpu *CPU, instructions *HandlerInstructions) {
 	val := byte(cpu.Registers[instructions.Rx] & 0xFF)
+	if instructions.Addr == 0 && cpu.Registers[instructions.Ry] != 0 {
+		cpu.Mem.WriteByte(cpu.Registers[instructions.Ry], val)
+		cpu.PC += instructionSizeShort
+		return
+	}
 	cpu.Mem.WriteByte(instructions.Addr, val)
 	cpu.PC += instructionSizeLong
 }
 
 func handleStoreW(cpu *CPU, instructions *HandlerInstructions) {
 	val := cpu.Registers[instructions.Rx]
-	cpu.Mem.WriteByte(instructions.Addr, byte((val>>8)&0xFF))
-	cpu.Mem.WriteByte(instructions.Addr+1, byte(val&0xff))
+	if instructions.Addr == 0 && cpu.Registers[instructions.Ry] != 0 {
+		cpu.Mem.WriteWord(cpu.Registers[instructions.Ry], val)
+		cpu.PC += instructionSizeShort
+		return
+	}
+	cpu.Mem.WriteWord(instructions.Addr, val)
 	cpu.PC += instructionSizeLong
 }
 
@@ -237,7 +259,8 @@ func handleJz(cpu *CPU, instructions *HandlerInstructions) {
 
 func handlePrint(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.PC += instructionSizeShort
-	fmt.Printf("c\n", cpu.Registers[instructions.Rx])
+	fmt.Printf("%c\n", cpu.Registers[instructions.Rx])
+	fmt.Println(cpu.Registers[instructions.Rx])
 }
 
 func handleMovi(cpu *CPU, instructions *HandlerInstructions) {

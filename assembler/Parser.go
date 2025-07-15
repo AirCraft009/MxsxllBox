@@ -67,19 +67,37 @@ func parseFormatOP(parameters []string, currPC uint16, parser *Parser) (pc uint1
 
 func parseFormatOPRegAddr(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
-	code = make([]byte, 4)
+	code = make([]byte, 2)
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
 	rx = regMap[parameters[RegsLoc1]]
-	code[RegsLocOut] = helper.EncodeRegs(rx, ry)
-	addr, syntax := strconv.Atoi(parameters[AddrLoc2])
-	if syntax != nil {
-		panic("syntax error: " + syntax.Error())
+	ry, ok := regMap[parameters[RegsLoc2]]
+	code[RegsLocOut] = helper.EncodeRegs(rx, ry, !ok)
+	if !ok {
+		addr, syntax := strconv.Atoi(parameters[AddrLoc2])
+		if syntax != nil {
+			panic("syntax error: " + syntax.Error())
+		}
+		hi, lo := helper.EncodeAddr(uint16(addr))
+		code = append(code, hi, lo)
 	}
-	hi, lo := helper.EncodeAddr(uint16(addr))
-	code[AddrOutLocHi] = hi
-	code[AddrOutLocLo] = lo
 	currPC += uint16(len(code))
 	return currPC, code, syntax
+}
+
+func parseFormatString(parameters []string, currPC uint16, parser *Parser) (pc, code []byte, syntax error) {
+	var _, _ byte
+	_ = regMap[parameters[RegsLoc1]]
+	_ = regMap[parameters[RegsLoc2]]
+	inputString := parameters[AddrLoc1]
+	inputString = strings.ReplaceAll(inputString, "\"", "")
+	/**
+	length := len(inputString)
+	MOVI reg1 part
+	ADDI reg2 0
+	STOREB reg1 reg2
+	code = make([]byte)
+	*/
+	return nil, nil, nil
 }
 
 func parseFormatOPRegReg(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
@@ -88,7 +106,7 @@ func parseFormatOPRegReg(parameters []string, currPC uint16, parser *Parser) (pc
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
 	rx = regMap[parameters[RegsLoc1]]
 	ry = regMap[parameters[RegsLoc2]]
-	code[RegsLocOut] = helper.EncodeRegs(rx, ry)
+	code[RegsLocOut] = helper.EncodeRegs(rx, ry, false)
 	currPC += uint16(len(code))
 	return currPC, code, nil
 }
@@ -102,7 +120,7 @@ func parseFormatOPAddr(parameters []string, currPC uint16, parser *Parser) (pc u
 		panic("syntax error: " + syntax.Error())
 	}
 	hi, lo := helper.EncodeAddr(uint16(addr))
-	code[RegsLocOut] = helper.EncodeRegs(rx, ry)
+	code[RegsLocOut] = helper.EncodeRegs(rx, ry, true)
 	code[AddrOutLocHi] = hi
 	code[AddrOutLocLo] = lo
 	currPC += uint16(len(code))
@@ -118,7 +136,7 @@ func parseFormatOPLbl(parameters []string, currPC uint16, parser *Parser) (pc ui
 		panic("label not found: " + parameters[AddrLoc1])
 	}
 	hi, lo := helper.EncodeAddr(uint16(addr))
-	code[RegsLocOut] = helper.EncodeRegs(rx, ry)
+	code[RegsLocOut] = helper.EncodeRegs(rx, ry, true)
 	code[AddrOutLocHi] = hi
 	code[AddrOutLocLo] = lo
 	currPC += uint16(len(code))
@@ -130,7 +148,7 @@ func parseFormatOPReg(parameters []string, currPC uint16, parser *Parser) (pc ui
 	code = make([]byte, 2)
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
 	rx = regMap[parameters[RegsLoc1]]
-	code[RegsLocOut] = helper.EncodeRegs(rx, ry)
+	code[RegsLocOut] = helper.EncodeRegs(rx, ry, false)
 	currPC += uint16(len(code))
 	return currPC, code, nil
 }
