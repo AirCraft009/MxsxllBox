@@ -3,8 +3,10 @@ package cpu
 const (
 	MemorySize = 16 * 1024 // 16 KB total memory
 
-	ProgramStart = 0x0000
-	ProgramEnd   = 0x0FFF // 4 KB for program (0x0000–0x0FFF)
+	ProgramStart       = 0x0000
+	programUserEnd     = 0x0C00
+	ProgramStdLibStart = 0x0C01
+	ProgramEnd         = 0x0FFF // 4 KB for program (0x0000–0x0FFF)
 
 	HeapStart      = 0x1000
 	HeapEnd        = 0x1FFF // 4 KB heap (0x1000–0x1FFF)

@@ -46,6 +46,17 @@ func NewCPU(mem *Memory) *CPU {
 	cpu.Handlers[RET] = handleRet
 	cpu.Handlers[ALLOC] = handleAlloc
 	cpu.Handlers[FREE] = handleFree
+	cpu.Handlers[PRINTSTR] = handlePrintstr
+	cpu.Handlers[JNZ] = handleJnz
+	cpu.Handlers[JNC] = handleJnc
+	cpu.Handlers[CMP] = handleCmp
+	cpu.Handlers[CMPI] = handleCmpi
+	cpu.Handlers[TEST] = handleTest
+	cpu.Handlers[TSTI] = handleTsti
+	cpu.Handlers[JL] = handleJL
+	cpu.Handlers[JLE] = handleJLE
+	cpu.Handlers[JG] = handleJG
+	cpu.Handlers[JGE] = handleJGE
 
 	return cpu
 }

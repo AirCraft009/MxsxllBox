@@ -37,6 +37,22 @@ Stack initializes at 0x1000
 - `free` returns blocks to the heap
 - Bitmap is stored outside the heap in VM internal structures
 
+
+## Std. Lib. 
+
+- Labels that are saved into the library Region of the Program Space
+- ProgramStdLibStart = 0x0C01 
+- ProgramEnd         = 0x0FFF
+
+### String functions
+
+- strcpy R0 = loc R1 = dest
+- strlen R0 = loc R1 = lenght
+- strcmp R0 = loc R1 = val.
+- strcat R0 = loc1 R1 = loc2 R0 = conc.
+
+### 
+
 ---
 
 ## Design Decisions
@@ -54,12 +70,10 @@ Stack initializes at 0x1000
 - Basic assembler and VM running with working jumps, calls, arithmetic
 - RET instruction fixed to correctly return from calls
 - Debugging tools print label addresses and instruction assembly details
+- String Support lenght based indexing
 - Planning to add:
-    - String support instructions
     - Memory copy, clear, and comparison instructions
+    - Std-Lib functions like strcpy etc
     - Keyboard input handling
     - Enhanced memory management features
-
----
-
-Feel free to save this as `README.md` and update it as you develop MxsxllBox further.
+    - Visual Output

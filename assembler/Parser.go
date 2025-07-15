@@ -15,10 +15,12 @@ const (
 	AddrLoc2     = 2
 	AddrOutLocHi = 2
 	AddrOutLocLo = 3
+	StrLoc       = 3
 )
 
 type Parser struct {
 	Parsers    map[string]func(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error)
+	Formatter  map[string]func(parameters []string) (formatted [][]string)
 	Labels     map[string]uint16
 	LabelCodes map[uint16]bool
 }
@@ -26,6 +28,7 @@ type Parser struct {
 func newParser() *Parser {
 	parser := &Parser{
 		Parsers:    make(map[string]func(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error)),
+		Formatter:  make(map[string]func(parameters []string) (formatted [][]string)),
 		Labels:     make(map[string]uint16),
 		LabelCodes: make(map[uint16]bool),
 	}
@@ -57,6 +60,18 @@ func newParser() *Parser {
 	parser.Parsers["HALT"] = parseFormatOP
 	parser.Parsers["ALLOC"] = parseFormatOPRegReg
 	parser.Parsers["FREE"] = parseFormatOPReg
+	parser.Parsers["PRINTSTR"] = parseFormatOPReg
+	parser.Parsers["JNZ"] = parseFormatOPLbl
+	parser.Parsers["JNC"] = parseFormatOPLbl
+	parser.Parsers["CMP"] = parseFormatOPRegReg
+	parser.Parsers["CMPI"] = parseFormatOPRegAddr
+	parser.Parsers["TEST"] = parseFormatOPRegReg
+	parser.Parsers["TSTI"] = parseFormatOPRegAddr
+	parser.Parsers["JL"] = parseFormatOPLbl
+	parser.Parsers["JLE"] = parseFormatOPLbl
+	parser.Parsers["JG"] = parseFormatOPLbl
+	parser.Parsers["JGE"] = parseFormatOPLbl
+	parser.Formatter["STRING"] = formatString
 
 	return parser
 }
@@ -79,25 +94,59 @@ func parseFormatOPRegAddr(parameters []string, currPC uint16, parser *Parser) (p
 		}
 		hi, lo := helper.EncodeAddr(uint16(addr))
 		code = append(code, hi, lo)
+	} else {
+		hi, lo := helper.EncodeAddr(uint16(0))
+		code = append(code, hi, lo)
 	}
 	currPC += uint16(len(code))
 	return currPC, code, syntax
 }
 
-func parseFormatString(parameters []string, currPC uint16, parser *Parser) (pc, code []byte, syntax error) {
-	var _, _ byte
-	_ = regMap[parameters[RegsLoc1]]
-	_ = regMap[parameters[RegsLoc2]]
-	inputString := parameters[AddrLoc1]
+func formatString(parameters []string) (formatted [][]string) {
+	//STRING RegUse RegAddr "STRING"
+	var rx, ry string
+	//rx = part
+	//ry = addr
+	rx = parameters[RegsLoc1]
+	ry = parameters[RegsLoc2]
+	inputStringParts := parameters[StrLoc:len(parameters)]
+	inputString := ""
+	for _, part := range inputStringParts {
+		inputString += part + " "
+	}
 	inputString = strings.ReplaceAll(inputString, "\"", "")
-	/**
+	inputString = inputString[:len(inputString)-1]
 	length := len(inputString)
+	/**
+	Jeder einzelne char wird mit diesen drei Op's dargestellt
+	es ist lenght prefix based bedeutet das ersteByte, welches gelesen wird ist die länge des Strings
 	MOVI reg1 part
 	ADDI reg2 0
 	STOREB reg1 reg2
-	code = make([]byte)
 	*/
-	return nil, nil, nil
+	ascii := make([]byte, length+2)
+	formatted = make([][]string, 0)
+	inputString = inputString + "/"
+	ascii[0] = byte(length)
+	var line []string
+	line = []string{"SUBI", ry, "1"}
+	formatted = append(formatted, line)
+	for i, part := range inputString {
+		line = []string{}
+		ascii[i+1] = byte(part)
+		line = append(line, "MOVI", rx, strconv.Itoa(int(ascii[i]))) //4
+		formatted = append(formatted, line)
+		line = []string{}
+		line = append(line, "ADDI", ry, "1") //4
+		formatted = append(formatted, line)
+		line = []string{}
+		line = append(line, "STOREB", rx, ry) //4
+		formatted = append(formatted, line)
+	}
+	line = []string{}
+	line = append(line, "SUBI", ry, strconv.Itoa(length))
+	formatted = append(formatted, line)
+	return formatted
 }
 
 func parseFormatOPRegReg(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
@@ -174,17 +223,30 @@ func ParseLines(data string) [][]string {
 	return stringParts[:stringPartIndex]
 }
 
-func FirstPass(data [][]string, parser *Parser) *Parser {
+func FirstPass(data [][]string, parser *Parser) (*Parser, [][]string) {
 	var PC uint16
-	for _, line := range data {
+	formattedExtraCode := make(map[int][][]string)
+
+	for i, line := range data {
 		if len(line) == 1 && strings.Contains(line[0], ":") {
 			parser.Labels[line[0][:len(line[0])-1]] = PC
 			parser.LabelCodes[PC] = true
 			continue
+		} else if formatter, ok := parser.Formatter[line[0]]; ok {
+			formatted := formatter(data[i])
+			formattedExtraCode[i] = formatted
+			for _, formatLine := range formatted {
+				PC += uint16(getOffset(formatLine[0]))
+			}
+			continue
 		}
 		PC += uint16(getOffset(line[0]))
 	}
-	return parser
+	for i, extraData := range formattedExtraCode {
+		data = helper.DeleteMatrixRow(data, i)
+		data = helper.InsertMatrixAtIndex(data, extraData, i)
+	}
+	return parser, data
 }
 
 func getOffset(OP string) byte {
@@ -196,14 +258,22 @@ func getOffset(OP string) byte {
 }
 
 func Assemble(data string) (code []byte) {
-	formattedData := ParseLines(data)
+	parsedData := ParseLines(data)
 	parser := newParser()
-	parser = FirstPass(formattedData, parser)
+	var formattedData [][]string
+	parser, formattedData = FirstPass(parsedData, parser)
+	/**
+	for lbl, adr := range parser.Labels {
+		fmt.Printf("Label: %s :addr: %d\n", lbl, adr)
+	}
+
+	*/
 	return SecondPass(formattedData, parser)
 }
 
 func SecondPass(data [][]string, parser *Parser) (code []byte) {
 	code = make([]byte, 0)
+
 	PC := uint16(0)
 	for _, line := range data {
 		if parsfunc, ok := parser.Parsers[line[0]]; ok {
