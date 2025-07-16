@@ -46,10 +46,10 @@ Stack initializes at 0x1000
 
 ### String functions
 
-- strcpy R0 = loc R1 = dest
-- strlen R0 = loc R1 = lenght
-- strcmp R0 = loc R1 = val.
-- strcat R0 = loc1 R1 = loc2 R0 = conc.
+- strcpy O1 = loc O2 = dest
+- strlen O1 = loc O2 = lenght
+- strcmp O1 = loc O2 = val.
+- strcat O1 = loc1 O2 = loc2 O1 = conc.
 
 ### 
 

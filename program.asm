@@ -1,11 +1,5 @@
-MOVI R0 1
-
-main:
-SUBI R0 1
-TSTI R0 0
-PRINT R0
-JZ end
-JMP main
-
-end:
+MOVI R17 5
+ALLOC R17 R1
+STRING R17 R1 "Hello you lachs"
+PRINTSTR R1
 HALT

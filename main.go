@@ -2,21 +2,30 @@ package main
 
 import (
 	"MxsxllBox/assembler"
-	"MxsxllBox/cpu"
 	"log"
 	"os"
 )
 
 func main() {
+
+	data, err := os.ReadFile("C:\\Users\\cocon\\Documents\\Projects\\Musa-Allmer\\MxsxllBox\\stdlib\\string.asm")
+	if err != nil {
+		log.Fatal(err)
+	}
+	code := assembler.Assemble(string(data))
+	assembler.SaveBin(code)
+
+	/**
 	mem := &cpu.Memory{}
 
-	data, err := os.ReadFile("program.asm")
+	data, err := os.ReadFile("C:\\Users\\cocon\\Documents\\Projects\\Musa-Allmer\\MxsxllBox\\stdlib\\string.asm")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	assembled := assembler.Assemble(string(data)) // returns []byte
 	copy(mem.Data[:], assembled)
+	fmt.Println(mem.Data)
 	/**
 	program := []byte{}
 
@@ -33,7 +42,8 @@ func main() {
 	program = append(program, cpu.RET)
 
 	copy(mem.Data[:cpu.MemorySize], program)
-	*/
+
 	vm := cpu.NewCPU(mem)
 	vm.Run()
+	*/
 }

@@ -6,9 +6,9 @@ import (
 
 const (
 	//for any operation that doesn't use the addr
-	instructionSizeShort = 2
+	instructionSizeShort = 3
 	//for any operation that does use the addr
-	instructionSizeLong = 4
+	instructionSizeLong = 5
 )
 
 type HandlerInstructions struct {
@@ -27,11 +27,12 @@ func newHandlerInstructions(rx byte, ry byte, addr uint16) *HandlerInstructions 
 
 func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	if cpu.PC >= ProgramEnd {
+		fmt.Println(cpu.PC)
 		panic("program out of memory")
 	}
 	opcode = cpu.Mem.ReadByte(cpu.PC)
-	regs := cpu.Mem.ReadByte(cpu.PC + 1)
-	rx, ry, addresnec := decodeReg(regs)
+	regs1, flagbyte := cpu.Mem.ReadReg(cpu.PC + 1)
+	rx, ry, addresnec := decodeReg(regs1, flagbyte)
 	/**
 	addr is twice as long so 16 bits we calculate it by reading two times,
 	then upshifting the first by 8 and fusing them with the second read
@@ -52,8 +53,9 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	return opcode, instructions
 }
 
-func decodeReg(reg byte) (rx byte, ry byte, addresNec bool) {
+func decodeReg(reg1, flag byte) (rx byte, ry byte, addresNec bool) {
 	/**
+	old: theory still applies
 	reg contains both rx and ry
 	rx = bits 7-5
 	ry = bits 4-2
@@ -75,9 +77,9 @@ func decodeReg(reg byte) (rx byte, ry byte, addresNec bool) {
 	ry = 5
 
 	*/
-	rx = (reg >> 5) & 0x07
-	ry = (reg >> 2) & 0x07
-	addrnec := (reg) & 0x03
+	rx = (reg1 >> 4) & 0x07
+	ry = (reg1) & 0x07
+	addrnec := (flag) & 0x03
 	return rx, ry, addrnec != 0x0
 }
 func handleJG(cpu *CPU, instructions *HandlerInstructions) {

@@ -83,6 +83,10 @@ func (mem *Memory) ReadByte(addr uint16) byte {
 	return mem.Data[addr]
 }
 
+func (mem *Memory) ReadReg(addr uint16) (byte, byte) {
+	return mem.Data[addr], mem.Data[addr+1]
+}
+
 func (mem *Memory) WriteByte(addr uint16, value byte) {
 	mem.Data[addr] = value
 }

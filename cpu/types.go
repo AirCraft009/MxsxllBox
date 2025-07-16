@@ -15,10 +15,10 @@ const (
 	R9
 	R10
 	R11
-	R12
-	R13
-	R14
-	R15
+	O1
+	O2
+	O3
+	O4
 	NumRegisters
 )
 

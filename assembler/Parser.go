@@ -2,20 +2,24 @@ package assembler
 
 import (
 	"MxsxllBox/helper"
+	"fmt"
+	"log"
+	"os"
 	"strconv"
 	"strings"
 )
 
 const (
-	OpCLoc       = 0
-	RegsLoc1     = 1
-	RegsLoc2     = 2
-	RegsLocOut   = 1
-	AddrLoc1     = 1
-	AddrLoc2     = 2
-	AddrOutLocHi = 2
-	AddrOutLocLo = 3
-	StrLoc       = 3
+	OpCLoc         = 0
+	RegsLoc1       = 1
+	RegsLoc2       = 2
+	RegsLocOut     = 1
+	AddrLoc1       = 1
+	AddrLoc2       = 2
+	AddrOutLocHi   = 3
+	AddrOutLocLo   = 4
+	StrLoc         = 3
+	RegWidthOffset = 1
 )
 
 type Parser struct {
@@ -23,6 +27,12 @@ type Parser struct {
 	Formatter  map[string]func(parameters []string) (formatted [][]string)
 	Labels     map[string]uint16
 	LabelCodes map[uint16]bool
+}
+
+type LabelDef struct {
+	LabelName   string
+	LabelOffset uint16
+	Global      bool
 }
 
 func newParser() *Parser {
@@ -82,11 +92,11 @@ func parseFormatOP(parameters []string, currPC uint16, parser *Parser) (pc uint1
 
 func parseFormatOPRegAddr(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
-	code = make([]byte, 2)
+	code = make([]byte, 3)
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
 	rx = regMap[parameters[RegsLoc1]]
 	ry, ok := regMap[parameters[RegsLoc2]]
-	code[RegsLocOut] = helper.EncodeRegs(rx, ry, !ok)
+	code[RegsLocOut], code[RegsLocOut+RegWidthOffset] = helper.EncodeRegs(rx, ry, !ok)
 	if !ok {
 		addr, syntax := strconv.Atoi(parameters[AddrLoc2])
 		if syntax != nil {
@@ -151,25 +161,25 @@ func formatString(parameters []string) (formatted [][]string) {
 
 func parseFormatOPRegReg(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
-	code = make([]byte, 2)
+	code = make([]byte, 3)
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
 	rx = regMap[parameters[RegsLoc1]]
 	ry = regMap[parameters[RegsLoc2]]
-	code[RegsLocOut] = helper.EncodeRegs(rx, ry, false)
+	code[RegsLocOut], code[RegsLocOut+RegWidthOffset] = helper.EncodeRegs(rx, ry, false)
 	currPC += uint16(len(code))
 	return currPC, code, nil
 }
 
 func parseFormatOPAddr(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
-	code = make([]byte, 4)
+	code = make([]byte, 5)
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
 	addr, syntax := strconv.Atoi(parameters[AddrLoc1])
 	if syntax != nil {
 		panic("syntax error: " + syntax.Error())
 	}
 	hi, lo := helper.EncodeAddr(uint16(addr))
-	code[RegsLocOut] = helper.EncodeRegs(rx, ry, true)
+	code[RegsLocOut], code[RegsLocOut+RegWidthOffset] = helper.EncodeRegs(rx, ry, true)
 	code[AddrOutLocHi] = hi
 	code[AddrOutLocLo] = lo
 	currPC += uint16(len(code))
@@ -178,14 +188,17 @@ func parseFormatOPAddr(parameters []string, currPC uint16, parser *Parser) (pc u
 
 func parseFormatOPLbl(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
-	code = make([]byte, 4)
+	code = make([]byte, 5)
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
+	/**
 	addr, ok := parser.Labels[parameters[AddrLoc1]]
 	if !ok {
 		panic("label not found: " + parameters[AddrLoc1])
 	}
 	hi, lo := helper.EncodeAddr(uint16(addr))
-	code[RegsLocOut] = helper.EncodeRegs(rx, ry, true)
+
+	*/
+	code[RegsLocOut], code[RegsLocOut+RegWidthOffset] = helper.EncodeRegs(rx, ry, true)
 	code[AddrOutLocHi] = hi
 	code[AddrOutLocLo] = lo
 	currPC += uint16(len(code))
@@ -194,10 +207,10 @@ func parseFormatOPLbl(parameters []string, currPC uint16, parser *Parser) (pc ui
 
 func parseFormatOPReg(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
-	code = make([]byte, 2)
+	code = make([]byte, 3)
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
 	rx = regMap[parameters[RegsLoc1]]
-	code[RegsLocOut] = helper.EncodeRegs(rx, ry, false)
+	code[RegsLocOut], code[RegsLocOut+RegWidthOffset] = helper.EncodeRegs(rx, ry, false)
 	currPC += uint16(len(code))
 	return currPC, code, nil
 }
@@ -231,6 +244,11 @@ func FirstPass(data [][]string, parser *Parser) (*Parser, [][]string) {
 		if len(line) == 1 && strings.Contains(line[0], ":") {
 			parser.Labels[line[0][:len(line[0])-1]] = PC
 			parser.LabelCodes[PC] = true
+			continue
+		} else if strings.Contains(line[0], ".ORG") {
+			val, _ := strconv.ParseInt(line[1], 0, 64)
+			fmt.Println(val)
+			PC = uint16(val)
 			continue
 		} else if formatter, ok := parser.Formatter[line[0]]; ok {
 			formatted := formatter(data[i])
@@ -287,4 +305,11 @@ func SecondPass(data [][]string, parser *Parser) (code []byte) {
 		}
 	}
 	return code
+}
+
+func SaveBin(filename string, data []byte) {
+	err := os.WriteFile(filename, data, 0644)
+	if err != nil {
+		log.Fatalf("Failed to write file: %v", err)
+	}
 }
