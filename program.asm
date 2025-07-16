@@ -1,5 +1,9 @@
-MOVI R17 5
-ALLOC R17 R1
-STRING R17 R1 "Hello you lachs"
-PRINTSTR R1
-HALT
+main:
+    MOVI R2 5
+    ALLOC R2 O1
+    MOVI R2 0
+    STRING R2 O1 "Hello you lachs"
+    PRINTSTR O1
+    ALLOC R2 O2
+    CALL _strcpy
+    HALT

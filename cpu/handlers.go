@@ -77,9 +77,9 @@ func decodeReg(reg1, flag byte) (rx byte, ry byte, addresNec bool) {
 	ry = 5
 
 	*/
-	rx = (reg1 >> 4) & 0x07
-	ry = (reg1) & 0x07
-	addrnec := (flag) & 0x03
+	rx = (reg1 >> 4) & 0x0F
+	ry = (reg1) & 0x0F
+	addrnec := (flag) & 0x01
 	return rx, ry, addrnec != 0x0
 }
 func handleJG(cpu *CPU, instructions *HandlerInstructions) {

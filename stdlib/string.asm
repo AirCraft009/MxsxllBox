@@ -1,4 +1,4 @@
-strcpy:
+_strcpy:
     LOADB O3 O1        # O3 = length
     ADDI O1 1          # O1 = O1 + 1  (back to first char)
 
@@ -17,7 +17,7 @@ STRCPY_LOOP:
     ADDI O2 1         # dst++
     SUBI O3 1         # length--
 
-    JMP COPY_LOOP
+    JMP STRCPY_LOOP
 
 END_STRCPY:
     RET

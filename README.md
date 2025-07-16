@@ -2,7 +2,8 @@
 
 ## Overview
 
-MxsxllBox is a custom virtual machine (VM) designed with a 16 KB memory space divided into several segments, supporting a simple instruction set and features like labels, branching, function calls, and dynamic memory management.
+MxsxllBox is a custom virtual machine (VM) designed with a 16 KB memory space divided into several segments, supporting a simple instruction set and features like labels, branching, function calls, and dynamic memory management.\
+It has 12 general purpose Registers and 4 Registers for syscalls 
 
 ---
 
@@ -21,7 +22,7 @@ Stack initializes at 0x1000
 
 ## Instructions and Parsing
 
-- Instructions vary in size, mostly 2 or 4 bytes
+- Instructions vary in size, mostly 3 or 5 bytes
 - Labels support for jumps and calls, with addresses resolved in two passes
 - Opcodes for arithmetic, load/store, jumps, calls, push/pop, print, and halt
 - Support for string-related instructions and memory operations planned
@@ -33,7 +34,7 @@ Stack initializes at 0x1000
 - Heap size: 4 KB
 - Uses a **bitmap allocator** with block size of 16 bytes
 - Metadata stored in the first word of an allocation block
-- `alloc`/`malloc` requests block counts (multiples of 16 bytes)
+- `alloc` requests block counts (multiples of 16 bytes)
 - `free` returns blocks to the heap
 - Bitmap is stored outside the heap in VM internal structures
 
@@ -43,17 +44,24 @@ Stack initializes at 0x1000
 - Labels that are saved into the library Region of the Program Space
 - ProgramStdLibStart = 0x0C01 
 - ProgramEnd         = 0x0FFF
+- In Syscalls O1 is always the return addr 
 
 ### String functions
 
-- strcpy O1 = loc O2 = dest
-- strlen O1 = loc O2 = lenght
-- strcmp O1 = loc O2 = val.
-- strcat O1 = loc1 O2 = loc2 O1 = conc.
+- `strcpy` O1 = loc O2 = dest
+- `strlen` O1 = loc O2 = lenght
+- `strcmp` O1 = loc O2 = val.
+- `strcat` O1 = loc1 O2 = loc2 O1 = conc.
 
 ### 
 
 ---
+
+## Custom Binary
+
+- A custom Binary set for the linker 
+- Contains code, Symbol, Relocation- len under "MXOB" header
+- Globals are labels with an underscor _
 
 ## Design Decisions
 
@@ -71,8 +79,10 @@ Stack initializes at 0x1000
 - RET instruction fixed to correctly return from calls
 - Debugging tools print label addresses and instruction assembly details
 - String Support lenght based indexing
+- Custom Binary Format
 - Planning to add:
     - Memory copy, clear, and comparison instructions
+    - Linker to compile Std-Lib functions together with user/Os code
     - Std-Lib functions like strcpy etc
     - Keyboard input handling
     - Enhanced memory management features

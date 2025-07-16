@@ -2,8 +2,6 @@ package assembler
 
 import (
 	"MxsxllBox/helper"
-	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -23,24 +21,39 @@ const (
 )
 
 type Parser struct {
-	Parsers    map[string]func(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error)
-	Formatter  map[string]func(parameters []string) (formatted [][]string)
-	Labels     map[string]uint16
-	LabelCodes map[uint16]bool
+	Parsers   map[string]func(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error)
+	Formatter map[string]func(parameters []string) (formatted [][]string)
+	Labels    map[string]uint16
+	ObjFile   *ObjectFile
 }
 
-type LabelDef struct {
-	LabelName   string
-	LabelOffset uint16
-	Global      bool
+type ObjectFile struct {
+	Code    []byte
+	Symbols map[string]uint16
+	Relocs  []RelocationEntry
+	Globals map[uint16]bool
+}
+
+type RelocationEntry struct {
+	Offset uint16 // Where in Code the label is called/JMP'd to
+	Lbl    string
+}
+
+func newObjectFile() *ObjectFile {
+	return &ObjectFile{
+		Code:    nil,
+		Symbols: make(map[string]uint16),
+		Relocs:  make([]RelocationEntry, 0),
+		Globals: make(map[uint16]bool),
+	}
 }
 
 func newParser() *Parser {
 	parser := &Parser{
-		Parsers:    make(map[string]func(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error)),
-		Formatter:  make(map[string]func(parameters []string) (formatted [][]string)),
-		Labels:     make(map[string]uint16),
-		LabelCodes: make(map[uint16]bool),
+		Parsers:   make(map[string]func(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error)),
+		Formatter: make(map[string]func(parameters []string) (formatted [][]string)),
+		Labels:    make(map[string]uint16),
+		ObjFile:   newObjectFile(),
 	}
 
 	parser.Parsers["NOP"] = parseFormatOP
@@ -191,17 +204,24 @@ func parseFormatOPLbl(parameters []string, currPC uint16, parser *Parser) (pc ui
 	code = make([]byte, 5)
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
 	/**
-	addr, ok := parser.Labels[parameters[AddrLoc1]]
+	Lbladdr, ok := parser.Labels[parameters[AddrLoc1]]
 	if !ok {
 		panic("label not found: " + parameters[AddrLoc1])
 	}
+
 	hi, lo := helper.EncodeAddr(uint16(addr))
 
-	*/
-	code[RegsLocOut], code[RegsLocOut+RegWidthOffset] = helper.EncodeRegs(rx, ry, true)
 	code[AddrOutLocHi] = hi
 	code[AddrOutLocLo] = lo
-	currPC += uint16(len(code))
+	*/
+	code[RegsLocOut], code[RegsLocOut+RegWidthOffset] = helper.EncodeRegs(rx, ry, true)
+	currPC += AddrOutLocHi
+	parser.ObjFile.Relocs = append(parser.ObjFile.Relocs, RelocationEntry{
+		Offset: currPC,
+		Lbl:    parameters[AddrLoc1],
+	})
+	code[AddrOutLocHi], code[AddrOutLocLo] = 0x00, 0x00
+	currPC += uint16(len(code)) - AddrOutLocHi
 	return currPC, code, syntax
 }
 
@@ -243,12 +263,9 @@ func FirstPass(data [][]string, parser *Parser) (*Parser, [][]string) {
 	for i, line := range data {
 		if len(line) == 1 && strings.Contains(line[0], ":") {
 			parser.Labels[line[0][:len(line[0])-1]] = PC
-			parser.LabelCodes[PC] = true
-			continue
-		} else if strings.Contains(line[0], ".ORG") {
-			val, _ := strconv.ParseInt(line[1], 0, 64)
-			fmt.Println(val)
-			PC = uint16(val)
+			if strings.HasPrefix(line[0], "_") {
+				parser.ObjFile.Globals[PC] = true
+			}
 			continue
 		} else if formatter, ok := parser.Formatter[line[0]]; ok {
 			formatted := formatter(data[i])
@@ -264,6 +281,7 @@ func FirstPass(data [][]string, parser *Parser) (*Parser, [][]string) {
 		data = helper.DeleteMatrixRow(data, i)
 		data = helper.InsertMatrixAtIndex(data, extraData, i)
 	}
+	parser.ObjFile.Symbols = parser.Labels
 	return parser, data
 }
 
@@ -275,7 +293,7 @@ func getOffset(OP string) byte {
 	return offset
 }
 
-func Assemble(data string) (code []byte) {
+func Assemble(data string) {
 	parsedData := ParseLines(data)
 	parser := newParser()
 	var formattedData [][]string
@@ -286,11 +304,18 @@ func Assemble(data string) (code []byte) {
 	}
 
 	*/
-	return SecondPass(formattedData, parser)
+	ObjFile := SecondPass(formattedData, parser)
+	f, err := os.OpenFile("C:\\Users\\cocon\\Documents\\Projects\\Musa-Allmer\\MxsxllBox/program.bin", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	SaveObjectFile(ObjFile, f)
 }
 
-func SecondPass(data [][]string, parser *Parser) (code []byte) {
-	code = make([]byte, 0)
+func SecondPass(data [][]string, parser *Parser) (ObjFile *ObjectFile) {
+	code := make([]byte, 0)
 
 	PC := uint16(0)
 	for _, line := range data {
@@ -304,12 +329,6 @@ func SecondPass(data [][]string, parser *Parser) (code []byte) {
 			code = append(code, codeSnippet...)
 		}
 	}
-	return code
-}
-
-func SaveBin(filename string, data []byte) {
-	err := os.WriteFile(filename, data, 0644)
-	if err != nil {
-		log.Fatalf("Failed to write file: %v", err)
-	}
+	parser.ObjFile.Code = code
+	return parser.ObjFile
 }

@@ -3,11 +3,11 @@ package helper
 func EncodeRegs(rx byte, ry byte, addrnecs bool) (byte, byte) {
 	var addrFlag byte
 	if addrnecs {
-		addrFlag |= 0x1
+		addrFlag = 0x1
 	} else {
-		addrFlag |= 0x0
+		addrFlag = 0x0
 	}
-	return ((rx & 0x07) << 4) | (ry & 0x07), addrFlag & 0x03
+	return ((rx & 0x0F) << 4) | (ry & 0x0F), addrFlag & 0x01
 }
 
 func EncodeAddr(addr uint16) (byte, byte) {
@@ -42,4 +42,14 @@ func DeleteMatrixRow(matrix [][]string, index int) [][]string {
 
 func DecodeAddr(lo byte, hi byte) uint16 {
 	return (uint16(hi) << 8) | uint16(lo)
+}
+
+func ConcactSliceAtIndex(dest, input []byte, index int) []byte {
+	if len(dest)-int(index) < len(input) {
+		return dest
+	}
+	for i := 0; i < len(input); i++ {
+		dest[index+i] = input[i]
+	}
+	return dest
 }

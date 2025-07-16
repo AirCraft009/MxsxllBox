@@ -1,31 +1,19 @@
 package main
 
 import (
-	"MxsxllBox/assembler"
-	"log"
-	"os"
+	"MxsxllBox/cpu"
+	"MxsxllBox/linker"
 )
 
 func main() {
-
-	data, err := os.ReadFile("C:\\Users\\cocon\\Documents\\Projects\\Musa-Allmer\\MxsxllBox\\stdlib\\string.asm")
-	if err != nil {
-		log.Fatal(err)
-	}
-	code := assembler.Assemble(string(data))
-	assembler.SaveBin(code)
-
-	/**
 	mem := &cpu.Memory{}
+	filesWLocation := make(map[string]uint16)
+	filesWLocation["C:/Users/cocon/Documents/Projects/Musa-Allmer/MxsxllBox/program.bin"] = 0
+	filesWLocation["C:/Users/cocon/Documents/Projects/Musa-Allmer/MxsxllBox/stdlib/strings.bin"] = 300
 
-	data, err := os.ReadFile("C:\\Users\\cocon\\Documents\\Projects\\Musa-Allmer\\MxsxllBox\\stdlib\\string.asm")
-	if err != nil {
-		log.Fatal(err)
-	}
+	data, _ := linker.LinkModuels(filesWLocation)
 
-	assembled := assembler.Assemble(string(data)) // returns []byte
-	copy(mem.Data[:], assembled)
-	fmt.Println(mem.Data)
+	copy(mem.Data[:], data)
 	/**
 	program := []byte{}
 
@@ -42,8 +30,8 @@ func main() {
 	program = append(program, cpu.RET)
 
 	copy(mem.Data[:cpu.MemorySize], program)
-
+	*/
 	vm := cpu.NewCPU(mem)
 	vm.Run()
-	*/
+
 }
