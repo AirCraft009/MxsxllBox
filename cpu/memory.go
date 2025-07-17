@@ -1,30 +1,43 @@
 package cpu
 
 const (
-	MemorySize = 16 * 1024 // 16 KB total memory
+	MemorySize = 64 * 1024 // 64 KB total memory
 
+	// ProgramStart ───── Code Region (8 KB) ─────
 	ProgramStart       = 0x0000
-	programUserEnd     = 0x0C00
-	ProgramStdLibStart = 0x0C01
-	ProgramEnd         = 0x0FFF // 4 KB for program (0x0000–0x0FFF)
+	ProgramUserEnd     = 0x1FFF // 8 KB (User + StdLib)
+	ProgramStdLibStart = 0x1800 // Last 2 KB for stdlib
+	ProgramEnd         = 0x1FFF
 
-	HeapStart      = 0x1000
-	HeapEnd        = 0x1FFF // 4 KB heap (0x1000–0x1FFF)
+	// HeapStart ───── Heap (16 KB) ─────
+	HeapStart      = 0x2000
+	HeapEnd        = 0x5FFF
 	HeapSize       = HeapEnd - HeapStart
 	BlockSize      = 0x10
 	BitMapSize     = HeapSize / BlockSize
-	HeapInfoOffset = 16
+	HeapInfoOffset = 0x10
 
-	StackStart = 0x2000
-	StackEnd   = 0x27FF // 2 KB stack (0x2000–0x27FF)
-	StackInit  = 0x2800 // stack pointer start address (just past stack end)
+	// StackStart ───── Stack (8 KB) ─────
+	StackStart = 0x6000
+	StackEnd   = 0x7FFF
+	StackInit  = StackEnd + 1 // 0x8000 (Stack grows down)
 
-	VideoStart = 0x2800
-	VideoEnd   = 0x3FFF // 5 KB video RAM (0x2800–0x3FFF)
+	// VideoStart ───── Video RAM / Framebuffer (16 KB) ─────
+	VideoStart = 0x8000
+	VideoEnd   = 0xBFFF
 
-	ReservedStart = 0x4000
-	ReservedEnd   = 0x43FF // 1 KB reserved for IO, keyboard buffers, etc.
+	// KeyboardStart ReservedStart ───── Reserved for IO / Buffers / MMIO (8 KB) ─────
+	KeyboardStart   = 0xC000
+	ReadPtr         = 0xC000
+	WritePtr        = 0xC001
+	RingBufferStart = 0xC002
+	RingBufferEnd   = 0xC020 //N = 30
+	RingBufferSize  = RingBufferEnd - RingBufferStart
+	ReservedEnd     = 0xDFFF
 
+	// ExtraStart ───── Unused / Future Expansion / Paging Tables / Filesystem etc (8 KB) ─────
+	ExtraStart = 0xE000
+	ExtraEnd   = 0xFFFF
 )
 
 type Memory struct {

@@ -38,5 +38,12 @@ const (
 	JLE      byte = 0x22
 	JG       byte = 0x23
 	JGE      byte = 0x24
+	STZ      byte = 0x25
+	STC      byte = 0x26
+	CLZ      byte = 0x27
+	CLC      byte = 0x28
+	MOD      byte = 0x29
+	MOV      byte = 0x2A
+	MODI     byte = 0x02B
 	HALT     byte = 0xFF //stop the program
 )

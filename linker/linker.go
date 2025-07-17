@@ -2,16 +2,12 @@ package linker
 
 import (
 	"MxsxllBox/assembler"
+	"MxsxllBox/cpu"
 	"MxsxllBox/helper"
 )
 
-const (
-	strncpy     = 0x0C01
-	ProgramSize = 4096
-)
-
 func LinkModuels(filePaths map[string]uint16) ([]byte, error) {
-	finalCode := make([]byte, ProgramSize)
+	finalCode := make([]byte, cpu.MemorySize)
 	globalLookupTable := make(map[string]uint16)
 	allObjFiles := make(map[*assembler.ObjectFile]uint16, 0)
 

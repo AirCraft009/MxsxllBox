@@ -2,21 +2,26 @@
 
 ## Overview
 
-MxsxllBox is a custom virtual machine (VM) designed with a 16 KB memory space divided into several segments, supporting a simple instruction set and features like labels, branching, function calls, and dynamic memory management.\
-It has 12 general purpose Registers and 4 Registers for syscalls 
+MxsxllBox is a custom virtual machine (VM) designed with a 64 KB memory space divided into several segments, supporting a simple instruction set and features like labels, branching, function calls, and dynamic memory management.\
+It has 11 general purpose Registers and 5 Registers for syscalls 
 
 ---
 
 ## Memory Layout
 
-| Segment      | Size | Address Range  | Description                    |
-|--------------|------|----------------|--------------------------------|
-| Program      | 4 KB | 0x0000 - 0x0FFF| Code and instructions          |
-| Heap         | 4 KB | 0x1000 - 0x1FFF| Dynamic memory allocation      |
-| Video Memory | 5 KB | 0x2800 - 0x3FFF| Video buffer                   |
-| Stack        | 2 KB | 0x2000 - 0x27FF| Stack for function calls, etc. |
-| I0-Reserved  | 1 KB | 0x4000 - 0x43FF| Reserved for I/O Keybord et.   |
-Stack initializes at 0x1000
+## 🧠 Memory Layout (64 KB)
+
+| Segment            | Size  | Address Range       | Description                                |
+|--------------------|-------|---------------------|--------------------------------------------|
+| **Program**        | 8 KB  | `0x0000` – `0x1FFF` | Code and instructions (user + stdlib)      |
+| ├─ User Code       | 6 KB  | `0x0000` – `0x17FF` | User program code                          |
+| └─ Std. Library    | 2 KB  | `0x1800` – `0x1FFF` | Standard library functions                 |
+| **Heap**           | 16 KB | `0x2000` – `0x5FFF` | Dynamic memory allocation (heap)           |
+| **Stack**          | 8 KB  | `0x6000` – `0x7FFF` | Stack for function calls, grows downward   |
+| **Video RAM**      | 16 KB | `0x8000` – `0xBFFF` | Framebuffer for visual output              |
+| **Reserved**       | 8 KB  | `0xC000` – `0xDFFF` | Reserved for I/O, buffers, MMIO            |
+| └─ Keyboard I/O    | ~30 B | `0xC000` – `0xC020` | Ring buffer, read/write pointers           |
+| **Extra / Future** | 8 KB  | `0xE000` – `0xFFFF` | Expansion, paging tables, filesystem, etc. |
 
 ---
 
@@ -44,31 +49,43 @@ Stack initializes at 0x1000
 - Labels that are saved into the library Region of the Program Space
 - ProgramStdLibStart = 0x0C01 
 - ProgramEnd         = 0x0FFF
-- In Syscalls O1 is always the return addr 
+- In Syscalls O1 is always the return addr
+- When I mention copy from Reg to Reg I always mean the Addr inside of the Reg
 
 ### String functions
 
-- `strcpy` O1 = loc O2 = dest
-- `strlen` O1 = loc O2 = lenght
-- `strcmp` O1 = loc O2 = val.
-- `strcat` O1 = loc1 O2 = loc2 O1 = conc.
+- `_strcpy` copies a String to O1 from O2
+- `_strlen` Loads len(O2) into O1
+- `_strcmp` compares two strings sets 0 flag if they are equal C if a byte is higher
+- `_strcat` concacts two strings O1 = O1+O2 `"a", "b" = "ab"`
 
-### 
+### io functions
+
+- `_printstr` prints a string from O2 is also in instruction set
+- `_printchar` prints a char from O2 O1 contains char
+- `_readchar` reads a char from the Keyboard Buffer into O1
 
 ---
+
+## Keyboard Buffer
+
+- The Keyboard-buffer is a [ring buffer]("https://en.wikipedia.org/wiki/Circular_buffer") N = 30
+- It's write ptr is at 0x0C000 the read prt is at 0x0C001
 
 ## Custom Binary
 
 - A custom Binary set for the linker 
-- Contains code, Symbol, Relocation- len under "MXOB" header
-- Globals are labels with an underscor _
+- Contains code, Symbol, Relocation- lenghts under "MXOB" header
+- Globals are identified as labels with an underscore
 
 ## Design Decisions
 
 - Memory layout optimized for simplicity and performance
-- Labels are stored separate from instructions during assembly for quick address resolution
-- Two-pass assembler: first collects labels, second generates machine code
-- Jump and call instructions jump to label addresses, verified at runtime
+- Labels arent assembled into byte code 
+- The pre-Assembled code is outputted in a .obj file
+- The .obj file is then linked together with other .obj files into a  final .bin file
+- The linker is given a `map[string]int` that contains .obj files 
+- It also contains the location of where the code is meant to be stored
 - Heap allocator uses first-fit policy for simplicity and speed
 
 ---

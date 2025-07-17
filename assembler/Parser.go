@@ -95,6 +95,13 @@ func newParser() *Parser {
 	parser.Parsers["JG"] = parseFormatOPLbl
 	parser.Parsers["JGE"] = parseFormatOPLbl
 	parser.Formatter["STRING"] = formatString
+	parser.Parsers["STZ"] = parseFormatOP
+	parser.Parsers["STC"] = parseFormatOP
+	parser.Parsers["CLZ"] = parseFormatOP
+	parser.Parsers["CLC"] = parseFormatOP
+	parser.Parsers["MOD"] = parseFormatOPRegReg
+	parser.Parsers["MODI"] = parseFormatOPRegAddr
+	parser.Parsers["MOV"] = parseFormatOPRegReg
 
 	return parser
 }

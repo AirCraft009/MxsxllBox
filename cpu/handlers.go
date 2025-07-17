@@ -26,9 +26,12 @@ func newHandlerInstructions(rx byte, ry byte, addr uint16) *HandlerInstructions 
 }
 
 func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
-	if cpu.PC >= ProgramEnd {
+	if cpu.PC > ProgramEnd {
 		fmt.Println(cpu.PC)
 		panic("program out of memory")
+	} else if cpu.SP > StackStart {
+		fmt.Println(cpu.SP)
+		panic("stack out of memory")
 	}
 	opcode = cpu.Mem.ReadByte(cpu.PC)
 	regs1, flagbyte := cpu.Mem.ReadReg(cpu.PC + 1)
@@ -82,6 +85,47 @@ func decodeReg(reg1, flag byte) (rx byte, ry byte, addresNec bool) {
 	addrnec := (flag) & 0x01
 	return rx, ry, addrnec != 0x0
 }
+
+func handleMov(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Registers[instructions.Rx] = cpu.Registers[instructions.Ry]
+}
+
+func handleModi(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Registers[instructions.Rx] %= instructions.Addr
+	cpu.Flags.Zero = false
+	if cpu.Registers[instructions.Rx] == 0 {
+		cpu.Flags.Zero = true
+	}
+}
+
+func handleMod(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Registers[instructions.Rx] %= cpu.Registers[instructions.Ry]
+	cpu.Flags.Zero = false
+	if cpu.Registers[instructions.Rx] == 0 {
+		cpu.Flags.Zero = true
+	}
+}
+
+func handleSTZ(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Flags.Zero = true
+	cpu.PC += 1
+}
+
+func handleSTC(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Flags.Carry = true
+	cpu.PC += 1
+}
+
+func handleCLZ(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Flags.Zero = false
+	cpu.PC += 1
+}
+
+func handleCLC(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Flags.Carry = false
+	cpu.PC += 1
+}
+
 func handleJG(cpu *CPU, instructions *HandlerInstructions) {
 	if !cpu.Flags.Zero && cpu.Flags.Carry {
 		cpu.PC = instructions.Addr
@@ -115,6 +159,7 @@ func handleJL(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleTsti(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Flags.Zero = false
 	result := cpu.Registers[instructions.Rx] & instructions.Addr
 	if result != 0 {
 		cpu.Flags.Zero = true
@@ -123,6 +168,7 @@ func handleTsti(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleTest(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Flags.Zero = false
 	result := cpu.Registers[instructions.Rx] & cpu.Registers[instructions.Ry]
 	if result == 0 {
 		cpu.Flags.Zero = true
@@ -131,6 +177,8 @@ func handleTest(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleCmpi(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Flags.Zero = false
+	cpu.Flags.Carry = false
 	if cpu.Registers[instructions.Rx] == instructions.Addr {
 		cpu.Flags.Zero = true
 		cpu.Flags.Carry = false
@@ -142,6 +190,8 @@ func handleCmpi(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleCmp(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Flags.Zero = false
+	cpu.Flags.Carry = false
 	if cpu.Registers[instructions.Rx] == cpu.Registers[instructions.Ry] {
 		cpu.Flags.Zero = true
 		cpu.Flags.Carry = false
