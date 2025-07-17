@@ -29,7 +29,7 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	if cpu.PC > ProgramEnd {
 		fmt.Println(cpu.PC)
 		panic("program out of memory")
-	} else if cpu.SP > StackStart {
+	} else if cpu.SP < StackStart {
 		fmt.Println(cpu.SP)
 		panic("stack out of memory")
 	}

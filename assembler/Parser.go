@@ -28,10 +28,11 @@ type Parser struct {
 }
 
 type ObjectFile struct {
-	Code    []byte
-	Symbols map[string]uint16
-	Relocs  []RelocationEntry
-	Globals map[uint16]bool
+	Code     []byte
+	Symbols  map[string]uint16
+	Relocs   []RelocationEntry
+	Globals  map[uint16]bool
+	UserFile bool
 }
 
 type RelocationEntry struct {
@@ -41,10 +42,11 @@ type RelocationEntry struct {
 
 func newObjectFile() *ObjectFile {
 	return &ObjectFile{
-		Code:    nil,
-		Symbols: make(map[string]uint16),
-		Relocs:  make([]RelocationEntry, 0),
-		Globals: make(map[uint16]bool),
+		Code:     nil,
+		Symbols:  make(map[string]uint16),
+		Relocs:   make([]RelocationEntry, 0),
+		Globals:  make(map[uint16]bool),
+		UserFile: false,
 	}
 }
 
@@ -281,6 +283,9 @@ func FirstPass(data [][]string, parser *Parser) (*Parser, [][]string) {
 				PC += uint16(getOffset(formatLine[0]))
 			}
 			continue
+		} else if len(line) == 1 && strings.Contains(line[0], ".program") {
+			parser.ObjFile.UserFile = true
+			continue
 		}
 		PC += uint16(getOffset(line[0]))
 	}
@@ -300,7 +305,7 @@ func getOffset(OP string) byte {
 	return offset
 }
 
-func Assemble(data string) {
+func Assemble(data, path string) {
 	parsedData := ParseLines(data)
 	parser := newParser()
 	var formattedData [][]string
@@ -312,13 +317,16 @@ func Assemble(data string) {
 
 	*/
 	ObjFile := SecondPass(formattedData, parser)
-	f, err := os.OpenFile("C:\\Users\\cocon\\Documents\\Projects\\Musa-Allmer\\MxsxllBox/program.bin", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
 
-	SaveObjectFile(ObjFile, f)
+	err = SaveObjectFile(ObjFile, f)
+	if err != nil {
+		return
+	}
 }
 
 func SecondPass(data [][]string, parser *Parser) (ObjFile *ObjectFile) {

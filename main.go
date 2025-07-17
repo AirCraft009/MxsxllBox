@@ -1,19 +1,22 @@
 package main
 
 import (
+	"MxsxllBox/KeyboardBuffer"
 	"MxsxllBox/cpu"
 	"MxsxllBox/linker"
 )
 
 func main() {
+
 	mem := &cpu.Memory{}
-	filesWLocation := make(map[string]uint16)
-	filesWLocation["C:/Users/cocon/Documents/Projects/Musa-Allmer/MxsxllBox/program.bin"] = 0
-	filesWLocation["C:/Users/cocon/Documents/Projects/Musa-Allmer/MxsxllBox/stdlib/strings.bin"] = 300
 
-	data, _ := linker.LinkModuels(filesWLocation)
+	paths := make(map[string]uint16, 4)
+	paths["program.asm"] = 0x000
+	paths["/stdlib/io.asm"] = cpu.ProgramStdLibStart
+	paths["/stdlib/math.asm"] = cpu.ProgramStdLibStart + 400
+	paths["/stdlib/string.asm"] = cpu.ProgramStdLibStart + 800
 
-	copy(mem.Data[:], data)
+	copy(mem.Data[:], linker.CompileAndLinkFiles(paths, "EchoKeys"))
 	/**
 	program := []byte{}
 
@@ -32,6 +35,9 @@ func main() {
 	copy(mem.Data[:cpu.MemorySize], program)
 	*/
 	vm := cpu.NewCPU(mem)
-	vm.Run()
+	go KeyboardBuffer.WriteKeyboardToBuffer(vm)
+	go vm.Run()
+
+	select {}
 
 }

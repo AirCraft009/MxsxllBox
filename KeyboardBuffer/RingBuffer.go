@@ -1,0 +1,50 @@
+package KeyboardBuffer
+
+import "C"
+import (
+	"MxsxllBox/cpu"
+	"golang.org/x/term"
+	"os"
+)
+
+type RingBuffer struct {
+	writePtr uint16
+	readPtr  uint16
+	lenght   uint16
+}
+
+func newRingBuffer() *RingBuffer {
+	return &RingBuffer{
+		lenght: cpu.RingBufferSize,
+	}
+}
+
+func WriteKeyboardToBuffer(Cpu *cpu.CPU) {
+	ringBuffer := newRingBuffer()
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+	}
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
+
+	buf := make([]byte, 1)
+
+	for {
+		_, err := os.Stdin.Read(buf)
+		if err != nil {
+			panic(err)
+		}
+		if !(buf[0] >= 32 && buf[0] <= 126) {
+		}
+		ringBuffer.write(buf[0], Cpu)
+	}
+}
+
+func (ringBuffer *RingBuffer) write(char byte, Cpu *cpu.CPU) bool {
+	if byte((ringBuffer.writePtr+1)%ringBuffer.lenght) == Cpu.Mem.ReadByte(cpu.ReadPtr) {
+		return false
+	}
+	Cpu.Mem.WriteByte(cpu.RingBufferStart+ringBuffer.writePtr, char)
+	ringBuffer.writePtr = (ringBuffer.writePtr + 1) % ringBuffer.lenght
+	Cpu.Mem.WriteByte(cpu.WritePtr, byte(ringBuffer.writePtr))
+	return true
+}

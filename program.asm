@@ -1,9 +1,12 @@
+.program
 main:
-    MOVI R2 5
-    ALLOC R2 O1
-    MOVI R2 0
-    STRING R2 O1 "Hello you lachs"
-    PRINTSTR O1
-    ALLOC R2 O2
-    CALL _strcpy
-    HALT
+    CALL _readchar
+    JNZ echo_char
+    JMP main
+
+echo_char:
+    MOVI R1 1
+    ALLOC R1 O2
+    STOREB O1 O2
+    PRINT O2
+    FREE O2
