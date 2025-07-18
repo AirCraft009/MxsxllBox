@@ -52,8 +52,6 @@ func NewCPU(mem *Memory) *CPU {
 	cpu.Handlers[POP] = handlePop
 	cpu.Handlers[CALL] = handleCall
 	cpu.Handlers[RET] = handleRet
-	cpu.Handlers[ALLOC] = handleAlloc
-	cpu.Handlers[FREE] = handleFree
 	cpu.Handlers[PRINTSTR] = handlePrintstr
 	cpu.Handlers[JNZ] = handleJnz
 	cpu.Handlers[JNC] = handleJnc
@@ -76,8 +74,6 @@ func NewCPU(mem *Memory) *CPU {
 	cpu.Handlers[LS] = handleLs
 	cpu.Handlers[AND] = handleAnd
 	cpu.Handlers[OR] = handleOr
-	cpu.Handlers[SPAWN] = handleSpawn
-	cpu.Handlers[YIELD] = handleYield
 
 	return cpu
 }

@@ -25,8 +25,8 @@ const (
 	POP      byte = 0x15
 	CALL     byte = 0x16
 	RET      byte = 0x17
-	ALLOC    byte = 0x18 // ALLOC Rsize Rdest Rsize ist die Menge an Blocks Rsize ist das Register in welches die Addr gespeichert wird
-	FREE     byte = 0x19 // FREE RAddr
+	ALLOC    byte = 0x18 // now implemented in stdlib kept to avoid refactoring
+	FREE     byte = 0x19 //  -||-
 	PRINTSTR byte = 0x1A
 	JNZ      byte = 0x1B
 	JNC      byte = 0x1C
@@ -49,7 +49,6 @@ const (
 	LS       byte = 0x2D
 	OR       byte = 0x2E
 	AND      byte = 0x2F
-	SPAWN    byte = 0x30
-	YIELD    byte = 0x31
+	MOVA     byte = 0x30
 	HALT     byte = 0xFF //stop the program
 )

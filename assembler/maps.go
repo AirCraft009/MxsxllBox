@@ -49,8 +49,6 @@ var opCodes = map[string]byte{
 	"LS":       0x2D,
 	"OR":       0x2E,
 	"AND":      0x2F,
-	"SPAWN":    0x30,
-	"YIELD":    0x31,
 	"HALT":     0xFF,
 }
 
@@ -76,8 +74,6 @@ var regMap = map[string]byte{
 var offsetMap = map[string]byte{
 	"STRING":   0,
 	"NOP":      1,
-	"YIELD":    1,
-	"SPAWN":    1,
 	"RET":      1,
 	"HALT":     1,
 	"STC":      1,

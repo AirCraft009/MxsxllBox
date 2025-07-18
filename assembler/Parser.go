@@ -83,8 +83,6 @@ func newParser() *Parser {
 	parser.Parsers["PRINT"] = parseFormatOPReg
 	parser.Parsers["RET"] = parseFormatOP
 	parser.Parsers["HALT"] = parseFormatOP
-	parser.Parsers["ALLOC"] = parseFormatOPRegReg
-	parser.Parsers["FREE"] = parseFormatOPReg
 	parser.Parsers["PRINTSTR"] = parseFormatOPReg
 	parser.Parsers["JNZ"] = parseFormatOPLbl
 	parser.Parsers["JNC"] = parseFormatOPLbl
@@ -108,8 +106,6 @@ func newParser() *Parser {
 	parser.Parsers["LS"] = parseFormatOPRegReg
 	parser.Parsers["OR"] = parseFormatOPRegReg
 	parser.Parsers["AND"] = parseFormatOPRegReg
-	parser.Parsers["SPAWN"] = parseFormatOP
-	parser.Parsers["YIELD"] = parseFormatOP
 
 	return parser
 }

@@ -12,15 +12,13 @@ const (
 	ProgramEnd         = 0x1FFF
 
 	// HeapStart ───── Heap (16 KB) ─────
-	HeapStart      = 0x2000
-	HeapEnd        = 0x5FFF
-	HeapSize       = HeapEnd - HeapStart
-	BlockSize      = 0x10
-	BitMapSize     = HeapSize / BlockSize
-	HeapInfoOffset = 0x10
+	HeapStart = 0x2000
+	HeapEnd   = 0x6000
+	HeapSize  = HeapEnd - HeapStart
+	BlockSize = 0x10
 
 	// StackStart ───── Stack (8 KB) ─────
-	StackStart = 0x6000
+	StackStart = 0x600
 	StackEnd   = 0x7FFF
 	StackInit  = StackEnd + 1 // 0x8000 (Stack grows down)
 
@@ -44,55 +42,7 @@ const (
 
 type Memory struct {
 	Data       [MemorySize]byte
-	Bitmap     [BitMapSize]byte
 	keyboardMu sync.Mutex
-}
-
-func (mem *Memory) AllocBlocks(blockAmmount uint16) (addr uint16) {
-	/**
-	This Method Allocates Blocks of 16 or What the constant BlockSize is set to
-	It doesn't allow allocating anything smaller it takes the ammount of blocks to free
-	*/
-	var freeBlocks uint16
-	size := blockAmmount * BlockSize
-	if !(size <= HeapSize && blockAmmount > 0) {
-		panic("cannot allocate block ammount")
-	}
-	start := -1
-	var activeAddr uint16
-	for index, open := range mem.Bitmap {
-		if open == 0 {
-			freeBlocks++
-			if start == -1 {
-				start = index
-			}
-		} else {
-			start = -1
-			freeBlocks = 0
-		}
-		if freeBlocks == blockAmmount {
-			MetaData := uint16(HeapStart + start*BlockSize)
-			activeAddr = MetaData + HeapInfoOffset
-			for i := uint16(start); i < uint16(index+1); i++ {
-				mem.Bitmap[i] = 1
-			}
-			mem.WriteWord(MetaData, blockAmmount)
-			return activeAddr
-		}
-	}
-	return 0
-}
-
-func (mem *Memory) Free(addr uint16) {
-	if addr == 0 {
-		return
-	}
-	MetaData := addr - HeapInfoOffset
-	ammount := mem.ReadWord(MetaData)
-	startBlock := (MetaData - HeapStart) / BlockSize
-	for i := uint16(0); i < ammount; i++ {
-		mem.Bitmap[startBlock+i] = 0
-	}
 }
 
 func isKeyboardRegion(addr uint16) bool {

@@ -91,32 +91,6 @@ func decodeReg(reg1, flag byte) (rx byte, ry byte, addresNec bool) {
 	return rx, ry, addrnec != 0x0
 }
 
-func handleSpawn(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.PC++
-	cpu.NewId++
-	cpu.Tasks = append(cpu.Tasks, CreateNewTask(cpu, cpu.NewId, running))
-	cpu.ActiveTask = uint16(len(cpu.Tasks) - 1)
-}
-
-func handleYield(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.Mutex.Lock()
-	status := cpu.Registers[outputRegister]
-	currTask := cpu.Tasks[cpu.ActiveTask]
-	currTask.SaveTask(TaskState(status), cpu)
-	defer cpu.Mutex.Unlock()
-
-	for {
-		for taskIndex, task := range cpu.Tasks {
-			if task.State == ready {
-				cpu.ActiveTask = uint16(taskIndex)
-				cpu.ReturnToTask(task)
-				return
-			}
-		}
-	}
-
-}
-
 func handleOr(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.Registers[instructions.Rx] |= cpu.Registers[instructions.Ry]
 	cpu.PC += instructionSizeShort
@@ -279,19 +253,6 @@ func handlePrintstr(cpu *CPU, instructions *HandlerInstructions) {
 		outPutStr += string(cpu.Mem.ReadByte(cpu.Registers[instructions.Rx] + i))
 	}
 	fmt.Println(outPutStr)
-	cpu.PC += instructionSizeShort
-}
-
-func handleAlloc(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.Registers[instructions.Ry] = cpu.Mem.AllocBlocks(cpu.Registers[instructions.Rx])
-	if cpu.Registers[instructions.Ry] == 0 {
-		cpu.Flags.Zero = true
-	}
-	cpu.PC += instructionSizeShort
-}
-
-func handleFree(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.Mem.Free(cpu.Registers[instructions.Rx])
 	cpu.PC += instructionSizeShort
 }
 

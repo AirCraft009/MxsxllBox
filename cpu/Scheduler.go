@@ -33,7 +33,7 @@ func CreateNewTask(cpu *CPU, id int, state TaskState) *Task {
 	return &Task{
 		ID:        id,
 		PC:        cpu.PC,
-		SP:        cpu.SP,
+		SP:        0,
 		Registers: cpu.Registers,
 		State:     state,
 	}
@@ -42,7 +42,11 @@ func CreateNewTask(cpu *CPU, id int, state TaskState) *Task {
 func (cpu *CPU) ReturnToTask(task *Task) {
 	task.State = running
 	cpu.PC = task.PC
-	cpu.SP = task.SP
+	if task.SP != 0 {
+		cpu.SP = task.SP
+	} else {
+		task.SP = cpu.SP + instructionSizeShort
+	}
 	cpu.Registers = task.Registers
 }
 

@@ -58,6 +58,8 @@ func CompileAndLinkFiles(files map[string]uint16, Name string) []byte {
 	if err != nil {
 		panic(err)
 	}
+	genericOutPath := filepath.Join(wd, objOutName, Name)
+
 	objFiles := make(map[string]uint16)
 	locations := make(map[uint16]uint16)
 	for filePath, location := range files {
@@ -68,7 +70,7 @@ func CompileAndLinkFiles(files map[string]uint16, Name string) []byte {
 		if err != nil {
 			panic(err)
 		}
-		OutFilePath := filepath.Join(wd, objOutName, Name, filePath)
+		OutFilePath := filepath.Join(genericOutPath, filePath)
 		code := assembler.Assemble(string(data), OutFilePath).Code
 		if value, ok := locations[location]; ok {
 			objFiles[OutFilePath] = location + value
@@ -95,11 +97,11 @@ func CompileAndLinkFiles(files map[string]uint16, Name string) []byte {
 func CompileFilesStdLibIncluded(fileName, Name string) []byte {
 	paths := make(map[string]uint16, 6)
 	paths[fileName] = 0x00
-	paths["/stdlib/io.asm"] = cpu.ProgramStdLibStart
-	paths["/stdlib/math.asm"] = cpu.ProgramStdLibStart
-	paths["/stdlib/string.asm"] = cpu.ProgramStdLibStart
-	paths["/stdlib/sys.asm"] = cpu.ProgramStdLibStart
-	paths["/stdlib/utils.asm"] = cpu.ProgramStdLibStart
+	paths["\\stdlib\\io.asm"] = cpu.ProgramStdLibStart
+	paths["\\stdlib\\math.asm"] = cpu.ProgramStdLibStart
+	paths["\\stdlib\\string.asm"] = cpu.ProgramStdLibStart
+	paths["\\stdlib\\sys.asm"] = cpu.ProgramStdLibStart
+	paths["\\stdlib\\utils.asm"] = cpu.ProgramStdLibStart
 
 	return CompileAndLinkFiles(paths, Name)
 }
