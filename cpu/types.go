@@ -3,7 +3,8 @@ package cpu
 type Register uint16
 
 const (
-	R0 Register = iota
+	outputRegister          = O1
+	R0             Register = iota
 	R1
 	R2
 	R3

@@ -108,6 +108,8 @@ func newParser() *Parser {
 	parser.Parsers["LS"] = parseFormatOPRegReg
 	parser.Parsers["OR"] = parseFormatOPRegReg
 	parser.Parsers["AND"] = parseFormatOPRegReg
+	parser.Parsers["SPAWN"] = parseFormatOP
+	parser.Parsers["YIELD"] = parseFormatOP
 
 	return parser
 }
@@ -309,7 +311,7 @@ func getOffset(OP string) byte {
 	return offset
 }
 
-func Assemble(data, path string) {
+func Assemble(data, path string) *ObjectFile {
 	parsedData := ParseLines(data)
 	parser := newParser()
 	var formattedData [][]string
@@ -329,8 +331,9 @@ func Assemble(data, path string) {
 
 	err = SaveObjectFile(ObjFile, f)
 	if err != nil {
-		return
+		panic(err)
 	}
+	return ObjFile
 }
 
 func SecondPass(data [][]string, parser *Parser) (ObjFile *ObjectFile) {

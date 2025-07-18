@@ -38,11 +38,16 @@ _min:
     RET
 
 _pow:
+
+POWER_LOOP:
+
     TSTI O2 0
     JZ END_POWER
 
     MUL O1 O1
-    SUBI O2
+    SUBI O2 1
+
+    JMP POWER_LOOP
 
 END_POWER:
     RET

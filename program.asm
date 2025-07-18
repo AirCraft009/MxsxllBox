@@ -1,20 +1,17 @@
 .program
 
-MOVI R1 30
-ALLOC R1 R2
-PRINT R2
-STRING R1 R2 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-PRINTSTR R2
-
-main:
-    CALL _readchar
-    JNZ echo_char
-    JMP main
-
-echo_char:
+print_a:
     MOVI R1 1
-    ALLOC R1 O2
-    STOREB O1 O2
-    PRINT O1
-    FREE O2
-    JMP main
+    SPAWN
+    PRINT R1
+    MOVI O1 0
+    CALL print_b
+    YIELD
+    JMP print_a
+
+print_b:
+    MOVI R1 2
+    SPAWN
+    PRINT R1
+    YIELD
+    JMP print_b

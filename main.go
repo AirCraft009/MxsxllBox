@@ -10,13 +10,7 @@ func main() {
 
 	mem := &cpu.Memory{}
 
-	paths := make(map[string]uint16, 4)
-	paths["program.asm"] = 0x000
-	paths["/stdlib/io.asm"] = cpu.ProgramStdLibStart
-	paths["/stdlib/math.asm"] = cpu.ProgramStdLibStart + 400
-	paths["/stdlib/string.asm"] = cpu.ProgramStdLibStart + 800
-
-	copy(mem.Data[:], linker.CompileAndLinkFiles(paths, "EchoKeys"))
+	copy(mem.Data[:], linker.CompileFilesStdLibIncluded("program.asm", "EchoKeys"))
 	/**
 	program := []byte{}
 

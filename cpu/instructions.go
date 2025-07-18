@@ -49,5 +49,7 @@ const (
 	LS       byte = 0x2D
 	OR       byte = 0x2E
 	AND      byte = 0x2F
+	SPAWN    byte = 0x30
+	YIELD    byte = 0x31
 	HALT     byte = 0xFF //stop the program
 )

@@ -58,7 +58,12 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 
 func decodeReg(reg1, flag byte) (rx byte, ry byte, addresNec bool) {
 	/**
-	old: theory still applies
+	old: theory still applies{
+		new config:
+		rx = bits 8-4
+		ry = bits 3-0
+		addrFlag = byte 2 bit 0
+	}
 	reg contains both rx and ry
 	rx = bits 7-5
 	ry = bits 4-2
@@ -84,6 +89,32 @@ func decodeReg(reg1, flag byte) (rx byte, ry byte, addresNec bool) {
 	ry = (reg1) & 0x0F
 	addrnec := (flag) & 0x01
 	return rx, ry, addrnec != 0x0
+}
+
+func handleSpawn(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.PC++
+	cpu.NewId++
+	cpu.Tasks = append(cpu.Tasks, CreateNewTask(cpu, cpu.NewId, running))
+	cpu.ActiveTask = uint16(len(cpu.Tasks) - 1)
+}
+
+func handleYield(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Mutex.Lock()
+	status := cpu.Registers[outputRegister]
+	currTask := cpu.Tasks[cpu.ActiveTask]
+	currTask.SaveTask(TaskState(status), cpu)
+	defer cpu.Mutex.Unlock()
+
+	for {
+		for taskIndex, task := range cpu.Tasks {
+			if task.State == ready {
+				cpu.ActiveTask = uint16(taskIndex)
+				cpu.ReturnToTask(task)
+				return
+			}
+		}
+	}
+
 }
 
 func handleOr(cpu *CPU, instructions *HandlerInstructions) {
@@ -131,22 +162,22 @@ func handleMod(cpu *CPU, instructions *HandlerInstructions) {
 
 func handleSTZ(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.Flags.Zero = true
-	cpu.PC += 1
+	cpu.PC++
 }
 
 func handleSTC(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.Flags.Carry = true
-	cpu.PC += 1
+	cpu.PC++
 }
 
 func handleCLZ(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.Flags.Zero = false
-	cpu.PC += 1
+	cpu.PC++
 }
 
 func handleCLC(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.Flags.Carry = false
-	cpu.PC += 1
+	cpu.PC++
 }
 
 func handleJG(cpu *CPU, instructions *HandlerInstructions) {
@@ -276,7 +307,7 @@ func handlePop(cpu *CPU, instruction *HandlerInstructions) {
 	hi := cpu.Mem.ReadByte(cpu.SP)
 	lo := cpu.Mem.ReadByte(cpu.SP + 1)
 	cpu.Registers[instruction.Rx] = uint16(hi)<<8 | uint16(lo)
-	cpu.PC += instructionSizeLong
+	cpu.PC += instructionSizeShort
 	cpu.SP += instructionSizeShort
 }
 
