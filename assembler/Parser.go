@@ -104,6 +104,10 @@ func newParser() *Parser {
 	parser.Parsers["MOD"] = parseFormatOPRegReg
 	parser.Parsers["MODI"] = parseFormatOPRegAddr
 	parser.Parsers["MOV"] = parseFormatOPRegReg
+	parser.Parsers["RS"] = parseFormatOPRegReg
+	parser.Parsers["LS"] = parseFormatOPRegReg
+	parser.Parsers["OR"] = parseFormatOPRegReg
+	parser.Parsers["AND"] = parseFormatOPRegReg
 
 	return parser
 }

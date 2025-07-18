@@ -26,11 +26,15 @@ _readchar:
     CMP O1 O2
     JZ END_READCHAR_BUF_EMPTY
 
+    ADDI O4 1
     ADD O4 O2
     LOADB O1 O4
+    ADDI O2 1
+    MODI O2 30
+    STOREB O2 O3
     RET
 
-    
+
 END_READCHAR_BUF_EMPTY:
     MOVI O1 255        #if buffer is empty load 256 into it (max byte val)
     STZ

@@ -1,5 +1,7 @@
 package cpu
 
+import "sync"
+
 const (
 	MemorySize = 64 * 1024 // 64 KB total memory
 
@@ -41,8 +43,9 @@ const (
 )
 
 type Memory struct {
-	Data   [MemorySize]byte
-	Bitmap [BitMapSize]byte
+	Data       [MemorySize]byte
+	Bitmap     [BitMapSize]byte
+	keyboardMu sync.Mutex
 }
 
 func (mem *Memory) AllocBlocks(blockAmmount uint16) (addr uint16) {
@@ -92,27 +95,51 @@ func (mem *Memory) Free(addr uint16) {
 	}
 }
 
+func isKeyboardRegion(addr uint16) bool {
+	return addr >= 0xC000 && addr <= 0xC020
+}
+
 func (mem *Memory) ReadByte(addr uint16) byte {
+	if isKeyboardRegion(addr) {
+		mem.keyboardMu.Lock()
+		defer mem.keyboardMu.Unlock()
+	}
 	return mem.Data[addr]
 }
 
+func (mem *Memory) ReadWord(addr uint16) uint16 {
+	if isKeyboardRegion(addr) || isKeyboardRegion(addr+1) {
+		mem.keyboardMu.Lock()
+		defer mem.keyboardMu.Unlock()
+	}
+	hi := uint16(mem.Data[addr])
+	lo := uint16(mem.Data[addr+1])
+	return (hi << 8) | lo
+}
+
 func (mem *Memory) ReadReg(addr uint16) (byte, byte) {
+	if isKeyboardRegion(addr) || isKeyboardRegion(addr+1) {
+		mem.keyboardMu.Lock()
+		defer mem.keyboardMu.Unlock()
+	}
 	return mem.Data[addr], mem.Data[addr+1]
 }
 
 func (mem *Memory) WriteByte(addr uint16, value byte) {
+	if isKeyboardRegion(addr) {
+		mem.keyboardMu.Lock()
+		defer mem.keyboardMu.Unlock()
+	}
 	mem.Data[addr] = value
 }
 
 func (mem *Memory) WriteWord(addr uint16, val uint16) {
+	if isKeyboardRegion(addr) || isKeyboardRegion(addr+1) {
+		mem.keyboardMu.Lock()
+		defer mem.keyboardMu.Unlock()
+	}
 	mem.Data[addr] = byte(val >> 8)
 	mem.Data[addr+1] = byte(val & 0xFF)
-}
-
-func (mem *Memory) ReadWord(addr uint16) uint16 {
-	hi := uint16(mem.Data[addr])
-	lo := uint16(mem.Data[addr+1])
-	return (hi << 8) | lo
 }
 
 func (mem *Memory) LoadProgram(program []uint16) {

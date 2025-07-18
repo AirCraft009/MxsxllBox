@@ -86,8 +86,29 @@ func decodeReg(reg1, flag byte) (rx byte, ry byte, addresNec bool) {
 	return rx, ry, addrnec != 0x0
 }
 
+func handleOr(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Registers[instructions.Rx] |= cpu.Registers[instructions.Ry]
+	cpu.PC += instructionSizeShort
+}
+
+func handleAnd(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Registers[instructions.Rx] &= cpu.Registers[instructions.Ry]
+	cpu.PC += instructionSizeShort
+}
+
+func handleRs(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Registers[instructions.Rx] <<= cpu.Registers[instructions.Ry]
+	cpu.PC += instructionSizeShort
+}
+
+func handleLs(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Registers[instructions.Rx] >>= cpu.Registers[instructions.Ry]
+	cpu.PC += instructionSizeShort
+}
+
 func handleMov(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.Registers[instructions.Rx] = cpu.Registers[instructions.Ry]
+	cpu.PC += instructionSizeShort
 }
 
 func handleModi(cpu *CPU, instructions *HandlerInstructions) {
@@ -96,6 +117,7 @@ func handleModi(cpu *CPU, instructions *HandlerInstructions) {
 	if cpu.Registers[instructions.Rx] == 0 {
 		cpu.Flags.Zero = true
 	}
+	cpu.PC += instructionSizeLong
 }
 
 func handleMod(cpu *CPU, instructions *HandlerInstructions) {
@@ -104,6 +126,7 @@ func handleMod(cpu *CPU, instructions *HandlerInstructions) {
 	if cpu.Registers[instructions.Rx] == 0 {
 		cpu.Flags.Zero = true
 	}
+	cpu.PC += instructionSizeShort
 }
 
 func handleSTZ(cpu *CPU, instructions *HandlerInstructions) {

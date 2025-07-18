@@ -45,5 +45,9 @@ const (
 	MOD      byte = 0x29
 	MOV      byte = 0x2A
 	MODI     byte = 0x02B
+	RS       byte = 0x2C
+	LS       byte = 0x2D
+	OR       byte = 0x2E
+	AND      byte = 0x2F
 	HALT     byte = 0xFF //stop the program
 )

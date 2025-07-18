@@ -4,7 +4,6 @@ import (
 	"MxsxllBox/assembler"
 	"MxsxllBox/cpu"
 	"MxsxllBox/helper"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -63,7 +62,7 @@ func CompileAndLinkFiles(files map[string]uint16, Name string) []byte {
 	for filePath, location := range files {
 		NewFilePath := filepath.Join(wd, filePath)
 		filePath = strings.ReplaceAll(filePath, ".asm", ".obj")
-		fmt.Println(NewFilePath)
+
 		data, err := os.ReadFile(NewFilePath)
 		if err != nil {
 			panic(err)

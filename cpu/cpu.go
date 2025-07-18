@@ -1,6 +1,8 @@
 package cpu
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type CPU struct {
 	Registers [NumRegisters]uint16
@@ -64,6 +66,10 @@ func NewCPU(mem *Memory) *CPU {
 	cpu.Handlers[MOV] = handleMov
 	cpu.Handlers[MOD] = handleMod
 	cpu.Handlers[MODI] = handleModi
+	cpu.Handlers[RS] = handleRs
+	cpu.Handlers[LS] = handleLs
+	cpu.Handlers[AND] = handleAnd
+	cpu.Handlers[OR] = handleOr
 
 	return cpu
 }

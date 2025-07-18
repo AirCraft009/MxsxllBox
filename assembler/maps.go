@@ -45,6 +45,10 @@ var opCodes = map[string]byte{
 	"MOD":      0x29,
 	"MOV":      0x2A,
 	"MODI":     0x2B,
+	"RS":       0x2C,
+	"LS":       0x2D,
+	"OR":       0x2E,
+	"AND":      0x2F,
 	"HALT":     0xFF,
 }
 
@@ -87,6 +91,10 @@ var offsetMap = map[string]byte{
 	"DIV":      3,
 	"MUL":      3,
 	"ALLOC":    3,
+	"RS":       3,
+	"LS":       3,
+	"OR":       3,
+	"AND":      3,
 	"FREE":     3,
 	"CMP":      3,
 	"TEST":     3,
