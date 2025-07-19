@@ -6,17 +6,14 @@ import (
 )
 
 type CPU struct {
-	Registers  [NumRegisters]uint16
-	PC         uint16
-	SP         uint16
-	Flags      Flags
-	Mem        *Memory
-	Halted     bool
-	Handlers   map[byte]func(cpu *CPU, instruction *HandlerInstructions)
-	Tasks      []*Task
-	ActiveTask uint16
-	NewId      int
-	Mutex      sync.Mutex
+	Registers [NumRegisters]uint16
+	PC        uint16
+	SP        uint16
+	Flags     Flags
+	Mem       *Memory
+	Halted    bool
+	Handlers  map[byte]func(cpu *CPU, instruction *HandlerInstructions)
+	Mutex     sync.Mutex
 }
 
 func NewCPU(mem *Memory) *CPU {
@@ -24,7 +21,6 @@ func NewCPU(mem *Memory) *CPU {
 		Mem:      mem,
 		SP:       StackInit, // stack grows downward
 		Handlers: make(map[byte]func(cpu *CPU, instruction *HandlerInstructions)),
-		Tasks:    make([]*Task, 0),
 	}
 
 	cpu.Handlers[NOP] = handleNop
@@ -74,6 +70,14 @@ func NewCPU(mem *Memory) *CPU {
 	cpu.Handlers[LS] = handleLs
 	cpu.Handlers[AND] = handleAnd
 	cpu.Handlers[OR] = handleOr
+	cpu.Handlers[MOVA] = handleMova
+	cpu.Handlers[GPC] = handleGPc
+	cpu.Handlers[SPC] = handleSPc
+	cpu.Handlers[GSP] = handleGSp
+	cpu.Handlers[SSP] = handleSSp
+	cpu.Handlers[GRFN] = handleGrfn
+	cpu.Handlers[GF] = handleGf
+	cpu.Handlers[SF] = handleSf
 
 	return cpu
 }

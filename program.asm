@@ -7,6 +7,5 @@ main:
     JMP main
 
 echo_char:
-    MOVI R1 1
     PRINT O1
     JMP main

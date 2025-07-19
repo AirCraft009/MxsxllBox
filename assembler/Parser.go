@@ -106,6 +106,14 @@ func newParser() *Parser {
 	parser.Parsers["LS"] = parseFormatOPRegReg
 	parser.Parsers["OR"] = parseFormatOPRegReg
 	parser.Parsers["AND"] = parseFormatOPRegReg
+	parser.Parsers["MOVA"] = parseFormatOPRegLbl
+	parser.Parsers["GPC"] = parseFormatOPReg
+	parser.Parsers["SPC"] = parseFormatOPReg
+	parser.Parsers["GSP"] = parseFormatOPReg
+	parser.Parsers["SSP"] = parseFormatOPReg
+	parser.Parsers["GRFN"] = parseFormatOPRegReg
+	parser.Parsers["GF"] = parseFormatOPReg
+	parser.Parsers["SF"] = parseFormatOPReg
 
 	return parser
 }
@@ -230,6 +238,22 @@ func parseFormatOPLbl(parameters []string, currPC uint16, parser *Parser) (pc ui
 	parser.ObjFile.Relocs = append(parser.ObjFile.Relocs, RelocationEntry{
 		Offset: currPC,
 		Lbl:    parameters[AddrLoc1],
+	})
+	code[AddrOutLocHi], code[AddrOutLocLo] = 0x00, 0x00
+	currPC += uint16(len(code)) - AddrOutLocHi
+	return currPC, code, syntax
+}
+
+func parseFormatOPRegLbl(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
+	var rx, ry byte
+	code = make([]byte, 5)
+	code[OpCLoc] = opCodes[parameters[OpCLoc]]
+
+	code[RegsLocOut], code[RegsLocOut+RegWidthOffset] = helper.EncodeRegs(rx, ry, true)
+	currPC += AddrOutLocHi
+	parser.ObjFile.Relocs = append(parser.ObjFile.Relocs, RelocationEntry{
+		Offset: currPC,
+		Lbl:    parameters[AddrLoc2],
 	})
 	code[AddrOutLocHi], code[AddrOutLocLo] = 0x00, 0x00
 	currPC += uint16(len(code)) - AddrOutLocHi

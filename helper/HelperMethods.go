@@ -7,7 +7,7 @@ func EncodeRegs(rx byte, ry byte, addrnecs bool) (byte, byte) {
 	} else {
 		addrFlag = 0x0
 	}
-	return ((rx & 0x0F) << 4) | (ry & 0x0F), addrFlag & 0x01
+	return rx, ry<<1 | addrFlag
 }
 
 func EncodeAddr(addr uint16) (byte, byte) {

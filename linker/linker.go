@@ -75,6 +75,7 @@ func CompileAndLinkFiles(files map[string]uint16, Name string) []byte {
 		if value, ok := locations[location]; ok {
 			objFiles[OutFilePath] = location + value
 			locations[location] = uint16(len(code)) + value
+			//fmt.Println(locations[location] + cpu.ProgramStdLibStart)
 		} else {
 			objFiles[OutFilePath] = location
 			locations[location] = uint16(len(code))

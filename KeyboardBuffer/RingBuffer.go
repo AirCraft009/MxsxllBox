@@ -37,6 +37,7 @@ func WriteKeyboardToBuffer(Cpu *cpu.CPU) {
 			panic(err)
 		}
 		if buf[0] < 32 || buf[0] > 126 {
+			buf = make([]byte, 1)
 			continue
 		}
 		ringBuffer.write(buf[0], Cpu)
@@ -48,15 +49,7 @@ func (ringBuffer *RingBuffer) write(char byte, Cpu *cpu.CPU) bool {
 	if byte((ringBuffer.writePtr+1)%ringBuffer.lenght) == Cpu.Mem.ReadByte(cpu.ReadPtr) {
 		return false
 	}
-	for _, task := range Cpu.Tasks {
-		switch task.State {
-		case 1, 2:
-			task.State = 0
-			break
-		default:
-			continue
-		}
-	}
+
 	Cpu.Mem.WriteByte(cpu.RingBufferStart+ringBuffer.writePtr, char)
 	ringBuffer.writePtr = (ringBuffer.writePtr + 1) % ringBuffer.lenght
 	Cpu.Mem.WriteByte(cpu.WritePtr, byte(ringBuffer.writePtr))

@@ -56,7 +56,7 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	return opcode, instructions
 }
 
-func decodeReg(reg1, flag byte) (rx byte, ry byte, addresNec bool) {
+func decodeReg(reg1, reg2Wflag byte) (rx byte, ry byte, addresNec bool) {
 	/**
 	old: theory still applies{
 		new config:
@@ -85,15 +85,65 @@ func decodeReg(reg1, flag byte) (rx byte, ry byte, addresNec bool) {
 	ry = 5
 
 	*/
-	rx = (reg1 >> 4) & 0x0F
-	ry = (reg1) & 0x0F
-	addrnec := (flag) & 0x01
+	rx = reg1
+	ry = reg2Wflag >> 1
+	addrnec := (reg2Wflag) & 0x01
 	return rx, ry, addrnec != 0x0
 }
 
 func handleOr(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.Registers[instructions.Rx] |= cpu.Registers[instructions.Ry]
 	cpu.PC += instructionSizeShort
+}
+
+func handleGf(cpu *CPU, instructions *HandlerInstructions) {
+	var z, c uint16
+	if cpu.Flags.Zero {
+		z = 1
+	}
+	if cpu.Flags.Carry {
+		c = 1
+	}
+	flag := (c << 1) | z
+	cpu.Registers[instructions.Rx] = flag
+	cpu.PC += instructionSizeShort
+}
+
+func handleSf(cpu *CPU, instructions *HandlerInstructions) {
+	flag := cpu.Registers[instructions.Rx]
+	c := flag >> 1
+	z := flag & 0x01
+	cpu.Flags.Zero, cpu.Flags.Carry = z == 1, c == 1
+	cpu.PC += instructionSizeShort
+}
+
+func handleGrfn(cpu *CPU, instructions *HandlerInstructions) { //num dst
+	cpu.Registers[instructions.Ry] = cpu.Registers[cpu.Registers[instructions.Rx]]
+	cpu.PC += instructionSizeShort
+}
+
+func handleGPc(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Registers[instructions.Rx] = cpu.PC
+	cpu.PC += instructionSizeShort
+}
+
+func handleGSp(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Registers[instructions.Rx] = cpu.SP
+	cpu.PC += instructionSizeShort
+}
+
+func handleSPc(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.PC = cpu.Registers[instructions.Rx]
+}
+
+func handleSSp(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.SP = cpu.Registers[instructions.Rx]
+	cpu.PC += instructionSizeShort
+}
+
+func handleMova(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Registers[instructions.Rx] = instructions.Addr
+	cpu.PC += instructionSizeLong
 }
 
 func handleAnd(cpu *CPU, instructions *HandlerInstructions) {
@@ -258,7 +308,7 @@ func handlePrintstr(cpu *CPU, instructions *HandlerInstructions) {
 
 func handlePush(cpu *CPU, instruction *HandlerInstructions) {
 	val := cpu.Registers[instruction.Rx]
-	cpu.SP -= instructionSizeShort
+	cpu.SP -= 2
 	cpu.Mem.WriteByte(cpu.SP, byte(val>>8))
 	cpu.Mem.WriteByte(cpu.SP+1, byte(val&0xff))
 	cpu.PC += instructionSizeShort
@@ -269,11 +319,11 @@ func handlePop(cpu *CPU, instruction *HandlerInstructions) {
 	lo := cpu.Mem.ReadByte(cpu.SP + 1)
 	cpu.Registers[instruction.Rx] = uint16(hi)<<8 | uint16(lo)
 	cpu.PC += instructionSizeShort
-	cpu.SP += instructionSizeShort
+	cpu.SP += 2
 }
 
 func handleCall(cpu *CPU, instruction *HandlerInstructions) {
-	cpu.SP -= instructionSizeShort
+	cpu.SP -= 2
 	cpu.Mem.WriteWord(cpu.SP, cpu.PC)
 	handleJmp(cpu, instruction)
 }
@@ -281,7 +331,7 @@ func handleCall(cpu *CPU, instruction *HandlerInstructions) {
 func handleRet(cpu *CPU, instruction *HandlerInstructions) {
 	instruction.Addr = cpu.Mem.ReadWord(cpu.SP) + instructionSizeLong
 	cpu.PC += instructionSizeLong
-	cpu.SP += instructionSizeShort
+	cpu.SP += 2
 	handleJmp(cpu, instruction)
 }
 
@@ -333,7 +383,7 @@ func handleLoadW(cpu *CPU, instructions *HandlerInstructions) {
 
 func handleStoreB(cpu *CPU, instructions *HandlerInstructions) {
 	val := byte(cpu.Registers[instructions.Rx] & 0xFF)
-	if instructions.Addr == 0 && cpu.Registers[instructions.Ry] != 0 {
+	if instructions.Addr == 0 {
 		cpu.Mem.WriteByte(cpu.Registers[instructions.Ry], val)
 		cpu.PC += instructionSizeLong
 		return

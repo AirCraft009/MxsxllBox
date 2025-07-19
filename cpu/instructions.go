@@ -49,6 +49,13 @@ const (
 	LS       byte = 0x2D
 	OR       byte = 0x2E
 	AND      byte = 0x2F
-	MOVA     byte = 0x30
+	MOVA     byte = 0x30 //MOVA Reg Lbl-name
+	GPC      byte = 0x31 // Get Program Counter
+	SPC      byte = 0x32 // Set Program Counter
+	GSP      byte = 0x33 // Get Stack Pointer
+	SSP      byte = 0x34 // Set Stack Pointer
+	GRFN     byte = 0x35 // Get Register from number
+	GF       byte = 0x36 // Get Flags bit 1 = carry  bit 0 = zero
+	SF       byte = 0x37 // Set Flags bit 1 = catty	bit 0 = zero
 	HALT     byte = 0xFF //stop the program
 )
