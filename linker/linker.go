@@ -103,6 +103,7 @@ func CompileFilesStdLibIncluded(fileName, Name string) []byte {
 	paths["\\stdlib\\string.asm"] = cpu.ProgramStdLibStart
 	paths["\\stdlib\\sys.asm"] = cpu.ProgramStdLibStart
 	paths["\\stdlib\\utils.asm"] = cpu.ProgramStdLibStart
+	paths["\\scheduler\\scheduler.asm"] = 1000
 
 	return CompileAndLinkFiles(paths, Name)
 }

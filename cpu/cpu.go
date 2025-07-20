@@ -95,4 +95,5 @@ func (cpu *CPU) Run() {
 	for !cpu.Halted {
 		cpu.Step()
 	}
+	fmt.Println(cpu.Mem.Data[8257:8318])
 }

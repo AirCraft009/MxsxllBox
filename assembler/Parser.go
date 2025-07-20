@@ -248,6 +248,7 @@ func parseFormatOPRegLbl(parameters []string, currPC uint16, parser *Parser) (pc
 	var rx, ry byte
 	code = make([]byte, 5)
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
+	rx = regMap[parameters[RegsLoc1]]
 
 	code[RegsLocOut], code[RegsLocOut+RegWidthOffset] = helper.EncodeRegs(rx, ry, true)
 	currPC += AddrOutLocHi

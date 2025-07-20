@@ -9,3 +9,4 @@ main:
 echo_char:
     PRINT O1
     JMP main
+
