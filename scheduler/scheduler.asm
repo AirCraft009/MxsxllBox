@@ -1,25 +1,34 @@
-#ActiveTaskPtr = 8256
-#Task Start =  8257
-#Task len = 8317 buffer bit of 1'st task
-#Task End = 8795
+#ActiveTaskPtr = 9088
+#Task Start =  9089
+#Task len = 9149 buffer bit of 1'st task
+#Task End = 9628
 #Tasksize = 60 bytes
+#Per-task stack size = 910 bytes
 #Max tasks = 9
 
 #going to reformat the whole system but focusing on getting it to work first
 # TODO : add deleting of tasks
 
 
+GET_STACK_START:
+    MOVI T6 32768
+    RET
+
+GET_SPLIT_STACK_SIZE:
+    MOVI T6 910
+    RET
+
 GET_ACTIVE_TASK:
-    MOVI T6 8256
+    MOVI T6 9088
     LOADB T6 T6
     RET
 
 GET_ACTIVE_TASK_LOCATION:
-    MOVI T6 8256
+    MOVI T6 9088
     RET
 
 GET_TASK_START:
-    MOVI T6 8257
+    MOVI T6 9089
     RET
 
 GET_TASK_LEN:
@@ -32,7 +41,7 @@ GET_TASK_SIZE:
     RET
 
 GET_TASK_LEN_POS:
-    MOVI T6 8317 
+    MOVI T6 9149
     RET
 
 _init_scheduler:
@@ -195,17 +204,23 @@ _spawn:         # creates a task and saves it
     CMPI T6 9
     JC TASKS_FULL
 
-    CALL GET_TASK_SIZE
-    MUL T5 T6       # where can we start to write offset
+    CALL GET_TASK_SIZE          # set- up PC
+    MUL T5 T6                   # where can we start to write offset
     CALL GET_TASK_START
-    ADD T5 T6       # actual start addr
+    ADD T5 T6                   # actual start addr
+    STOREW O1 T5                # store beginning of task
 
-    STOREW O1 T5    # store beginning of task
-    ADDI T5 2
-    MOVI T6 32768   # going to implement split up stack
+    ADDI T5 2                   #set- up Stack
+    CALL GET_SPLIT_STACK_SIZE
+    MOV T1 T6
+    CALL GET_TASK_LEN
+    MUL T1 T6
+    CALL GET_STACK_START
+    SUB T6 T1
     STOREW T6 T5
-    ADDI T5 2
-    MOVI T1 0       # set loop counter 0
+
+    ADDI T5 2                   # goto regs. location
+    MOVI T1 0                   # set loop counter 0
     CALL SAVE_REGS_LOOP
 
     STOREB T4 T5    # save flags from earlier

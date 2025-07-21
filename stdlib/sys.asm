@@ -1,6 +1,6 @@
 #Bitmap_Start = 8192
 #Bitmap_End = 9087 incl
-#Writeable_Heap = 8796
+#Writeable_Heap = 9629
 
 GET_BITMAP_START:
     MOVI O6 8192
@@ -11,7 +11,7 @@ GET_BITMAP_END:
     RET
 
 GET_WRITEABLE_HEAP:
-    MOVI O6 8796
+    MOVI O6 9629
     RET
 
 
