@@ -57,6 +57,7 @@ var opCodes = map[string]byte{
 	"GRFN":     0x35,
 	"GF":       0x36,
 	"SF":       0x37,
+	"SRFN":     0x38,
 	"HALT":     0xFF,
 }
 
@@ -112,6 +113,7 @@ var offsetMap = map[string]byte{
 	"POP":      3,
 	"ADD":      3,
 	"GRFN":     3,
+	"SRFN":     3,
 	"SUB":      3,
 	"DIV":      3,
 	"MUL":      3,

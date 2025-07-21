@@ -41,7 +41,7 @@ _pow:
 
 POWER_LOOP:
 
-    TSTI O2 0
+    CMPI O2 0
     JZ END_POWER
 
     MUL O1 O1

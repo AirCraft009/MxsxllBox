@@ -78,6 +78,7 @@ func NewCPU(mem *Memory) *CPU {
 	cpu.Handlers[GRFN] = handleGrfn
 	cpu.Handlers[GF] = handleGf
 	cpu.Handlers[SF] = handleSf
+	cpu.Handlers[SRFN] = handleSrfn
 
 	return cpu
 }
@@ -93,7 +94,7 @@ func (cpu *CPU) Step() {
 
 func (cpu *CPU) Run() {
 	for !cpu.Halted {
+		//fmt.Println(cpu.Registers[31])
 		cpu.Step()
 	}
-	fmt.Println(cpu.Mem.Data[8257:8318])
 }

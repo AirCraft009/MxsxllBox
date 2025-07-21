@@ -1,12 +1,10 @@
 .program
 
+tester:
+    PRINT R1
+    ADDI R1 3
+    JMP tester
 
-main:
-    CALL _readchar
-    JNZ echo_char
-    JMP main
 
-echo_char:
-    PRINT O1
-    JMP main
+
 

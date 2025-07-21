@@ -1,5 +1,5 @@
 #Bitmap_Start = 8192
-#Bitmap_End = 8255 incl
+#Bitmap_End = 9087 incl
 #Writeable_Heap = 8796
 
 GET_BITMAP_START:
@@ -7,7 +7,7 @@ GET_BITMAP_START:
     RET
 
 GET_BITMAP_END:
-    MOVI O6 8255
+    MOVI O6 9087
     RET
 
 GET_WRITEABLE_HEAP:
@@ -23,11 +23,12 @@ _alloc:                     # O2 is the ammount O1 will be the start
     MOV O5 O2               # Store O2 for RESET
 
     ALLOC_BITMAP_LOOP:
-        TSTI O2 0
+        CMPI O2 0
         JZ ALLOCATE
 
+
         LOADB O4 O3      # see if block is alr. set
-        TSTI O4 0       # if it's 0 then the space is free
+        CMPI O4 0       # if it's 0 then the space is free
         JNZ RESET_BITMAP_LOOP
 
         SUBI O2 1       # counter --
@@ -40,10 +41,11 @@ _alloc:                     # O2 is the ammount O1 will be the start
 
     ALLOCATE:
         CALL RESET
+        SUB O3 O2
         JMP ALLOCATE_LOOP
 
     ALLOCATE_LOOP:      # set all Bitmap Entries to 1 (full)
-        TSTI O2 0
+        CMPI O2 0
         JZ SUCCES_ALLOC
 
         MOVI O4 1
@@ -57,10 +59,11 @@ _alloc:                     # O2 is the ammount O1 will be the start
     RESET_BITMAP_LOOP:
         CALL RESET
         ADD O3 O2       # check the final location if all next blocks are free
-        CMPI O3 O6      # If it's bigger than the bitmap end it fails Set 0 flag
+        CMP O3 O6      # If it's bigger than the bitmap end it fails Set 0 flag
         JC FAILED_ALLOC
         CLC             # make sure carry isn't set next time
         SUB O3 O2
+        ADDI O3 1       # add 1 to the ptr to move it to the next byte
         JMP ALLOC_BITMAP_LOOP # try again until fail
 
     SUCCES_ALLOC:
@@ -98,7 +101,7 @@ _free:  # frees a block of mem; O1 is the addr
     CALL FREE_LOOP
 
     FREE_LOOP:
-        TSTI O2 0
+        CMPI O2 0
         JZ END_FREE
 
         STOREB O3 O1   # set bitmap to 0

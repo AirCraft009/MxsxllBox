@@ -28,9 +28,11 @@ func newHandlerInstructions(rx byte, ry byte, addr uint16) *HandlerInstructions 
 func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	if cpu.PC > ProgramEnd {
 		fmt.Println(cpu.PC)
+		fmt.Println(cpu.Mem.Data[8257:8795])
 		panic("program out of memory")
 	} else if cpu.SP < StackStart {
 		fmt.Println(cpu.SP)
+		fmt.Println(cpu.Mem.Data[8379:8795])
 		panic("stack out of memory")
 	}
 	opcode = cpu.Mem.ReadByte(cpu.PC)
@@ -114,6 +116,11 @@ func handleSf(cpu *CPU, instructions *HandlerInstructions) {
 	c := flag >> 1
 	z := flag & 0x01
 	cpu.Flags.Zero, cpu.Flags.Carry = z == 1, c == 1
+	cpu.PC += instructionSizeShort
+}
+
+func handleSrfn(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Registers[cpu.Registers[instructions.Rx]] = cpu.Registers[instructions.Ry]
 	cpu.PC += instructionSizeShort
 }
 
@@ -363,7 +370,8 @@ func handleStore(cpu *CPU, instructions *HandlerInstructions) {
 
 func handleLoadB(cpu *CPU, instructions *HandlerInstructions) {
 	if instructions.Addr == 0 && cpu.Registers[instructions.Ry] != 0 {
-		cpu.Registers[instructions.Rx] = uint16(cpu.Mem.ReadByte(cpu.Registers[instructions.Ry]))
+		addr := cpu.Registers[instructions.Ry]
+		cpu.Registers[instructions.Rx] = uint16(cpu.Mem.ReadByte(addr))
 		cpu.PC += instructionSizeLong
 		return
 	}
@@ -373,7 +381,8 @@ func handleLoadB(cpu *CPU, instructions *HandlerInstructions) {
 
 func handleLoadW(cpu *CPU, instructions *HandlerInstructions) {
 	if instructions.Addr == 0 && cpu.Registers[instructions.Ry] != 0 {
-		cpu.Registers[instructions.Rx] = cpu.Mem.ReadWord(cpu.Registers[instructions.Ry])
+		addr := cpu.Registers[instructions.Ry]
+		cpu.Registers[instructions.Rx] = cpu.Mem.ReadWord(addr)
 		cpu.PC += instructionSizeLong
 		return
 	}
@@ -384,6 +393,7 @@ func handleLoadW(cpu *CPU, instructions *HandlerInstructions) {
 func handleStoreB(cpu *CPU, instructions *HandlerInstructions) {
 	val := byte(cpu.Registers[instructions.Rx] & 0xFF)
 	if instructions.Addr == 0 {
+
 		cpu.Mem.WriteByte(cpu.Registers[instructions.Ry], val)
 		cpu.PC += instructionSizeLong
 		return
@@ -461,6 +471,7 @@ func handleJmp(cpu *CPU, instructions *HandlerInstructions) {
 
 func handleJc(cpu *CPU, instructions *HandlerInstructions) {
 	if cpu.Flags.Carry && instructions.Addr <= ProgramEnd {
+		cpu.Flags.Carry = false
 		cpu.PC = instructions.Addr
 		return
 	}
@@ -469,6 +480,7 @@ func handleJc(cpu *CPU, instructions *HandlerInstructions) {
 
 func handleJz(cpu *CPU, instructions *HandlerInstructions) {
 	if cpu.Flags.Zero && instructions.Addr <= ProgramEnd {
+		cpu.Flags.Zero = false
 		cpu.PC = instructions.Addr
 		return
 	}

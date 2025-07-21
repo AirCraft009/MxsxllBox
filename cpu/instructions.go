@@ -57,5 +57,6 @@ const (
 	GRFN     byte = 0x35 // Get Register from number
 	GF       byte = 0x36 // Get Flags bit 1 = carry  bit 0 = zero
 	SF       byte = 0x37 // Set Flags bit 1 = catty	bit 0 = zero
+	SRFN     byte = 0x38
 	HALT     byte = 0xFF //stop the program
 )

@@ -3,7 +3,7 @@ _memset:        # sets a region of mem O1 = start addr, O2 = what to set, O3 = a
     JMP MEMSET_LOOP
 
 MEMSET_LOOP:
-    TSTI O3 0
+    CMPI O3 0
     JZ END_MEMSET
 
     STOREB O2 O1
@@ -21,7 +21,7 @@ _memcpy:        # copies a region from O1 to O2 for O3 bytes
     JMP MEMCPY_LOOP
 
 MEMCPY_LOOP:
-    TSTI O3 0
+    CMPI O3 0
     JZ END_MEMCPY
 
     LOADB O4 O1
