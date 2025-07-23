@@ -64,7 +64,7 @@ _strcat:
     STOREB O4 O1         # Write combinedLenght to start of string
     ADD O1 O5           # Add len(firstString) to start of firststring; O1 = ptr(to last byte)
     ADDI O1 1           # O1 = ptr(first free byte)
-    _strcpy             # _strcpy copies str2 to O1
+    CALL _strcpy             # _strcpy copies str2 to O1
     SUBI O1 1
     SUB O1 O5           # return O1 to start of string
     JMP STRCAT_END

@@ -28,7 +28,7 @@ _readchar:
 
     ADDI O4 1
     ADD O4 O2
-    LOADB O1 O4
+    LOADB O1 O4     # buffer isn't empty so load char val. into O1
     ADDI O2 1
     MODI O2 30
     STOREB O2 O3

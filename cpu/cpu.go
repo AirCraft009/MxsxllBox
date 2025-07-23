@@ -1,19 +1,33 @@
 package cpu
 
 import (
+	"MxsxllBox/assembler"
 	"fmt"
 	"sync"
 )
 
+type id uint16
+
+const (
+	JmpOffset                = 5
+	InterruptHandlerLocation = 23965
+)
+const (
+	KeyboardInterrupt id = (1 + iota) * JmpOffset
+	TimerInterrupt
+)
+
 type CPU struct {
-	Registers [NumRegisters]uint16
-	PC        uint16
-	SP        uint16
-	Flags     Flags
-	Mem       *Memory
-	Halted    bool
-	Handlers  map[byte]func(cpu *CPU, instruction *HandlerInstructions)
-	Mutex     sync.Mutex
+	Registers        [NumRegisters]uint16
+	PC               uint16
+	SP               uint16
+	Flags            Flags
+	Mem              *Memory
+	Halted           bool
+	Handlers         map[byte]func(cpu *CPU, instruction *HandlerInstructions)
+	Mutex            sync.Mutex
+	InterruptPending bool
+	InterruptId      id
 }
 
 func NewCPU(mem *Memory) *CPU {
@@ -96,5 +110,10 @@ func (cpu *CPU) Run() {
 	for !cpu.Halted {
 		//fmt.Println(cpu.Registers[31])
 		cpu.Step()
+		if cpu.InterruptPending {
+			cpu.Registers[assembler.RegMap["I1"]] = uint16(cpu.InterruptId)
+			cpu.PC = InterruptHandlerLocation
+			cpu.InterruptPending = false
+		}
 	}
 }

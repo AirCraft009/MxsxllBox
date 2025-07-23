@@ -2,24 +2,24 @@
 #Bitmap_End = 9087 incl
 #Writeable_Heap = 9629
 
-GET_BITMAP_START:
+_get_bitmap_start:
     MOVI O6 8192
     RET
 
-GET_BITMAP_END:
+_get_bitmap_end:
     MOVI O6 9087
     RET
 
-GET_WRITEABLE_HEAP:
+_get_writeable_heap:
     MOVI O6 9629
     RET
 
 
 _alloc:                     # O2 is the ammount O1 will be the start
                             # Allocates number of bytes*blocksize(16)
-    CALL GET_BITMAP_START   # location of the bitmap first 128 bytes of heap
+    CALL _get_bitmap_start   # location of the bitmap first 128 bytes of heap
     MOV O3 O6
-    CALL GET_BITMAP_END
+    CALL _get_bitmap_end
     MOV O5 O2               # Store O2 for RESET
 
     ALLOC_BITMAP_LOOP:
@@ -70,11 +70,11 @@ _alloc:                     # O2 is the ammount O1 will be the start
         CLC
         CLZ
         CALL RESET
-        CALL GET_BITMAP_START
+        CALL _get_bitmap_start
         SUB O3 O2       # subtract ammount from O3 to get the start of the region in bitmap
         SUB O3 O6       # subtract the addr to get the offset in blocks
         MULI O3 16      # multiply with blocksize to get offset from heapstart in bytes
-        CALL GET_WRITEABLE_HEAP
+        CALL _get_writeable_heap
         ADD O3 O6       # Add start of actually writeable heap. to get a ptr to the start
         STOREW O2 O3    # write the size to the first to bytes
         MOV O1 O3
@@ -90,12 +90,12 @@ _alloc:                     # O2 is the ammount O1 will be the start
 
 
 _free:  # frees a block of mem; O1 is the addr
-    CALL GET_WRITEABLE_HEAP
+    CALL _get_writeable_heap
     SUBI O1 2           # go to len
     LOADW O2 O1         # get len
     SUB O1 O6        # get offset in bytes from heapStart
     DIVI O1 16          # divide by 16 to get offset in blocks
-    CALL GET_BITMAP_START
+    CALL _get_bitmap_start
     ADD O1 O6        # go to addr overlayed in Bitmap
     MOVI O3 0
     CALL FREE_LOOP

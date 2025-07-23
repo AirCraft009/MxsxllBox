@@ -26,11 +26,7 @@ func newHandlerInstructions(rx byte, ry byte, addr uint16) *HandlerInstructions 
 }
 
 func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
-	if cpu.PC > ProgramEnd {
-		fmt.Println(cpu.PC)
-		fmt.Println(cpu.Mem.Data[8257:8795])
-		panic("program out of memory")
-	} else if cpu.SP < StackStart {
+	if cpu.SP < StackStart {
 		fmt.Println(cpu.SP)
 		fmt.Println(cpu.Mem.Data[8379:8795])
 		panic("stack out of memory")

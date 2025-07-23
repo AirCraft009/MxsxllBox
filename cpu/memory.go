@@ -15,7 +15,10 @@ const (
 	HeapStart          = 0x2000
 	HeapEnd            = 0x6000
 	writeableHeapStart = 9628
-	HeapSize           = HeapEnd - writeableHeapStart
+	writeableHeapEnd   = 23964
+	HeapSize           = writeableHeapEnd - writeableHeapStart
+	Interrupttable     = 23965
+	InterruptTableSIze = HeapEnd - Interrupttable
 	BlockSize          = 0x10
 
 	// StackStart ───── Stack (8 KB) ─────

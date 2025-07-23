@@ -2,6 +2,7 @@ package assembler
 
 import (
 	"MxsxllBox/helper"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -127,8 +128,8 @@ func parseFormatOPRegAddr(parameters []string, currPC uint16, parser *Parser) (p
 	var rx, ry byte
 	code = make([]byte, 3)
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
-	rx = regMap[parameters[RegsLoc1]]
-	ry, ok := regMap[parameters[RegsLoc2]]
+	rx = RegMap[parameters[RegsLoc1]]
+	ry, ok := RegMap[parameters[RegsLoc2]]
 	code[RegsLocOut], code[RegsLocOut+RegWidthOffset] = helper.EncodeRegs(rx, ry, !ok)
 	if !ok {
 		addr, syntax := strconv.Atoi(parameters[AddrLoc2])
@@ -196,8 +197,8 @@ func parseFormatOPRegReg(parameters []string, currPC uint16, parser *Parser) (pc
 	var rx, ry byte
 	code = make([]byte, 3)
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
-	rx = regMap[parameters[RegsLoc1]]
-	ry = regMap[parameters[RegsLoc2]]
+	rx = RegMap[parameters[RegsLoc1]]
+	ry = RegMap[parameters[RegsLoc2]]
 	code[RegsLocOut], code[RegsLocOut+RegWidthOffset] = helper.EncodeRegs(rx, ry, false)
 	currPC += uint16(len(code))
 	return currPC, code, nil
@@ -249,7 +250,7 @@ func parseFormatOPRegLbl(parameters []string, currPC uint16, parser *Parser) (pc
 	var rx, ry byte
 	code = make([]byte, 5)
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
-	rx = regMap[parameters[RegsLoc1]]
+	rx = RegMap[parameters[RegsLoc1]]
 
 	code[RegsLocOut], code[RegsLocOut+RegWidthOffset] = helper.EncodeRegs(rx, ry, true)
 	currPC += AddrOutLocHi
@@ -266,7 +267,7 @@ func parseFormatOPReg(parameters []string, currPC uint16, parser *Parser) (pc ui
 	var rx, ry byte
 	code = make([]byte, 3)
 	code[OpCLoc] = opCodes[parameters[OpCLoc]]
-	rx = regMap[parameters[RegsLoc1]]
+	rx = RegMap[parameters[RegsLoc1]]
 	code[RegsLocOut], code[RegsLocOut+RegWidthOffset] = helper.EncodeRegs(rx, ry, false)
 	currPC += uint16(len(code))
 	return currPC, code, nil
@@ -308,14 +309,22 @@ func FirstPass(data [][]string, parser *Parser) (*Parser, [][]string) {
 			formatted := formatter(data[i])
 			formattedExtraCode[i] = formatted
 			for _, formatLine := range formatted {
-				PC += uint16(getOffset(formatLine[0]))
+				ad, _ := getOffset(formatLine[0])
+				PC += uint16(ad)
 			}
 			continue
 		} else if len(line) == 1 && strings.Contains(line[0], ".program") {
 			parser.ObjFile.UserFile = true
 			continue
 		}
-		PC += uint16(getOffset(line[0]))
+
+		ad, ok := getOffset(line[0])
+		if !ok {
+			fmt.Println(line[0])
+			fmt.Println(PC)
+			panic("unknown")
+		}
+		PC += uint16(ad)
 	}
 	for i, extraData := range formattedExtraCode {
 		data = helper.DeleteMatrixRow(data, i)
@@ -325,12 +334,9 @@ func FirstPass(data [][]string, parser *Parser) (*Parser, [][]string) {
 	return parser, data
 }
 
-func getOffset(OP string) byte {
-	offset := offsetMap[OP]
-	if offset == 0 {
-		return 2
-	}
-	return offset
+func getOffset(OP string) (byte, bool) {
+	offset, ok := OffsetMap[OP]
+	return offset, ok
 }
 
 func Assemble(data, path string) *ObjectFile {

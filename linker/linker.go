@@ -4,6 +4,7 @@ import (
 	"MxsxllBox/assembler"
 	"MxsxllBox/cpu"
 	"MxsxllBox/helper"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -40,8 +41,12 @@ func LinkModules(filePaths map[string]uint16) ([]byte, error) {
 					panic("Label not found: " + relo.Lbl)
 				}
 				symbol = globalSymbol
+			} else {
+				symbol += location
 			}
-			symbol += location
+			if relo.Lbl == "_interrupt" {
+				fmt.Printf("linking %d to %d from %s\n", symbol, location, relo.Lbl)
+			}
 			hi, lo := helper.EncodeAddr(symbol)
 			objFile.Code[relo.Offset] = hi
 			objFile.Code[relo.Offset+1] = lo
@@ -102,7 +107,8 @@ func CompileFilesStdLibIncluded(fileName, Name string) []byte {
 	paths["\\stdlib\\string.asm"] = cpu.ProgramStdLibStart
 	paths["\\stdlib\\sys.asm"] = cpu.ProgramStdLibStart
 	paths["\\stdlib\\utils.asm"] = cpu.ProgramStdLibStart
-	paths["\\scheduler\\scheduler.asm"] = cpu.ProgramStdLibStart
+	paths["\\interrupts\\interruptTable.asm"] = cpu.InterruptHandlerLocation
+	paths["\\scheduler\\scheduler.asm"] = 300
 
 	return CompileAndLinkFiles(paths, Name)
 }

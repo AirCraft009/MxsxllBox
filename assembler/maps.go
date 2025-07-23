@@ -61,7 +61,7 @@ var opCodes = map[string]byte{
 	"HALT":     0xFF,
 }
 
-var regMap = map[string]byte{
+var RegMap = map[string]byte{
 	"R0":  0,
 	"R1":  1,
 	"R2":  2,
@@ -81,13 +81,13 @@ var regMap = map[string]byte{
 	"R16": 16,
 	"R17": 17,
 	"R18": 18,
-	"R19": 19,
-	"O1":  20,
-	"O2":  21,
-	"O3":  22,
-	"O4":  23,
-	"O5":  24,
-	"O6":  25,
+	"O1":  19,
+	"O2":  20,
+	"O3":  21,
+	"O4":  22,
+	"O5":  23,
+	"O6":  24,
+	"I1":  25,
 	"T1":  26,
 	"T2":  27,
 	"T3":  28,
@@ -96,7 +96,7 @@ var regMap = map[string]byte{
 	"T6":  31,
 }
 
-var offsetMap = map[string]byte{
+var OffsetMap = map[string]byte{
 	"STRING":   0,
 	"NOP":      1,
 	"RET":      1,
