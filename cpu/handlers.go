@@ -28,7 +28,7 @@ func newHandlerInstructions(rx byte, ry byte, addr uint16) *HandlerInstructions 
 func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	if cpu.SP < StackStart {
 		fmt.Println(cpu.SP)
-		fmt.Println(cpu.Mem.Data[8379:8795])
+		fmt.Println(cpu.Mem.Data[cpu.SP])
 		panic("stack out of memory")
 	}
 	opcode = cpu.Mem.ReadByte(cpu.PC)
@@ -312,15 +312,13 @@ func handlePrintstr(cpu *CPU, instructions *HandlerInstructions) {
 func handlePush(cpu *CPU, instruction *HandlerInstructions) {
 	val := cpu.Registers[instruction.Rx]
 	cpu.SP -= 2
-	cpu.Mem.WriteByte(cpu.SP, byte(val>>8))
-	cpu.Mem.WriteByte(cpu.SP+1, byte(val&0xff))
+	cpu.Mem.WriteWord(cpu.SP, val)
 	cpu.PC += instructionSizeShort
 }
 
 func handlePop(cpu *CPU, instruction *HandlerInstructions) {
-	hi := cpu.Mem.ReadByte(cpu.SP)
-	lo := cpu.Mem.ReadByte(cpu.SP + 1)
-	cpu.Registers[instruction.Rx] = uint16(hi)<<8 | uint16(lo)
+	addr := cpu.Mem.ReadWord(cpu.SP)
+	cpu.Registers[instruction.Rx] = addr
 	cpu.PC += instructionSizeShort
 	cpu.SP += 2
 }
@@ -460,13 +458,11 @@ func handleDiv(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleJmp(cpu *CPU, instructions *HandlerInstructions) {
-	if instructions.Addr <= ProgramEnd {
-		cpu.PC = instructions.Addr
-	}
+	cpu.PC = instructions.Addr
 }
 
 func handleJc(cpu *CPU, instructions *HandlerInstructions) {
-	if cpu.Flags.Carry && instructions.Addr <= ProgramEnd {
+	if cpu.Flags.Carry {
 		cpu.Flags.Carry = false
 		cpu.PC = instructions.Addr
 		return
@@ -475,7 +471,7 @@ func handleJc(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleJz(cpu *CPU, instructions *HandlerInstructions) {
-	if cpu.Flags.Zero && instructions.Addr <= ProgramEnd {
+	if cpu.Flags.Zero {
 		cpu.Flags.Zero = false
 		cpu.PC = instructions.Addr
 		return

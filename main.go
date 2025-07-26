@@ -4,10 +4,11 @@ import (
 	"MxsxllBox/KeyboardBuffer"
 	"MxsxllBox/cpu"
 	"MxsxllBox/linker"
+	"fmt"
+	"runtime/debug"
 )
 
 func main() {
-
 	mem := &cpu.Memory{}
 
 	copy(mem.Data[:], linker.CompileFilesStdLibIncluded("program.asm", "EchoKeys"))
@@ -29,9 +30,16 @@ func main() {
 	copy(mem.Data[:cpu.MemorySize], program)
 	*/
 	vm := cpu.NewCPU(mem)
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Program crashed with panic:", r)
+			fmt.Printf("PC, OpCode: %d, %d\n", vm.PC, vm.Mem.Data[vm.PC])
+			fmt.Printf("stack pointer: %d\n")
+			fmt.Printf("stack trace: %s\n", string(debug.Stack()))
+		}
+	}()
 	go KeyboardBuffer.WriteKeyboardToBuffer(vm)
 	go vm.Run()
 
 	select {}
-
 }

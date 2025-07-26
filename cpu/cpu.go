@@ -11,6 +11,8 @@ type id uint16
 const (
 	JmpOffset                = 5
 	InterruptHandlerLocation = 23965
+	TaskRegs                 = 6
+	Wordsize                 = 2
 )
 const (
 	KeyboardInterrupt id = (1 + iota) * JmpOffset
@@ -110,8 +112,12 @@ func (cpu *CPU) Run() {
 	for !cpu.Halted {
 		//fmt.Println(cpu.Registers[31])
 		cpu.Step()
+
 		if cpu.InterruptPending {
 			cpu.Registers[assembler.RegMap["I1"]] = uint16(cpu.InterruptId)
+			cpu.SP -= Wordsize * TaskRegs
+			cpu.Mem.WriteWord(cpu.SP, cpu.PC)
+			cpu.SP += Wordsize * TaskRegs
 			cpu.PC = InterruptHandlerLocation
 			cpu.InterruptPending = false
 		}

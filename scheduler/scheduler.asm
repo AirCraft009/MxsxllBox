@@ -66,11 +66,15 @@ _scheduler_change:
     JMP ROUND_ROBIN
 
 _scheduler_interrupt:
-    ADDI I1 23965           # add the interrupt table location to the current interrupt ID
-    GPC T1                  # get the current PC
-    ADDI T1 9               # add the offset of the next 3 instructions so it doesn't get stuck in an infinity loop
-    PUSH T1                 # Push onto the stack so the next RET call returns to 'CALL _scheduler'
-    SPC I1                  # JMP without lbl
+    ADDI I1 23965               # add the interrupt table location to the current interrupt ID
+    GPC T1                      # get the current PC
+    ADDI T1 9                   # add the offset of the next 3 instructions -5 because the normal RET expects a CALL which has an instruction len of 5 so it doesn't get stuck in an infinity loop
+    PUSH T1                     # Push onto the stack so the next RET call returns to 'CALL _scheduler'
+    SPC I1                      # JMP without lbl
+    MOVI I2 25
+    JMP POP_TASK_REGS           # pop them after saving the task
+
+CONTINUE_SCHEDULER_INTERRUPT:
     CALL _scheduler
     JMP FOUND_TASK
 
@@ -80,32 +84,30 @@ GET_OFFSETS_FROM_TASK:
     ADD T1 T3       # get location
 
     SUBI T1 2
-
-
-    LOADB T1 T1
     RET
 
 _unblock_tasks:             # T2 now has the type of task to be unblocked
     CALL _scheduler
+    CALL _get_task_len
+    MOV T4 T6
+    CALL _get_task_size
     CALL UNBLOCK_LOOP
     RET
 
 UNBLOCK_LOOP:
-    CMP T4 0
+    CMPI T4 0
     JZ RETURN
 
     CALL GET_OFFSETS_FROM_TASK
-
-    CMP T1 T2        # check if state is ready
+    LOADB T1 T1
+    CMP T1 T2        # check if state is the blocked state
     JZ CHANGE_TYPE_TO_READY
+    SUBI T4 1
+    JMP UNBLOCK_LOOP
 
 
 CHANGE_TYPE_TO_READY:
-    MOV T1 T4       # DRY !!!!! remove later
-    MUL T1 T6       # get Offsets
-    ADD T1 T3       # get location
-
-    SUBI T1 2
+    CALL  GET_OFFSETS_FROM_TASK
 
     MOVI T6 1
     STOREB T6 T1
@@ -123,8 +125,8 @@ ROUND_ROBIN:
     JZ WRAP_ARROUND
 
     CALL GET_OFFSETS_FROM_TASK
-
-    PRINT T1
+    LOADB T1 T1
+    
     CMPI T1 1       # check if state is ready
     JZ  FOUND_TASK
     JNC FOUND_TASK  # will only happen if an alr. running task is the only option available so if all others are blocked
@@ -195,21 +197,66 @@ RESTORE_REGS_LOOP:
 
 # going to optimize by converging _spawn / _yield
 
-_yield:                 # cooperative yield( willingly from the current lbl)
-    CALL SAVE_TASK      # task is changed
+_yield:                     # cooperative yield( willingly from the current lbl)
+    CALL SAVE_TASK_YIELD    # task is changed
 
-    ADDI T5 1           # move to state
-    MOV T1 O1           # set state
+    ADDI T5 1               # move to state
+    MOV T1 O1               # set state
     STOREB T1 T5
 
     JMP _scheduler_change
 
 
-_interrupt:                     # when this is called the interrupt id should aleready be loaded into I1 (interrupt 1)
-    CALL SAVE_TASK              # task is interrupted continues after handling
+_interrupt:                    # when this is called the interrupt id should aleready be loaded into I1 (interrupt 1)
+    MOVI I2 32
+    JMP PUSH_TASK_REGS         # push all task registers so if a yield get's interrupted the task registers stay
+
+
+CONTINUE_INTERRUPT:
+    CALL SAVE_TASK_INTERRUPT    # task is interrupted continues after handling
     JMP _scheduler_interrupt
 
-SAVE_TASK:
+PUSH_TASK_REGS:
+    SUBI I2 1
+    CMPI I2 25
+    JZ CONTINUE_INTERRUPT
+
+    GSP T6
+    GRFN I2 T6
+
+    PUSH T6
+
+    JMP PUSH_TASK_REGS
+
+
+POP_TASK_REGS:
+    ADDI I2 1
+    CMPI I2 32
+    JZ CONTINUE_SCHEDULER_INTERRUPT
+
+    POP T6
+    SRFN I2 T6
+
+    JMP POP_TASK_REGS
+
+
+
+
+SAVE_TASK_YIELD:
+    CALL SET_ADDR
+    POP T2              # pop the return addr of the previous lbl either _yield or _interrupt
+    POP T6              # pop the return addr/currPC of the lbl that called the actual _yield/_interrupt
+    CALL SAVE_CONTEXT
+    PUSH T2             # add the return addr of the previous lbl so it can be returned to
+    RET
+
+SAVE_TASK_INTERRUPT:
+    CALL SET_ADDR
+    SUBI T2 5           # offset the CALL instructionthat will be added on the interrupt is only possible after every step
+    CALL SAVE_CONTEXT
+    RET
+
+SET_ADDR:
     CALL _get_active_task
     SUBI T6 1
     MOV T5 T6           # save activeTaskNum
@@ -217,9 +264,9 @@ SAVE_TASK:
     MUL T5 T6           # get the offset
     CALL _get_task_start
     ADD T5 T6           # set to correct addr
-    POP T2              # pop the return addr of the previous lbl either _yield or _interrupt
-    POP T6              # pop the return addr/currPC of the lbl that called the actual _yield/_interrupt
+    RET
 
+SAVE_CONTEXT:
     GF T4
     ADDI T6 5           # add the offset of CALL instruction
     STOREW T6 T5
@@ -231,7 +278,6 @@ SAVE_TASK:
 
     CALL SAVE_REGS_LOOP
 
-    PUSH T2             # add the return addr of the previous lbl so it can be returned to
     STOREB T4 T5        # save flags from earlier
     RET
 

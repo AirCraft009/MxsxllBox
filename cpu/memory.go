@@ -24,7 +24,7 @@ const (
 	// StackStart ───── Stack (8 KB) ─────
 	StackStart = 0x600
 	StackEnd   = 0x7FFF
-	St         = StackInit + 910
+	St         = StackInit - 910
 	StackInit  = StackEnd + 1 // 0x8000 (Stack grows down)
 
 	// VideoStart ───── Video RAM / Framebuffer (16 KB) ─────
