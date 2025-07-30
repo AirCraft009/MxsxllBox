@@ -94,6 +94,16 @@ func handleOr(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.PC += instructionSizeShort
 }
 
+func handleYield(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.PC += 1
+	cpu.Yielding = true
+}
+
+func handleUnyield(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.PC += 1
+	cpu.Yielding = false
+}
+
 func handleGf(cpu *CPU, instructions *HandlerInstructions) {
 	var z, c uint16
 	if cpu.Flags.Zero {

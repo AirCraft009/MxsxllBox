@@ -58,5 +58,7 @@ const (
 	GF       byte = 0x36 // Get Flags bit 1 = carry  bit 0 = zero
 	SF       byte = 0x37 // Set Flags bit 1 = catty	bit 0 = zero
 	SRFN     byte = 0x38
+	YIELD    byte = 0x39 // doesn't actually yield only makes it so that yielding isn't interrupted
+	UNYIELD  byte = 0x3A // ensures that the yielding flag is false
 	HALT     byte = 0xFF //stop the program
 )
