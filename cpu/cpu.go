@@ -30,6 +30,7 @@ type CPU struct {
 	Mutex            sync.Mutex
 	InterruptPending bool
 	InterruptId      id
+	Interrupt        bool //makes sure that the interrupt is executed after the next step
 	Yielding         bool
 }
 
@@ -97,6 +98,7 @@ func NewCPU(mem *Memory) *CPU {
 	cpu.Handlers[SF] = handleSf
 	cpu.Handlers[SRFN] = handleSrfn
 	cpu.Handlers[YIELD] = handleYield
+	cpu.Handlers[UNYIELD] = handleUnyield
 
 	return cpu
 }
@@ -112,11 +114,11 @@ func (cpu *CPU) Step() {
 
 func (cpu *CPU) Run() {
 	for !cpu.Halted {
-		//fmt.Println(cpu.Registers[31])
-		cpu.Step()
-
 		if cpu.InterruptPending && !cpu.Yielding {
-
+			cpu.Interrupt = true
+		}
+		cpu.Step()
+		if cpu.Interrupt {
 			cpu.Registers[assembler.RegMap["I1"]] = uint16(cpu.InterruptId)
 			cpu.SP -= Wordsize * TaskRegs
 			cpu.Mem.WriteWord(cpu.SP, cpu.PC)
@@ -124,6 +126,7 @@ func (cpu *CPU) Run() {
 			cpu.PC = InterruptHandlerLocation
 			cpu.Mutex.Lock()
 			cpu.InterruptPending = false
+			cpu.Interrupt = false
 			cpu.Mutex.Unlock()
 		}
 	}

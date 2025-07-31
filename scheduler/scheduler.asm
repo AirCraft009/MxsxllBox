@@ -45,6 +45,19 @@ GET_TASK_LEN_POS:
     MOVI T6 9149
     RET
 
+GET_STATE_LOCATION:
+    CALL GET_TASK_SIZE
+    MUL T1 T6       # get Offsets
+    CALL GET_TASK_START
+    ADD T1 T6       # get location
+    SUBI T1 2
+    RET
+
+GET_STATE:          # T1 has the task number from 0
+    CALL GET_STATE_LOCATION
+    LOADB T1 T1     # LOAD into T1
+    RET
+
 _init_scheduler:
     CALL GET_TASK_LEN
     MOV T5 T6
@@ -53,18 +66,55 @@ _init_scheduler:
     STOREB T5 T6                    # store the len + 1 so it starts at index len()-1
     JMP _scheduler
 
-
-_scheduler:
+_setup_scheduler:
     CALL GET_ACTIVE_TASK
     MOV T4 T6
     CALL GET_TASK_START
     MOV T3 T6
     CALL GET_TASK_SIZE
+    RET
+
+_scheduler:
+    CALL _setup_scheduler
     CALL ROUND_ROBIN
 
 SETUP_INTERRUPT_HANDLER:
+        ADDI I1 23965               # add the interrupt table location to the current interrupt ID
+        GPC T1                      # get the current PC
+        ADDI T1 9                   # add the offset of the next 3 instructions -5 because the normal RET expects a CALL which has an instruction len of 5 so it doesn't get stuck in an infinity loop
+        PUSH T1                     # Push onto the stack so the next RET call returns to 'CALL _scheduler'
+        SPC I1                      # JMP without lbl
+        CALL _setup_scheduler
+        JMP FOUND_TASK
 
+_unblock_tasks:             # T2 now has the type of task to be unblocked
+    CALL GET_TASK_LEN
+    PRINT T6
+    PRINT T6
+    MOV T4 T6               # T4 == counter
+    JMP UNBLOCK_LOOP
 
+UNBLOCK_LOOP:
+    CMPI T4 0
+    JZ RETURN
+
+    MOV T1 T4
+    CALL GET_STATE
+
+    CMP T1 T2
+    JZ  UNBLOCK
+    SUBI T4 1
+
+    JMP UNBLOCK_LOOP
+
+UNBLOCK:
+    MOV T1 T4
+    SUBI T4 1
+    CALL GET_STATE_LOCATION
+
+    MOVI T3 1
+    STOREB T3 T1
+    JMP UNBLOCK_LOOP
 
 ROUND_ROBIN:
     SUBI T4 1
@@ -72,20 +122,17 @@ ROUND_ROBIN:
     JZ WRAP_ARROUND
 
     MOV T1 T4
-    MUL T1 T6       # get Offsets
-    ADD T1 T3       # get location
-
-    SUBI T1 2
-
-
-    LOADB T1 T1
-
+    CALL GET_STATE
 
     CMPI T1 1       # check if state is ready
-    JZ  FOUND_TASK
-    JNC FOUND_TASK  # will only happen if an alr. running task is the only option available so if all others are blocked
+    JLE FOUND_TASK
 
-    JMP ROUND_ROBIN
+    JMP TEMP_UNYIELD
+
+TEMP_UNYIELD:
+    PUSH T4         # pushes T4 so if an interrupt occured it won't overwrite it
+    UNYIELD
+    YIELD
 
 WRAP_ARROUND:
     CALL GET_TASK_LEN

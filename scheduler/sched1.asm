@@ -86,39 +86,6 @@ GET_OFFSETS_FROM_TASK:
     SUBI T1 2
     RET
 
-_unblock_tasks:             # T2 now has the type of task to be unblocked
-    CALL _scheduler
-    CALL _get_task_len
-    MOV T4 T6
-    CALL _get_task_size
-    CALL UNBLOCK_LOOP
-    RET
-
-UNBLOCK_LOOP:
-    CMPI T4 0
-    JZ RETURN
-
-    CALL GET_OFFSETS_FROM_TASK
-    LOADB T1 T1
-    CMP T1 T2        # check if state is the blocked state
-    JZ CHANGE_TYPE_TO_READY
-    SUBI T4 1
-    JMP UNBLOCK_LOOP
-
-
-CHANGE_TYPE_TO_READY:
-    CALL  GET_OFFSETS_FROM_TASK
-
-    MOVI T6 1
-    STOREB T6 T1
-
-    SUBI T4 1
-    JMP UNBLOCK_LOOP
-
-
-
-
-
 ROUND_ROBIN:
     SUBI T4 1
     CMPI T4 0

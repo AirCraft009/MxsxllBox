@@ -24,6 +24,7 @@ func newRingBuffer() *RingBuffer {
 
 func WriteKeyboardToBuffer(Cpu *cpu.CPU) {
 	ringBuffer := newRingBuffer()
+
 	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
 	}

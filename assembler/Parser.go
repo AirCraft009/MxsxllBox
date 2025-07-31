@@ -116,6 +116,8 @@ func newParser() *Parser {
 	parser.Parsers["GF"] = parseFormatOPReg
 	parser.Parsers["SF"] = parseFormatOPReg
 	parser.Parsers["SRFN"] = parseFormatOPRegReg
+	parser.Parsers["YIELD"] = parseFormatOP
+	parser.Parsers["UNYIELD"] = parseFormatOP
 
 	return parser
 }

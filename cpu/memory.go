@@ -1,9 +1,11 @@
 package cpu
 
-import "sync"
+import (
+	"sync"
+)
 
 const (
-	MemorySize = 64 * 1024 // 64 KB total memory
+	MemorySize = 1024 * 64 // 64 KB total memory
 
 	// ProgramStart ───── Code Region (8 KB) ─────
 	ProgramStart       = 0x0000
@@ -85,6 +87,7 @@ func (mem *Memory) WriteByte(addr uint16, value byte) {
 		mem.keyboardMu.Lock()
 		defer mem.keyboardMu.Unlock()
 	}
+
 	mem.Data[addr] = value
 }
 
@@ -93,6 +96,7 @@ func (mem *Memory) WriteWord(addr uint16, val uint16) {
 		mem.keyboardMu.Lock()
 		defer mem.keyboardMu.Unlock()
 	}
+
 	mem.Data[addr] = byte(val >> 8)
 	mem.Data[addr+1] = byte(val & 0xFF)
 }

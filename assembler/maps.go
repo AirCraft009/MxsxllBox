@@ -58,6 +58,8 @@ var opCodes = map[string]byte{
 	"GF":       0x36,
 	"SF":       0x37,
 	"SRFN":     0x38,
+	"YIELD":    0x39,
+	"UNYIELD":  0x3A,
 	"HALT":     0xFF,
 }
 
@@ -99,6 +101,8 @@ var RegMap = map[string]byte{
 var OffsetMap = map[string]byte{
 	"STRING":   0,
 	"NOP":      1,
+	"UNYIELD":  1,
+	"YIELD":    1,
 	"RET":      1,
 	"HALT":     1,
 	"STC":      1,

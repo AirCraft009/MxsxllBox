@@ -39,6 +39,7 @@ func main() {
 		}
 	}()
 	go KeyboardBuffer.WriteKeyboardToBuffer(vm)
+	fmt.Println("Program started")
 	go vm.Run()
 
 	select {}
