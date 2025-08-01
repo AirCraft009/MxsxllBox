@@ -17,11 +17,20 @@ print_c:
     JMP print_c
 
 print_b:
-    MOVI T1 3
-    PRINT T1
+    PRINT O1
+    CALL _readchar
+    JNZ print_it
+    JMP finish_print_b
+
+finish_print_b:
     MOVI O1 2
     CALL _yield
     JMP print_b
+
+print_it:
+    PRINT O1
+    JMP finish_print_b
+
 
 
 

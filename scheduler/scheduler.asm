@@ -76,7 +76,8 @@ _setup_scheduler:
 
 _scheduler:
     CALL _setup_scheduler
-    CALL ROUND_ROBIN
+    PUSH T4
+    JMP ROUND_ROBIN
 
 SETUP_INTERRUPT_HANDLER:
         ADDI I1 23965               # add the interrupt table location to the current interrupt ID
@@ -89,8 +90,6 @@ SETUP_INTERRUPT_HANDLER:
 
 _unblock_tasks:             # T2 now has the type of task to be unblocked
     CALL GET_TASK_LEN
-    PRINT T6
-    PRINT T6
     MOV T4 T6               # T4 == counter
     JMP UNBLOCK_LOOP
 
@@ -117,6 +116,7 @@ UNBLOCK:
     JMP UNBLOCK_LOOP
 
 ROUND_ROBIN:
+    POP T4
     SUBI T4 1
     CMPI T4 0
     JZ WRAP_ARROUND
@@ -130,14 +130,16 @@ ROUND_ROBIN:
     JMP TEMP_UNYIELD
 
 TEMP_UNYIELD:
-    PUSH T4         # pushes T4 so if an interrupt occured it won't overwrite it
     UNYIELD
+    PUSH T4         # pushes T4 so if an interrupt occured it won't overwrite it
     YIELD
+    JMP ROUND_ROBIN
 
 WRAP_ARROUND:
     CALL GET_TASK_LEN
     MOV T4 T6
     ADDI T4 1
+    PUSH T4
     CALL GET_TASK_SIZE
     JMP ROUND_ROBIN
 
@@ -295,6 +297,7 @@ _spawn:         # creates a task and saves it
     ADDI T6 1
     MOV T5 T6
     CALL GET_TASK_LEN_POS
+    PRINT T5
     STOREB T5 T6    # update lenght += 1
     RET
 

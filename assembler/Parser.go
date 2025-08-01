@@ -123,13 +123,13 @@ func newParser() *Parser {
 }
 
 func parseFormatOP(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
-	return currPC + 1, []byte{opCodes[parameters[OpCLoc]]}, nil
+	return currPC + 1, []byte{OpCodes[parameters[OpCLoc]]}, nil
 }
 
 func parseFormatOPRegAddr(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
 	code = make([]byte, 3)
-	code[OpCLoc] = opCodes[parameters[OpCLoc]]
+	code[OpCLoc] = OpCodes[parameters[OpCLoc]]
 	rx = RegMap[parameters[RegsLoc1]]
 	ry, ok := RegMap[parameters[RegsLoc2]]
 	code[RegsLocOut], code[RegsLocOut+RegWidthOffset] = helper.EncodeRegs(rx, ry, !ok)
@@ -198,7 +198,7 @@ func formatString(parameters []string) (formatted [][]string) {
 func parseFormatOPRegReg(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
 	code = make([]byte, 3)
-	code[OpCLoc] = opCodes[parameters[OpCLoc]]
+	code[OpCLoc] = OpCodes[parameters[OpCLoc]]
 	rx = RegMap[parameters[RegsLoc1]]
 	ry = RegMap[parameters[RegsLoc2]]
 	code[RegsLocOut], code[RegsLocOut+RegWidthOffset] = helper.EncodeRegs(rx, ry, false)
@@ -209,7 +209,7 @@ func parseFormatOPRegReg(parameters []string, currPC uint16, parser *Parser) (pc
 func parseFormatOPAddr(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
 	code = make([]byte, 5)
-	code[OpCLoc] = opCodes[parameters[OpCLoc]]
+	code[OpCLoc] = OpCodes[parameters[OpCLoc]]
 	addr, syntax := strconv.Atoi(parameters[AddrLoc1])
 	if syntax != nil {
 		panic("syntax error: " + syntax.Error())
@@ -225,7 +225,7 @@ func parseFormatOPAddr(parameters []string, currPC uint16, parser *Parser) (pc u
 func parseFormatOPLbl(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
 	code = make([]byte, 5)
-	code[OpCLoc] = opCodes[parameters[OpCLoc]]
+	code[OpCLoc] = OpCodes[parameters[OpCLoc]]
 	/**
 	Lbladdr, ok := parser.Labels[parameters[AddrLoc1]]
 	if !ok {
@@ -251,7 +251,7 @@ func parseFormatOPLbl(parameters []string, currPC uint16, parser *Parser) (pc ui
 func parseFormatOPRegLbl(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
 	code = make([]byte, 5)
-	code[OpCLoc] = opCodes[parameters[OpCLoc]]
+	code[OpCLoc] = OpCodes[parameters[OpCLoc]]
 	rx = RegMap[parameters[RegsLoc1]]
 
 	code[RegsLocOut], code[RegsLocOut+RegWidthOffset] = helper.EncodeRegs(rx, ry, true)
@@ -268,7 +268,7 @@ func parseFormatOPRegLbl(parameters []string, currPC uint16, parser *Parser) (pc
 func parseFormatOPReg(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
 	code = make([]byte, 3)
-	code[OpCLoc] = opCodes[parameters[OpCLoc]]
+	code[OpCLoc] = OpCodes[parameters[OpCLoc]]
 	rx = RegMap[parameters[RegsLoc1]]
 	code[RegsLocOut], code[RegsLocOut+RegWidthOffset] = helper.EncodeRegs(rx, ry, false)
 	currPC += uint16(len(code))

@@ -1,6 +1,6 @@
 package assembler
 
-var opCodes = map[string]byte{
+var OpCodes = map[string]byte{
 	"NOP":      0x00,
 	"LOADB":    0x01,
 	"LOADW":    0x02,

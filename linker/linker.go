@@ -44,7 +44,7 @@ func LinkModules(filePaths map[string]uint16) ([]byte, error) {
 			} else {
 				symbol += location
 			}
-			if relo.Lbl == "_interrupt" {
+			if relo.Lbl == "_spawn" {
 				fmt.Printf("linking %d to %d from %s\n", symbol, location, relo.Lbl)
 			}
 			hi, lo := helper.EncodeAddr(symbol)

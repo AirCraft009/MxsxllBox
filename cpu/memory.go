@@ -1,6 +1,7 @@
 package cpu
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -86,6 +87,10 @@ func (mem *Memory) WriteByte(addr uint16, value byte) {
 	if isKeyboardRegion(addr) {
 		mem.keyboardMu.Lock()
 		defer mem.keyboardMu.Unlock()
+	}
+
+	if addr == 9149 {
+		fmt.Println("WARNING: TASK_LEN WAS OVERWRITTEN")
 	}
 
 	mem.Data[addr] = value
