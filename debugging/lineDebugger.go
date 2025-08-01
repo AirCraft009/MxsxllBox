@@ -13,12 +13,16 @@ func reverseOpCodes(opcodes map[string]uint8) (reverseOpCodes map[uint8]string) 
 func debugWPC(code []byte) {
 	fmt.Println("DEBUG With PC")
 	Ops := reverseOpCodes(assembler.OpCodes)
-
+	dissasemble(code, Ops)
 }
 
-func dissasemble(code []byte) {
+func dissasemble(code []byte, Ops map[byte]string) {
 	stringCode := ""
+	var offset byte
 	for Pc, v := range code {
-		// at first
+		// at first, it takes the opCode so that it knows the offset
+		Op := Ops[v]
+		offset = assembler.OffsetMap[Op]
+
 	}
 }
