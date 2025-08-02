@@ -83,7 +83,7 @@ func (mem *Memory) ReadReg(addr uint16) (byte, byte) {
 	return mem.Data[addr], mem.Data[addr+1]
 }
 
-func (mem *Memory) WriteByte(addr uint16, value byte) {
+func (mem *Memory) WriteByte(addr uint16, value byte) (taskLenOverwrite bool) {
 	if isKeyboardRegion(addr) {
 		mem.keyboardMu.Lock()
 		defer mem.keyboardMu.Unlock()
@@ -91,9 +91,11 @@ func (mem *Memory) WriteByte(addr uint16, value byte) {
 
 	if addr == 9149 {
 		fmt.Println("WARNING: TASK_LEN WAS OVERWRITTEN")
+		taskLenOverwrite = true
 	}
 
 	mem.Data[addr] = value
+	return taskLenOverwrite
 }
 
 func (mem *Memory) WriteWord(addr uint16, val uint16) {

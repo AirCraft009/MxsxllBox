@@ -1,7 +1,7 @@
 package linker
 
 import (
-	"MxsxllBox/assembler"
+	assembler2 "MxsxllBox/Assembly-process/assembler"
 	"MxsxllBox/cpu"
 	"MxsxllBox/helper"
 	"fmt"
@@ -18,10 +18,10 @@ const (
 func LinkModules(filePaths map[string]uint16) ([]byte, error) {
 	finalCode := make([]byte, cpu.MemorySize)
 	globalLookupTable := make(map[string]uint16)
-	allObjFiles := make(map[*assembler.ObjectFile]uint16, 0)
+	allObjFiles := make(map[*assembler2.ObjectFile]uint16, 0)
 
 	for filePath, location := range filePaths {
-		objFile, _ := assembler.ReadObjectFile(filePath)
+		objFile, _ := assembler2.ReadObjectFile(filePath)
 		allObjFiles[objFile] = location
 		for symbol, relAddr := range objFile.Symbols {
 			if objFile.Globals[relAddr] {
@@ -76,7 +76,7 @@ func CompileAndLinkFiles(files map[string]uint16, Name string) []byte {
 			panic(err)
 		}
 		OutFilePath := filepath.Join(genericOutPath, filePath)
-		code := assembler.Assemble(string(data), OutFilePath).Code
+		code := assembler2.Assemble(string(data), OutFilePath).Code
 		if value, ok := locations[location]; ok {
 			objFiles[OutFilePath] = location + value
 			locations[location] = uint16(len(code)) + value

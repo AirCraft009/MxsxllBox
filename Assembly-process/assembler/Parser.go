@@ -301,6 +301,9 @@ func FirstPass(data [][]string, parser *Parser) (*Parser, [][]string) {
 	formattedExtraCode := make(map[int][][]string)
 
 	for i, line := range data {
+		if PC == (1037 - 300) {
+			fmt.Println(line)
+		}
 		if len(line) == 1 && strings.Contains(line[0], ":") {
 			parser.Labels[line[0][:len(line[0])-1]] = PC
 			if strings.HasPrefix(line[0], "_") {

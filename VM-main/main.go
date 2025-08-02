@@ -1,9 +1,9 @@
 package main
 
 import (
+	"MxsxllBox/Assembly-process/linker"
 	"MxsxllBox/KeyboardBuffer"
 	"MxsxllBox/cpu"
-	"MxsxllBox/linker"
 	"fmt"
 	"runtime/debug"
 )
@@ -30,7 +30,7 @@ func main() {
 	copy(mem.Data[:cpu.MemorySize], program)
 	*/
 	vm := cpu.NewCPU(mem)
-	defer func() {
+	go func() {
 		if r := recover(); r != nil {
 			fmt.Println("Program crashed with panic:", r)
 			fmt.Printf("PC, OpCode: %d, %d\n", vm.PC, vm.Mem.Data[vm.PC])

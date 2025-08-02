@@ -297,7 +297,6 @@ _spawn:         # creates a task and saves it
     ADDI T6 1
     MOV T5 T6
     CALL GET_TASK_LEN_POS
-    PRINT T5
     STOREB T5 T6    # update lenght += 1
     RET
 

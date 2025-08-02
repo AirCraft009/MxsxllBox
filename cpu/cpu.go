@@ -1,7 +1,7 @@
 package cpu
 
 import (
-	"MxsxllBox/assembler"
+	"MxsxllBox/Assembly-process/assembler"
 	"fmt"
 	"sync"
 )

@@ -1,7 +1,9 @@
 package debugging
 
-import "fmt"
-import "MxsxllBox/assembler"
+import (
+	"MxsxllBox/Assembly-process/assembler"
+	"fmt"
+)
 
 func reverseOpCodes(opcodes map[string]uint8) (reverseOpCodes map[uint8]string) {
 	for k, v := range opcodes {
@@ -17,12 +19,5 @@ func debugWPC(code []byte) {
 }
 
 func dissasemble(code []byte, Ops map[byte]string) {
-	stringCode := ""
-	var offset byte
-	for Pc, v := range code {
-		// at first, it takes the opCode so that it knows the offset
-		Op := Ops[v]
-		offset = assembler.OffsetMap[Op]
 
-	}
 }
