@@ -2,9 +2,8 @@ package linker
 
 import (
 	assembler2 "MxsxllBox/Assembly-process/assembler"
-	"MxsxllBox/cpu"
+	"MxsxllBox/VM/cpu"
 	"MxsxllBox/helper"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,10 +14,12 @@ const (
 	objOutName = outName + "/ObjOut"
 )
 
-func LinkModules(filePaths map[string]uint16) ([]byte, error) {
+func LinkModules(filePaths map[string]uint16) (code []byte, debugLocations map[uint16]string, err error) {
+	//debug locations are only necesarry if the debugger is used can be discarded otherwise
 	finalCode := make([]byte, cpu.MemorySize)
 	globalLookupTable := make(map[string]uint16)
-	allObjFiles := make(map[*assembler2.ObjectFile]uint16, 0)
+	allObjFiles := make(map[*assembler2.ObjectFile]uint16)
+	debugLocations = make(map[uint16]string)
 
 	for filePath, location := range filePaths {
 		objFile, _ := assembler2.ReadObjectFile(filePath)
@@ -44,19 +45,17 @@ func LinkModules(filePaths map[string]uint16) ([]byte, error) {
 			} else {
 				symbol += location
 			}
-			if relo.Lbl == "_spawn" {
-				fmt.Printf("linking %d to %d from %s\n", symbol, location, relo.Lbl)
-			}
+			debugLocations[symbol] = relo.Lbl
 			hi, lo := helper.EncodeAddr(symbol)
 			objFile.Code[relo.Offset] = hi
 			objFile.Code[relo.Offset+1] = lo
 		}
 		finalCode = helper.ConcactSliceAtIndex(finalCode, objFile.Code, int(location))
 	}
-	return finalCode, nil
+	return finalCode, debugLocations, nil
 }
 
-func CompileAndLinkFiles(files map[string]uint16, Name string) []byte {
+func CompileAndLinkFiles(files map[string]uint16, Name string) (code []byte, debugLocations map[uint16]string) {
 	//for now this funcion will recomplile all files
 	//It will take relative paths
 	wd, err := os.Getwd()
@@ -86,7 +85,7 @@ func CompileAndLinkFiles(files map[string]uint16, Name string) []byte {
 		}
 	}
 
-	LinkedCode, err := LinkModules(objFiles)
+	LinkedCode, debugLocations, err := LinkModules(objFiles)
 	if err != nil {
 		panic(err)
 	}
@@ -96,19 +95,29 @@ func CompileAndLinkFiles(files map[string]uint16, Name string) []byte {
 	}
 	finalOutPath := filepath.Join(wd, outName, Name, "program.bin")
 	os.WriteFile(finalOutPath, LinkedCode, 0644)
-	return LinkedCode
+	return LinkedCode, debugLocations
 }
 
-func CompileFilesStdLibIncluded(fileName, Name string) []byte {
+func setBasePaths(fileName string) map[string]uint16 {
 	paths := make(map[string]uint16, 6)
 	paths[fileName] = 0x00
-	paths["\\stdlib\\io.asm"] = cpu.ProgramStdLibStart
-	paths["\\stdlib\\math.asm"] = cpu.ProgramStdLibStart
-	paths["\\stdlib\\string.asm"] = cpu.ProgramStdLibStart
-	paths["\\stdlib\\sys.asm"] = cpu.ProgramStdLibStart
-	paths["\\stdlib\\utils.asm"] = cpu.ProgramStdLibStart
-	paths["\\interrupts\\interruptTable.asm"] = cpu.Interrupttable
-	paths["\\scheduler\\scheduler.asm"] = 300
+	paths["\\VM\\stdlib\\io.asm"] = cpu.ProgramStdLibStart
+	paths["\\VM\\stdlib\\math.asm"] = cpu.ProgramStdLibStart
+	paths["\\VM\\stdlib\\string.asm"] = cpu.ProgramStdLibStart
+	paths["\\VM\\stdlib\\sys.asm"] = cpu.ProgramStdLibStart
+	paths["\\VM\\stdlib\\utils.asm"] = cpu.ProgramStdLibStart
+	paths["\\VM\\interrupts\\interruptTable.asm"] = cpu.Interrupttable
+	paths["\\VM\\scheduler\\scheduler.asm"] = 300
+	return paths
+}
 
+func CompileForOs(fileName, Name string) []byte {
+	paths := setBasePaths(fileName)
+	code, _ := CompileAndLinkFiles(paths, Name)
+	return code
+}
+
+func CompileForDebug(fileName, Name string) ([]byte, map[uint16]string) {
+	paths := setBasePaths(fileName)
 	return CompileAndLinkFiles(paths, Name)
 }
