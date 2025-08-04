@@ -1,8 +1,9 @@
 package debugging
 
-func reverseOpCodes(opcodes map[string]uint8) (reverseOpCodes map[uint8]string) {
+func ReverseMaps(opcodes map[string]uint8) (reverseMap map[uint8]string) {
+	reverseMap = make(map[uint8]string)
 	for k, v := range opcodes {
-		reverseOpCodes[v] = k
+		reverseMap[v] = k
 	}
-	return reverseOpCodes
+	return reverseMap
 }

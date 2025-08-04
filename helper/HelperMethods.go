@@ -40,7 +40,7 @@ func DeleteMatrixRow(matrix [][]string, index int) [][]string {
 	return append(matrix[:index], matrix[index+1:]...)
 }
 
-func DecodeAddr(lo byte, hi byte) uint16 {
+func DecodeAddr(hi byte, lo byte) uint16 {
 	return (uint16(hi) << 8) | uint16(lo)
 }
 
