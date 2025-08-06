@@ -5,7 +5,33 @@
 MxsxllBox is a custom virtual machine (VM) designed with a 64 KB memory space divided into several segments, supporting a simple instruction set and features like labels, branching, function calls, and dynamic memory management.\
 It has 32 Registers 18 general purpose, 6 Registers for syscalls, 6 for the Scheduler and 1 for an interrupt
 
----
+## How to run
+
+### run precompiled
+
+- run Debugger in cmd `Debugger-main.exe`
+- run normal in cm `VM-main.exe`
+
+### compile & run your own program
+- all stdlib/scheduler files are compiled automatically
+- all binaries are in VM-bin
+
+
+Compile & Run
+- edit the program.asm
+
+
+- build debugger `go build ./Debugger-main`
+- run debugger in cmd `Debugger-main.exe`
+-  build main `go build ./VM-main`
+- run main in cm `VM-main.exe`
+
+Run
+- edit the program.asm
+
+
+- run debugger directly `go run ./Debugger-main`
+- run main directly ` go run ./VM-main`
 
 ## Memory Layout
 
