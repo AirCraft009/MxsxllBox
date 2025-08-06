@@ -21,7 +21,7 @@ _mod:
 
 _max:
     CMP O1 O2
-    JC 1_LARGER
+    JGE 1_LARGER
     JNZ 2_LARGER
     RET
 
@@ -38,7 +38,7 @@ _min:
     RET
 
 _pow:
-
+    JMP POWER_LOOP
 POWER_LOOP:
 
     CMPI O2 0

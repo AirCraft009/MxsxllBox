@@ -10,7 +10,7 @@ const (
 
 	// ProgramStart ───── Code Region (8 KB) ─────
 	ProgramStart       = 0x0000
-	ProgramUserEnd     = 0x1FFF // 8 KB (User + StdLib)
+	ProgramUserEnd     = 0x17FF // 8 KB (User + StdLib)
 	ProgramStdLibStart = 0x1800 // Last 2 KB for stdlib
 	ProgramEnd         = 0x1FFF
 
@@ -27,8 +27,7 @@ const (
 	// StackStart ───── Stack (8 KB) ─────
 	StackStart = 0x600
 	StackEnd   = 0x7FFF
-	St         = StackInit - 910
-	StackInit  = StackEnd + 1 // 0x8000 (Stack grows down)
+	StackInit  = StackEnd
 
 	// VideoStart ───── Video RAM / Framebuffer (16 KB) ─────
 	VideoStart = 0x8000

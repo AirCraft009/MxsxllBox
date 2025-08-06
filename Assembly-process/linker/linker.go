@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	outName    = "Out"
+	outName    = "VM-bin"
 	objOutName = outName + "/ObjOut"
 )
 
