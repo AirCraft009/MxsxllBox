@@ -20,6 +20,7 @@ import (
 )
 
 func initDebugRegs(nameValueRows []fyne.CanvasObject, cpu *cpu.CPU, revRegMap map[uint8]string) (*fyne.Container, [17][2]*widget.Label) {
+	//bad code I know but this is only for debugging
 	var regLbls [len(cpu.Registers)/2 + 1][2]*widget.Label
 	for i := 0; i < len(cpu.Registers); i += 2 {
 		left := widget.NewLabel(fmt.Sprintf("%s: %d", revRegMap[uint8(i)], cpu.Registers[i]))
@@ -92,7 +93,7 @@ func main() {
 	stepChan := make(chan struct{}, 1)
 	resumeChan := make(chan struct{}, 1)
 
-	scroll := container.NewScroll(nil) // define early to access in highlightLine
+	scroll := container.NewScroll(nil)
 
 	highlightLine := func(newIndex int, jmpWith bool) {
 		if newIndex < 0 || newIndex >= len(lineBackgrounds) {
@@ -172,14 +173,10 @@ func main() {
 
 	topBar := container.NewHBox(layout.NewSpacer(), modeButton)
 
-	// --- New: name-value panel with 34 static labels ---
 	var nameValueRows []fyne.CanvasObject
 	nameValuePanel, lbls := initDebugRegs(nameValueRows, debugVm, reverseRegMap)
 
-	// --- New: combine scroll + nameValuePanel into HSplit ---
 	splitView := container.NewHSplit(scroll, nameValuePanel)
-	splitView.Offset = 0.85 // 75% left for code, 25% right for panel
-	// ---------------------------------------------------------
 
 	myWindow := myApp.NewWindow("Debugger UI")
 	myWindow.Resize(container.NewVBox(topBar, splitView).MinSize())
