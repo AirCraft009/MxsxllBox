@@ -95,7 +95,7 @@ Run
 | 0x1A      | PRINTSTR    | `PRINTSTR Rx`: prints a string starting at addr Rx                  |
 | 0x1B      | JNZ         | `JNZ Lbl`: Jumps to a Lbl if the 0-flag isn't set                   |
 | 0x1C      | JNC         | `JNC Lbl`: Jumps to a Lbl if the carry-flag isn't set               |
-| 0x1D      | CMP         | `CMP Rx Ry`: Compares to regs. Sets 0-flag if equal carry if bigger |
+| 0x1D      | CMP         | `CMP Rx Ry`: Compares regs. Sets 0-flag if equal carry if bigger |
 | 0x1E      | CMPI        | `CMPI Rx imm`: Compares reg & imm --""--                            |
 | 0x1F      | TEST        | `TEST Rx Ry`: Sees if any bytes overlap                             |
 | 0x20      | TSTI        | `TEST Rx imm`: --""--                                               |
