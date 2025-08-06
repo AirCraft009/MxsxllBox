@@ -18,7 +18,7 @@ print_1:
 print_2:
     MOVI R1 2
     PRINT R1
-    MOVI O1 2
+    MOVI O1 1
     CALL _yield
     JMP print_2
 

@@ -1,7 +1,6 @@
 package cpu
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -89,7 +88,6 @@ func (mem *Memory) WriteByte(addr uint16, value byte) (taskLenOverwrite bool) {
 	}
 
 	if addr == 9149 {
-		fmt.Println("WARNING: TASK_LEN WAS OVERWRITTEN")
 		taskLenOverwrite = true
 	}
 

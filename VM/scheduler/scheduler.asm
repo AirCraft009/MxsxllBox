@@ -155,7 +155,6 @@ FOUND_TASK:
     SUB T4 R1              # make sure to go to end of task - 1
     CALL GET_TASK_START
     ADD T4 T6
-    PRINT T4
 
     JMP LOAD_TASK
 
