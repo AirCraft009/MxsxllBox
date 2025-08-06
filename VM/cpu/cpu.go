@@ -128,12 +128,6 @@ func (cpu *CPU) Step() {
 	}
 }
 
-func (cpu *CPU) Debug() {
-	for !cpu.Halted {
-		cpu.Step()
-	}
-}
-
 func (cpu *CPU) Run() {
 	for !cpu.Halted {
 		cpu.Step()

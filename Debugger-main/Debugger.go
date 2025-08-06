@@ -3,9 +3,9 @@ package main
 import (
 	"MxsxllBox/Assembly-process/assembler"
 	"MxsxllBox/Assembly-process/linker"
+	"MxsxllBox/IO/KeyboardBuffer"
 	"MxsxllBox/VM/cpu"
 	"MxsxllBox/debugging"
-	"MxsxllBox/helper"
 	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -14,112 +14,73 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"image/color"
-	"io"
-	"log"
 	"strconv"
 	"strings"
 	"time"
-	_ "time"
 )
 
-const (
-	OP = 2*iota + 1
-	OPREG
-	OPADDR
-)
+func initDebugRegs(nameValueRows []fyne.CanvasObject, cpu *cpu.CPU, revRegMap map[uint8]string) (*fyne.Container, [17][2]*widget.Label) {
+	var regLbls [len(cpu.Registers)/2 + 1][2]*widget.Label
+	for i := 0; i < len(cpu.Registers); i += 2 {
+		left := widget.NewLabel(fmt.Sprintf("%s: %d", revRegMap[uint8(i)], cpu.Registers[i]))
+		right := widget.NewLabel(fmt.Sprintf("%s: %d", revRegMap[uint8(i+1)], cpu.Registers[i+1]))
+		regLbls[i/2][0] = left
+		regLbls[i/2][1] = right
 
-func addToString(input string, args []string) string {
-	for arg := range args {
-		input += " " + args[arg]
+		row := container.NewHBox(
+			layout.NewSpacer(), left,
+			layout.NewSpacer(), right,
+			layout.NewSpacer(),
+		)
+
+		nameValueRows = append(nameValueRows, row)
 	}
-	return input
+	right := widget.NewLabel(fmt.Sprintf("PC: %d", cpu.PC))
+	left := widget.NewLabel(fmt.Sprintf("Stack-top: %d", cpu.Mem.ReadWord(cpu.SP)))
+	regLbls[len(cpu.Registers)/2][0] = left
+	regLbls[len(cpu.Registers)/2][1] = right
+
+	row := container.NewHBox(
+		layout.NewSpacer(), left,
+		layout.NewSpacer(), right,
+		layout.NewSpacer(),
+	)
+
+	nameValueRows = append(nameValueRows, row)
+	nameValuePanel := container.NewVBox(nameValueRows...)
+	return nameValuePanel, regLbls
 }
 
-func condenseNop(index int, code []byte) (newIndex, nopCount int) {
-	for i := index; i < len(code); i++ {
-		if code[i] == 0 {
-			nopCount++
-			continue
-		}
-		return i, nopCount
+func setRegDebug(regLbls [17][2]*widget.Label, cpu *cpu.CPU, revRegMap map[uint8]string) {
+	for i := 0; i < len(cpu.Registers); i += 1 {
+		name := fmt.Sprintf("%s:", revRegMap[uint8(i)])
+		val := strconv.Itoa(int(cpu.Registers[i]))
+		row := i / 2
+		col := i % 2
+
+		regLbls[row][col].Text = fmt.Sprintf("%s %s", name, val)
 	}
-	return len(code), len(code) - index
-}
-
-func dissasembleForDebugging(code []byte, lblocations map[uint16]string) (file string, PcToLine map[uint16]int) {
-	PcToLine = make(map[uint16]int)
-
-	revOpCodes := debugging.ReverseMaps(assembler.OpCodes)
-	revRegMap := debugging.ReverseMaps(assembler.RegMap)
-	var line string
-	var nopCount int
-	for i := 0; i < len(code); i += 0 {
-		PcToLine[uint16(i)] = len(strings.Split(file, "\n")) - 1
-		var args []string
-		ByteInstruction := code[i]
-		instruction := revOpCodes[ByteInstruction]
-		offset := assembler.OffsetMap[instruction]
-		if lbl, ok := lblocations[uint16(i)]; ok {
-			line = "\n" + lbl + "\n"
-			PcToLine[uint16(i)] += len(strings.Split(line, "\n")) - 1
-			line += instruction
-		} else {
-			line = instruction
-		}
-
-		if ByteInstruction == 0 {
-			i, nopCount = condenseNop(i, code)
-			line = addToString(line, []string{strconv.Itoa(nopCount)})
-			line += "\n\n"
-			file += line
-			continue
-		}
-
-		switch offset {
-		case OP:
-			break
-		case OPREG:
-			reg1Encoded, reg2Encoded := code[i+1], code[i+2]
-			reg1Decoded, reg2Decoded, _ := helper.DecodeRegs(reg1Encoded, reg2Encoded)
-			reg1, reg2 := revRegMap[reg1Decoded], revRegMap[reg2Decoded]
-			args = append(args, reg1, reg2)
-			line = addToString(line, args)
-			break
-		case OPADDR:
-			reg1Encoded, reg2Encoded, addrBit1, addrBit2 := code[i+1], code[i+2], code[i+3], code[i+4]
-			reg1Decoded, reg2Decoded, _ := helper.DecodeRegs(reg1Encoded, reg2Encoded)
-			reg1, reg2 := revRegMap[reg1Decoded], revRegMap[reg2Decoded]
-			addr := helper.DecodeAddr(addrBit1, addrBit2)
-
-			stringAddr := strconv.Itoa(int(addr))
-			if lbl, ok := lblocations[addr]; ok {
-				stringAddr = lbl
-			}
-			args = append(args, reg1, reg2, stringAddr)
-			line = addToString(line, args)
-		default:
-			panic("Unknown offsetLen " + strconv.Itoa(int(offset)))
-		}
-
-		line += "\n"
-		file += line
-		i += int(offset)
-	}
-	return file, PcToLine
-}
-
-func init() {
-	// Suppress all standard logs (including Fyne logs using `log.Print`)
-	log.SetOutput(io.Discard)
+	pcName := "PC:"
+	pcVal := strconv.Itoa(int(cpu.PC))
+	row := len(regLbls) - 1
+	col := 0
+	regLbls[row][col].Text = fmt.Sprintf("%s %s", pcName, pcVal)
+	SpName := "Stack-Top:"
+	SPVal := strconv.Itoa(int(cpu.Mem.ReadWord(cpu.SP)))
+	col = 1
+	regLbls[row][col].Text = fmt.Sprintf("%s %s", SpName, SPVal)
 }
 
 func main() {
+	reverseRegMap := debugging.ReverseMaps(assembler.RegMap)
+	var breakpoints = make(map[int]bool)
 	code, lblLocations := linker.CompileForDebug("program.asm", "EchoKeys")
 	mem := &cpu.Memory{}
 	copy(mem.Data[:], code)
 	debugVm := cpu.NewCPU(mem)
+	go KeyboardBuffer.WriteKeyboardToBuffer(debugVm)
 
-	file, PcToLine := dissasembleForDebugging(code, lblLocations)
+	file, PcToLine := debugging.DissasembleForDebugging(code, lblLocations)
 	lines := strings.Split(file, "\n")
 
 	currentLine := 0
@@ -128,45 +89,16 @@ func main() {
 	var lineBoxes []fyne.CanvasObject
 	var lineBackgrounds []*canvas.Rectangle
 
-	for i, text := range lines {
-		bg := canvas.NewRectangle(color.Black)
-		fg := color.White
-		if i == currentLine {
-			bg.FillColor = color.RGBA{0, 0, 255, 255}
-		}
+	stepChan := make(chan struct{}, 1)
+	resumeChan := make(chan struct{}, 1)
 
-		label := canvas.NewText(text, fg)
-		label.TextSize = 16
+	scroll := container.NewScroll(nil) // define early to access in highlightLine
 
-		lineBackgrounds = append(lineBackgrounds, bg)
-		lineBoxes = append(lineBoxes, container.NewMax(bg, label))
-	}
-
-	textList := container.NewVBox(lineBoxes...)
-	scroll := container.NewScroll(textList)
-
-	currentMode := "Step"
-	var modeButton *widget.Button
-	modeButton = widget.NewButton("Mode: Step", func() {
-		if currentMode == "Step" {
-			currentMode = "Run"
-		} else {
-			currentMode = "Step"
-		}
-		modeButton.SetText("Mode: " + currentMode)
-	})
-
-	topBar := container.NewHBox(layout.NewSpacer(), modeButton)
-
-	myWindow := myApp.NewWindow("Debugger UI")
-	myWindow.Resize(container.NewVBox(topBar, scroll).MinSize())
-	myWindow.SetContent(container.NewBorder(topBar, nil, nil, nil, scroll))
-
-	// Line highlighter
-	highlightLine := func(newIndex int) {
+	highlightLine := func(newIndex int, jmpWith bool) {
 		if newIndex < 0 || newIndex >= len(lineBackgrounds) {
 			return
 		}
+
 		lineBackgrounds[currentLine].FillColor = color.Black
 		lineBackgrounds[currentLine].Refresh()
 
@@ -174,19 +106,117 @@ func main() {
 		lineBackgrounds[newIndex].Refresh()
 
 		currentLine = newIndex
+
+		if jmpWith {
+			go func() {
+				time.Sleep(10 * time.Millisecond)
+
+				lineObj := lineBoxes[newIndex]
+				linePos := lineObj.Position()
+				lineSize := lineObj.Size()
+				scrollSize := scroll.Size()
+
+				targetY := linePos.Y - scrollSize.Height/2 + lineSize.Height/2
+				if targetY < 0 {
+					targetY = 0
+				}
+
+				scroll.Offset = fyne.NewPos(0, targetY)
+				scroll.Refresh()
+			}()
+		}
 	}
 
-	// Simulate stepping
+	for i, text := range lines {
+		bg := canvas.NewRectangle(color.Black)
+		label := canvas.NewText(text, color.White)
+		label.TextSize = 16
+		index := i
+
+		button := widget.NewButton("", func() {
+			breakpoints[index] = !breakpoints[index]
+			if breakpoints[index] {
+				lineBackgrounds[index].FillColor = color.RGBA{R: 180, G: 0, B: 0, A: 255}
+			} else {
+				lineBackgrounds[index].FillColor = color.Black
+			}
+			lineBackgrounds[index].Refresh()
+		})
+		button.Importance = widget.LowImportance
+
+		if i == currentLine {
+			bg.FillColor = color.RGBA{B: 255, A: 255}
+		}
+
+		lineBackgrounds = append(lineBackgrounds, bg)
+		lineBoxes = append(lineBoxes, container.NewStack(bg, label, button))
+	}
+
+	textList := container.NewVBox(lineBoxes...)
+	scroll.Content = textList
+	scroll.Refresh()
+
+	currentMode := "Step"
+	var modeButton *widget.Button
+
+	modeButton = widget.NewButton("Mode: Step", func() {
+		if currentMode == "Step" {
+			currentMode = "Run"
+			modeButton.SetText("Mode: Run")
+			go func() { resumeChan <- struct{}{} }()
+		} else {
+			currentMode = "Step"
+			modeButton.SetText("Mode: Step")
+		}
+	})
+
+	topBar := container.NewHBox(layout.NewSpacer(), modeButton)
+
+	// --- New: name-value panel with 34 static labels ---
+	var nameValueRows []fyne.CanvasObject
+	nameValuePanel, lbls := initDebugRegs(nameValueRows, debugVm, reverseRegMap)
+
+	// --- New: combine scroll + nameValuePanel into HSplit ---
+	splitView := container.NewHSplit(scroll, nameValuePanel)
+	splitView.Offset = 0.85 // 75% left for code, 25% right for panel
+	// ---------------------------------------------------------
+
+	myWindow := myApp.NewWindow("Debugger UI")
+	myWindow.Resize(container.NewVBox(topBar, splitView).MinSize())
+	myWindow.SetContent(container.NewBorder(topBar, nil, nil, nil, splitView))
+
+	myWindow.Canvas().SetOnTypedKey(func(ev *fyne.KeyEvent) {
+		if currentMode == "Step" && ev.Name == fyne.KeyRight {
+			select {
+			case stepChan <- struct{}{}:
+			default:
+			}
+		}
+	})
+
 	go func() {
-
-		fmt.Println(PcToLine)
 		for {
-			time.Sleep(1 * time.Second)
-			fmt.Println(PcToLine[debugVm.PC])
-			newIndex := PcToLine[debugVm.PC]
-			debugVm.Step()
-
-			highlightLine(newIndex)
+			if currentMode == "Step" {
+				select {
+				case <-stepChan:
+					debugVm.Step()
+					newIndex := PcToLine[debugVm.PC]
+					highlightLine(newIndex, true)
+				case <-time.After(50 * time.Millisecond):
+				}
+			} else if currentMode == "Run" {
+				if breakpoints[currentLine] {
+					fmt.Println("break")
+					currentMode = "Step"
+					modeButton.SetText("Mode: Step")
+					continue
+				}
+				debugVm.Step()
+				newIndex := PcToLine[debugVm.PC]
+				highlightLine(newIndex, false)
+			}
+			setRegDebug(lbls, debugVm, reverseRegMap)
+			nameValuePanel.Refresh()
 		}
 	}()
 

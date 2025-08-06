@@ -143,9 +143,8 @@ WRAP_ARROUND:
     CALL GET_TASK_SIZE
     JMP ROUND_ROBIN
 
-FOUND_TASK:                 # TODO: implement loading the task and jumping to it
+FOUND_TASK:
     CALL GET_ACTIVE_TASK_LOCATION
-
     STOREB T4 T6            # Set Active Task
     CALL GET_TASK_SIZE
 
@@ -156,6 +155,7 @@ FOUND_TASK:                 # TODO: implement loading the task and jumping to it
     SUB T4 R1              # make sure to go to end of task - 1
     CALL GET_TASK_START
     ADD T4 T6
+    PRINT T4
 
     JMP LOAD_TASK
 
