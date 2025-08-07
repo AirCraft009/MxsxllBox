@@ -24,7 +24,7 @@ Compile & Run
 - build debugger `go build ./Debugger-main`
 - run debugger in cmd `Debugger-main.exe`
 -  build main `go build ./VM-main`
-- run main in cm `VM-main.exe`
+- run main in cmd `VM-main.exe`
 
 Run
 - edit the program.asm
