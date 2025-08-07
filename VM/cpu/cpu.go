@@ -117,9 +117,8 @@ func (cpu *CPU) Step() {
 
 	if cpu.Interrupt {
 		cpu.Registers[assembler.RegMap["I1"]] = uint16(cpu.InterruptId)
-		cpu.SP -= Wordsize * TaskRegs
+		cpu.SP -= 2
 		cpu.Mem.WriteWord(cpu.SP, cpu.PC)
-		cpu.SP += Wordsize * TaskRegs
 		cpu.PC = InterruptHandlerLocation
 		cpu.Mutex.Lock()
 		cpu.InterruptPending = false

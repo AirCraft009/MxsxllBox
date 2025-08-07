@@ -14,6 +14,7 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"image/color"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
@@ -81,10 +82,20 @@ func main() {
 	debugVm := cpu.NewCPU(mem)
 	go KeyboardBuffer.WriteKeyboardToBuffer(debugVm)
 
+	go func() {
+		if r := recover(); r != nil {
+			fmt.Println("Program crashed with panic:", r)
+			fmt.Printf("PC, OpCode: %d, %d\n", debugVm.PC, debugVm.Mem.Data[debugVm.PC])
+			fmt.Printf("stack pointer: %d\n")
+			fmt.Printf("stack trace: %s\n", string(debug.Stack()))
+		}
+	}()
+
 	file, PcToLine := debugging.DissasembleForDebugging(code, lblLocations)
 	lines := strings.Split(file, "\n")
+	fmt.Println(lines[PcToLine[739]])
 
-	currentLine := 0
+	currentLine := PcToLine[739]
 	myApp := app.New()
 
 	var lineBoxes []fyne.CanvasObject
@@ -199,11 +210,14 @@ func main() {
 					debugVm.Step()
 					newIndex := PcToLine[debugVm.PC]
 					highlightLine(newIndex, true)
+					setRegDebug(lbls, debugVm, reverseRegMap)
+					nameValuePanel.Refresh()
 				case <-time.After(50 * time.Millisecond):
 				}
 			} else if currentMode == "Run" {
 				if breakpoints[currentLine] {
 					fmt.Println("break")
+					highlightLine(currentLine, true)
 					currentMode = "Step"
 					modeButton.SetText("Mode: Step")
 					continue
@@ -212,8 +226,6 @@ func main() {
 				newIndex := PcToLine[debugVm.PC]
 				highlightLine(newIndex, false)
 			}
-			setRegDebug(lbls, debugVm, reverseRegMap)
-			nameValuePanel.Refresh()
 		}
 	}()
 

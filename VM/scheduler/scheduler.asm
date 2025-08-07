@@ -202,10 +202,13 @@ RESTORE_REGS_LOOP:
 
 _yield:                 # cooperative yield( willingly from the current lbl)
     YIELD
+    MOVI I2 5
     CALL SAVE_TASK
     JMP _scheduler
 
 _interrupt:
+    YIELD
+    MOVI I2 0
     CALL SAVE_TASK
     JMP SETUP_INTERRUPT_HANDLER
 
@@ -222,7 +225,7 @@ SAVE_TASK:
     POP T6              # pop the return addr/currPC
 
     GF T4
-    ADDI T6 5           # add the offset of CALL instruction
+    ADD T6 I2           # add the offset of CALL instruction or nothing depending on if it was yield or interrupt
     STOREW T6 T5
     ADDI T5 2
     GSP T6              # get Stack Pointer
