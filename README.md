@@ -10,7 +10,7 @@ It has 32 Registers 18 general purpose, 6 Registers for syscalls, 6 for the Sche
 ### run precompiled
 
 - run Debugger in cmd `Debugger-main.exe`
-- run normal in cm `VM-main.exe`
+- run normal in cmd `VM-main.exe`
 
 ### compile & run your own program
 - all stdlib/scheduler files are compiled automatically
@@ -24,7 +24,7 @@ Compile & Run
 - build debugger `go build ./Debugger-main`
 - run debugger in cmd `Debugger-main.exe`
 -  build main `go build ./VM-main`
-- run main in cm `VM-main.exe`
+- run main in cmd `VM-main.exe`
 
 Run
 - edit the program.asm
@@ -35,7 +35,7 @@ Run
 
 ## Memory Layout
 
-## 🧠 Memory Layout (64 KB)
+## Memory Layout (64 KB)
 
 | Segment             | Size  | Address Range       | Description                                |
 |---------------------|-------|---------------------|--------------------------------------------|
@@ -221,7 +221,7 @@ Run
 | 0    | `running`(only internal)                                |
 | 1    | `ready`(is ready)                                       |
 | 2    | `keyboard-blocked`: (is set to ready after input)       |
-| 3    | `timer/blocked`: (waiting on the next timer interrupt   |
+| 3    | `timer/blocked`: (waiting on the next timer interrupt)  |
 | 4    | `unused`:                                               |
 | 5    | `unused`:                                               |
 | 6    | `unused`:                                               |
@@ -231,8 +231,10 @@ Run
 
 - opens a window where a decompiled version of the script is shown
 - the currently active line is highlighted
-- Step mode: progress forward with right arrow key
-- Run mode: Runs until mode is switched back to step, or it hits a breakpoint
+- Step mode:
+  - progress forward with right arrow key
+- Run mode:
+  - Runs until mode is switched back to step, or it hits a breakpoint
 - Breakpoints can be set by left-clicking on any line
 - When jumping to lbls the debugger jmps to the first line with actual content
 - Set a break point there and not on the lbl name
