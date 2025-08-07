@@ -221,7 +221,7 @@ Run
 | 0    | `running`(only internal)                                |
 | 1    | `ready`(is ready)                                       |
 | 2    | `keyboard-blocked`: (is set to ready after input)       |
-| 3    | `timer/blocked`: (waiting on the next timer interrupt   |
+| 3    | `timer/blocked`: (waiting on the next timer interrupt)  |
 | 4    | `unused`:                                               |
 | 5    | `unused`:                                               |
 | 6    | `unused`:                                               |
@@ -231,8 +231,10 @@ Run
 
 - opens a window where a decompiled version of the script is shown
 - the currently active line is highlighted
-- Step mode: progress forward with right arrow key
-- Run mode: Runs until mode is switched back to step, or it hits a breakpoint
+- Step mode:
+  - progress forward with right arrow key
+- Run mode:
+  - Runs until mode is switched back to step, or it hits a breakpoint
 - Breakpoints can be set by left-clicking on any line
 - When jumping to lbls the debugger jmps to the first line with actual content
 - Set a break point there and not on the lbl name
