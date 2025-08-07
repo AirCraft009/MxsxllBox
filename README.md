@@ -35,7 +35,7 @@ Run
 
 ## Memory Layout
 
-## 🧠 Memory Layout (64 KB)
+## Memory Layout (64 KB)
 
 | Segment             | Size  | Address Range       | Description                                |
 |---------------------|-------|---------------------|--------------------------------------------|
