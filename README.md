@@ -10,7 +10,7 @@ It has 32 Registers 18 general purpose, 6 Registers for syscalls, 6 for the Sche
 ### run precompiled
 
 - run Debugger in cmd `Debugger-main.exe`
-- run normal in cm `VM-main.exe`
+- run normal in cmd `VM-main.exe`
 
 ### compile & run your own program
 - all stdlib/scheduler files are compiled automatically
