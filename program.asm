@@ -11,12 +11,13 @@ CALL _init_scheduler
 print_1:
     MOVI R1 1
     PRINT R1
-    MOVI O1 2
+    MOVI O1 1
     CALL _yield
     JMP print_1
 
 print_2:
     MOVI R1 2
+    PRINT R1
     MOVI O1 1
     CALL _yield
     JMP print_2

@@ -14,15 +14,14 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"image/color"
-	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func initDebugRegs(nameValueRows []fyne.CanvasObject, cpu *cpu.CPU, revRegMap map[uint8]string) (*fyne.Container, [17][2]*widget.Label) {
+func initDebugRegs(nameValueRows []fyne.CanvasObject, cpu *cpu.CPU, revRegMap map[uint8]string) (*fyne.Container, [18][2]*widget.Label) {
 	//bad code I know but this is only for debugging
-	var regLbls [len(cpu.Registers)/2 + 1][2]*widget.Label
+	var regLbls [len(cpu.Registers)/2 + 2][2]*widget.Label
 	for i := 0; i < len(cpu.Registers); i += 2 {
 		left := widget.NewLabel(fmt.Sprintf("%s: %d", revRegMap[uint8(i)], cpu.Registers[i]))
 		right := widget.NewLabel(fmt.Sprintf("%s: %d", revRegMap[uint8(i+1)], cpu.Registers[i+1]))
@@ -49,11 +48,22 @@ func initDebugRegs(nameValueRows []fyne.CanvasObject, cpu *cpu.CPU, revRegMap ma
 	)
 
 	nameValueRows = append(nameValueRows, row)
+	right = widget.NewLabel(fmt.Sprintf("Z-flag: %s", strconv.FormatBool(cpu.Flags.Zero)))
+	left = widget.NewLabel(fmt.Sprintf("C-flag: %s", strconv.FormatBool(cpu.Flags.Carry)))
+	regLbls[len(cpu.Registers)/2+1][0] = left
+	regLbls[len(cpu.Registers)/2+1][1] = right
+
+	row = container.NewHBox(
+		layout.NewSpacer(), left,
+		layout.NewSpacer(), right,
+		layout.NewSpacer(),
+	)
+	nameValueRows = append(nameValueRows, row)
 	nameValuePanel := container.NewVBox(nameValueRows...)
 	return nameValuePanel, regLbls
 }
 
-func setRegDebug(regLbls [17][2]*widget.Label, cpu *cpu.CPU, revRegMap map[uint8]string) {
+func setRegDebug(regLbls [18][2]*widget.Label, cpu *cpu.CPU, revRegMap map[uint8]string) {
 	for i := 0; i < len(cpu.Registers); i += 1 {
 		name := fmt.Sprintf("%s:", revRegMap[uint8(i)])
 		val := strconv.Itoa(int(cpu.Registers[i]))
@@ -64,13 +74,21 @@ func setRegDebug(regLbls [17][2]*widget.Label, cpu *cpu.CPU, revRegMap map[uint8
 	}
 	pcName := "PC:"
 	pcVal := strconv.Itoa(int(cpu.PC))
-	row := len(regLbls) - 1
+	row := len(regLbls) - 2
 	col := 0
 	regLbls[row][col].Text = fmt.Sprintf("%s %s", pcName, pcVal)
 	SpName := "Stack-Top:"
 	SPVal := strconv.Itoa(int(cpu.Mem.ReadWord(cpu.SP)))
 	col = 1
 	regLbls[row][col].Text = fmt.Sprintf("%s %s", SpName, SPVal)
+
+	zVal := cpu.Flags.Zero
+	row += 1
+	col = 0
+	regLbls[row][col].Text = fmt.Sprintf("Z-flag: %s", strconv.FormatBool(zVal))
+	cVal := cpu.Flags.Carry
+	col += 1
+	regLbls[row][col].Text = fmt.Sprintf("C-flag: %s", strconv.FormatBool(cVal))
 }
 
 func main() {
@@ -82,20 +100,12 @@ func main() {
 	debugVm := cpu.NewCPU(mem)
 	go KeyboardBuffer.WriteKeyboardToBuffer(debugVm)
 
-	go func() {
-		if r := recover(); r != nil {
-			fmt.Println("Program crashed with panic:", r)
-			fmt.Printf("PC, OpCode: %d, %d\n", debugVm.PC, debugVm.Mem.Data[debugVm.PC])
-			fmt.Printf("stack pointer: %d\n")
-			fmt.Printf("stack trace: %s\n", string(debug.Stack()))
-		}
-	}()
-
 	file, PcToLine := debugging.DissasembleForDebugging(code, lblLocations)
 	lines := strings.Split(file, "\n")
-	fmt.Println(lines[PcToLine[739]])
+	fmt.Println(PcToLine[694])
+	fmt.Println(lines[PcToLine[694]])
 
-	currentLine := PcToLine[739]
+	currentLine := 0
 	myApp := app.New()
 
 	var lineBoxes []fyne.CanvasObject
@@ -168,6 +178,8 @@ func main() {
 	scroll.Content = textList
 	scroll.Refresh()
 
+	var nameValueRows []fyne.CanvasObject
+	nameValuePanel, lbls := initDebugRegs(nameValueRows, debugVm, reverseRegMap)
 	currentMode := "Step"
 	var modeButton *widget.Button
 
@@ -177,15 +189,15 @@ func main() {
 			modeButton.SetText("Mode: Run")
 			go func() { resumeChan <- struct{}{} }()
 		} else {
+			highlightLine(PcToLine[debugVm.PC], true)
+			setRegDebug(lbls, debugVm, reverseRegMap)
+			nameValuePanel.Refresh()
 			currentMode = "Step"
 			modeButton.SetText("Mode: Step")
 		}
 	})
 
 	topBar := container.NewHBox(layout.NewSpacer(), modeButton)
-
-	var nameValueRows []fyne.CanvasObject
-	nameValuePanel, lbls := initDebugRegs(nameValueRows, debugVm, reverseRegMap)
 
 	splitView := container.NewHSplit(scroll, nameValuePanel)
 

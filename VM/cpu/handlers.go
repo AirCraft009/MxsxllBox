@@ -28,8 +28,9 @@ func newHandlerInstructions(rx byte, ry byte, addr uint16) *HandlerInstructions 
 
 func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	if cpu.SP < StackStart {
-		fmt.Println(cpu.SP)
+		fmt.Printf("SP: %d\n", cpu.SP)
 		fmt.Println(cpu.Mem.Data[cpu.SP])
+		fmt.Printf("PC: %d\n", cpu.PC)
 		panic("stack out of memory")
 	}
 	opcode = cpu.Mem.ReadByte(cpu.PC)
@@ -192,7 +193,7 @@ func handleJG(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleJGE(cpu *CPU, instructions *HandlerInstructions) {
-	if cpu.Flags.Zero && cpu.Flags.Carry {
+	if cpu.Flags.Zero || cpu.Flags.Carry {
 		cpu.PC = instructions.Addr
 		return
 	}
@@ -200,7 +201,7 @@ func handleJGE(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleJLE(cpu *CPU, instructions *HandlerInstructions) {
-	if cpu.Flags.Zero && !cpu.Flags.Carry {
+	if !cpu.Flags.Carry {
 		cpu.PC = instructions.Addr
 		return
 	}

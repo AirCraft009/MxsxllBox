@@ -150,9 +150,9 @@ FOUND_TASK:
 
 
     MUL T4 T6
-    MOVI R1 1
-    MUL R1 T6
-    SUB T4 R1              # make sure to go to end of task - 1
+    MOVI T1 1
+    MUL T1 T6
+    SUB T4 T1              # make sure to go to end of task - 1
     CALL GET_TASK_START
     ADD T4 T6
 
@@ -208,11 +208,27 @@ _yield:                 # cooperative yield( willingly from the current lbl)
 
 _interrupt:
     YIELD
+    CALL CALC_PC_LOCATION_HELPER
+    LOADW T6 T5     # get the actual addr of the task
     MOVI I2 0
     CALL SAVE_TASK
     JMP SETUP_INTERRUPT_HANDLER
 
-SAVE_TASK:
+CALC_PC_LOCATION_FULL:
+    CALL CALC_PC_LOCATION_SETUP
+    POP T3              # CALL To this LBL
+    POP T2              # when save_task is called from yield or interrupt this saves the return addr of it
+    POP T6              # pop the return addr/currPC
+    CALL CALC_PC_LOCATION_END
+    SPC T3
+
+
+CALC_PC_LOCATION_HELPER:
+    CALL CALC_PC_LOCATION_SETUP
+    CALL CALC_PC_LOCATION_END
+    RET
+
+CALC_PC_LOCATION_SETUP:
     CALL GET_ACTIVE_TASK
     SUBI T6 1
     MOV T5 T6           # save activeTaskNum
@@ -220,12 +236,15 @@ SAVE_TASK:
     MUL T5 T6           # get the offset
     CALL GET_TASK_START
     ADD T5 T6           # set to correct addr
+    RET
 
-    POP T2              # when save_task is called from yield or interrupt this saves the return addr of it
-    POP T6              # pop the return addr/currPC
-
+CALC_PC_LOCATION_END:
     GF T4
     ADD T6 I2           # add the offset of CALL instruction or nothing depending on if it was yield or interrupt
+    RET
+
+SAVE_TASK:
+    CALL CALC_PC_LOCATION_FULL
     STOREW T6 T5
     ADDI T5 2
     GSP T6              # get Stack Pointer
