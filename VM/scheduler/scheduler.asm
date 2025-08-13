@@ -11,29 +11,29 @@
 # TODO : remove bloat out off scheduler
 
 
-GET_STACK_START:
+_get_stack_start:
     MOVI T6 32768
     RET
 
-GET_SPLIT_STACK_SIZE:
+_get_split_stack_size:
     MOVI T6 910
     RET
 
-GET_ACTIVE_TASK:
+_get_active_task:
     MOVI T6 9088
     LOADB T6 T6
     RET
 
-GET_ACTIVE_TASK_LOCATION:
+__get_active_task_location:
     MOVI T6 9088
     RET
 
-GET_TASK_START:
+_get_task_start:
     MOVI T6 9089
     RET
 
-GET_TASK_LEN:
-    CALL GET_TASK_LEN_POS
+_get_task_len:
+    CALL __get_task_len_pos
     LOADB T6 T6
     RET
 
@@ -41,35 +41,35 @@ GET_TASK_SIZE:
     MOVI T6 61      # task-size is actually 60 but 61 is returned to make the calculations easier
     RET
 
-GET_TASK_LEN_POS:
+__get_task_len_pos:
     MOVI T6 9149
     RET
 
-GET_STATE_LOCATION:
+_get_state_location:
     CALL GET_TASK_SIZE
     MUL T1 T6       # get Offsets
-    CALL GET_TASK_START
+    CALL _get_task_start
     ADD T1 T6       # get location
     SUBI T1 2
     RET
 
-GET_STATE:          # T1 has the task number from 0
-    CALL GET_STATE_LOCATION
+_get_state:          # T1 has the task number from 0
+    CALL _get_state_location
     LOADB T1 T1     # LOAD into T1
     RET
 
 _init_scheduler:
-    CALL GET_TASK_LEN
+    CALL _get_task_len
     MOV T5 T6
     ADDI T5 1
-    CALL GET_ACTIVE_TASK_LOCATION
+    CALL __get_active_task_location
     STOREB T5 T6                    # store the len + 1 so it starts at index len()-1
     JMP _scheduler
 
 _setup_scheduler:
-    CALL GET_ACTIVE_TASK
+    CALL _get_active_task
     MOV T4 T6
-    CALL GET_TASK_START
+    CALL _get_task_start
     MOV T3 T6
     CALL GET_TASK_SIZE
     RET
@@ -89,7 +89,7 @@ SETUP_INTERRUPT_HANDLER:
         JMP FOUND_TASK
 
 _unblock_tasks:             # T2 now has the type of task to be unblocked
-    CALL GET_TASK_LEN
+    CALL _get_task_len
     MOV T4 T6               # T4 == counter
     JMP UNBLOCK_LOOP
 
@@ -98,7 +98,7 @@ UNBLOCK_LOOP:
     JZ RETURN
 
     MOV T1 T4
-    CALL GET_STATE
+    CALL _get_state
 
     CMP T1 T2
     JZ  UNBLOCK
@@ -109,7 +109,7 @@ UNBLOCK_LOOP:
 UNBLOCK:
     MOV T1 T4
     SUBI T4 1
-    CALL GET_STATE_LOCATION
+    CALL _get_state_location
 
     MOVI T3 1
     STOREB T3 T1
@@ -122,7 +122,7 @@ ROUND_ROBIN:
     JZ WRAP_ARROUND
 
     MOV T1 T4
-    CALL GET_STATE
+    CALL _get_state
 
     CMPI T1 1       # check if state is ready
     JLE FOUND_TASK
@@ -136,7 +136,7 @@ TEMP_UNYIELD:
     JMP ROUND_ROBIN
 
 WRAP_ARROUND:
-    CALL GET_TASK_LEN
+    CALL _get_task_len
     MOV T4 T6
     ADDI T4 1
     PUSH T4
@@ -144,7 +144,7 @@ WRAP_ARROUND:
     JMP ROUND_ROBIN
 
 FOUND_TASK:
-    CALL GET_ACTIVE_TASK_LOCATION
+    CALL __get_active_task_location
     STOREB T4 T6            # Set Active Task
     CALL GET_TASK_SIZE
 
@@ -153,7 +153,7 @@ FOUND_TASK:
     MOVI T1 1
     MUL T1 T6
     SUB T4 T1              # make sure to go to end of task - 1
-    CALL GET_TASK_START
+    CALL _get_task_start
     ADD T4 T6
 
     JMP LOAD_TASK
@@ -208,43 +208,24 @@ _yield:                 # cooperative yield( willingly from the current lbl)
 
 _interrupt:
     YIELD
-    CALL CALC_PC_LOCATION_HELPER
-    LOADW T6 T5     # get the actual addr of the task
     MOVI I2 0
     CALL SAVE_TASK
     JMP SETUP_INTERRUPT_HANDLER
 
-CALC_PC_LOCATION_FULL:
-    CALL CALC_PC_LOCATION_SETUP
-    POP T3              # CALL To this LBL
-    POP T2              # when save_task is called from yield or interrupt this saves the return addr of it
-    POP T6              # pop the return addr/currPC
-    CALL CALC_PC_LOCATION_END
-    SPC T3
 
 
-CALC_PC_LOCATION_HELPER:
-    CALL CALC_PC_LOCATION_SETUP
-    CALL CALC_PC_LOCATION_END
-    RET
-
-CALC_PC_LOCATION_SETUP:
-    CALL GET_ACTIVE_TASK
+SAVE_TASK:
+    CALL _get_active_task
     SUBI T6 1
     MOV T5 T6           # save activeTaskNum
     CALL GET_TASK_SIZE
     MUL T5 T6           # get the offset
-    CALL GET_TASK_START
+    CALL _get_task_start
     ADD T5 T6           # set to correct addr
-    RET
-
-CALC_PC_LOCATION_END:
+    POP T2              # when save_task is called from yield or interrupt this saves the return addr of it
+    POP T6              # pop the return addr/currPC
     GF T4
     ADD T6 I2           # add the offset of CALL instruction or nothing depending on if it was yield or interrupt
-    RET
-
-SAVE_TASK:
-    CALL CALC_PC_LOCATION_FULL
     STOREW T6 T5
     ADDI T5 2
     GSP T6              # get Stack Pointer
@@ -284,7 +265,7 @@ _spawn:         # creates a task and saves it
 
     GF T4
 
-    CALL GET_TASK_LEN
+    CALL _get_task_len
     MOV T5 T6
     ADDI T6 1
 
@@ -293,16 +274,16 @@ _spawn:         # creates a task and saves it
 
     CALL GET_TASK_SIZE          # set- up PC
     MUL T5 T6                   # where can we start to write offset
-    CALL GET_TASK_START
+    CALL _get_task_start
     ADD T5 T6                   # actual start addr
     STOREW O1 T5                # store beginning of task
 
     ADDI T5 2                   #set- up Stack
-    CALL GET_SPLIT_STACK_SIZE
+    CALL _get_split_stack_size
     MOV T1 T6
-    CALL GET_TASK_LEN
+    CALL _get_task_len
     MUL T1 T6
-    CALL GET_STACK_START
+    CALL _get_stack_start
     SUB T6 T1
     STOREW T6 T5
 
@@ -314,10 +295,10 @@ _spawn:         # creates a task and saves it
     ADDI T5 1       # move to state
     MOVI T1 1       # set base state to ready maybe change
     STOREB T1 T5
-    CALL GET_TASK_LEN
+    CALL _get_task_len
     ADDI T6 1
     MOV T5 T6
-    CALL GET_TASK_LEN_POS
+    CALL __get_task_len_pos
     STOREB T5 T6    # update lenght += 1
     RET
 

@@ -3,6 +3,7 @@ package cpu
 import (
 	"MxsxllBox/Assembly-process/assembler"
 	"fmt"
+	"os"
 	"sync"
 )
 
@@ -131,4 +132,5 @@ func (cpu *CPU) Run() {
 	for !cpu.Halted {
 		cpu.Step()
 	}
+	os.Exit(0)
 }

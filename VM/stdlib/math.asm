@@ -33,18 +33,27 @@ _max:
     RET
 
 _min:
-    CALL _max
-    MOV O1 O2
+    CMP O1 O2
+    JGE 2_LARGER
+    JNZ 1_LARGER
     RET
 
 _pow:
+    CMPI O2 0
+    JZ POW_ZERO
+    MOV O3 O1
     JMP POWER_LOOP
+
+POW_ZERO:
+    MOVI O1 1
+    JMP END_POWER
+
 POWER_LOOP:
 
-    CMPI O2 0
+    CMPI O2 1
     JZ END_POWER
 
-    MUL O1 O1
+    MUL O1 O3
     SUBI O2 1
 
     JMP POWER_LOOP
@@ -59,6 +68,8 @@ _dec:
     SUBI O1 1
 
 _clamp:         #Value is between two values input low O1 high O3 value O2 0 flag is set
+    CLZ
+    CLC
     MOV O4 O1
     MOV O5 O2
     CALL _min
@@ -73,20 +84,16 @@ CONTINUE_CLAMP:
     CMP O3 O1
     JNZ END_CLAMP_HIGH
     STZ
-    CLC
     MOV O2 O5
     RET
 
 END_CLAMP_HIGH:
     MOV O2 O3
     STC
-    CLZ
     RET
 
 END_CLAMP_LOW:
     MOV O2 O1
-    CLC
-    CLC
     RET
 
 
