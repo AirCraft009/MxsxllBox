@@ -12,6 +12,7 @@ import (
 const (
 	outName    = "VM-bin"
 	objOutName = outName + "/ObjOut"
+	startaddr  = 0
 )
 
 func LinkModules(filePaths map[string]uint16) (code []byte, debugLocations map[uint16]string, err error) {
@@ -108,6 +109,7 @@ func setBasePaths(fileName string) map[string]uint16 {
 	paths["\\VM\\stdlib\\utils.asm"] = cpu.ProgramStdLibStart
 	paths["\\VM\\interrupts\\interruptTable.asm"] = cpu.Interrupttable
 	paths["\\VM\\scheduler\\scheduler.asm"] = 300
+	paths["\\VM\\helper\\helper.asm"] = 300
 	return paths
 }
 

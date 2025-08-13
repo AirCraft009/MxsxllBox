@@ -1,12 +1,3 @@
-_getReadPtr:
-    MOVI O3 49152
-    RET
-
-_getWritePtr:
-    MOVI O4 49153
-    RET
-
-
 _printstr:
     PRINTSTR O2
     RET

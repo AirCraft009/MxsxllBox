@@ -10,54 +10,6 @@
 # TODO : add deleting of tasks
 # TODO : remove bloat out off scheduler
 
-
-_get_stack_start:
-    MOVI T6 32768
-    RET
-
-_get_split_stack_size:
-    MOVI T6 910
-    RET
-
-_get_active_task:
-    MOVI T6 9088
-    LOADB T6 T6
-    RET
-
-__get_active_task_location:
-    MOVI T6 9088
-    RET
-
-_get_task_start:
-    MOVI T6 9089
-    RET
-
-_get_task_len:
-    CALL __get_task_len_pos
-    LOADB T6 T6
-    RET
-
-GET_TASK_SIZE:
-    MOVI T6 61      # task-size is actually 60 but 61 is returned to make the calculations easier
-    RET
-
-__get_task_len_pos:
-    MOVI T6 9149
-    RET
-
-_get_state_location:
-    CALL GET_TASK_SIZE
-    MUL T1 T6       # get Offsets
-    CALL _get_task_start
-    ADD T1 T6       # get location
-    SUBI T1 2
-    RET
-
-_get_state:          # T1 has the task number from 0
-    CALL _get_state_location
-    LOADB T1 T1     # LOAD into T1
-    RET
-
 _init_scheduler:
     CALL _get_task_len
     MOV T5 T6
@@ -71,7 +23,7 @@ _setup_scheduler:
     MOV T4 T6
     CALL _get_task_start
     MOV T3 T6
-    CALL GET_TASK_SIZE
+    CALL _get_task_size
     RET
 
 _scheduler:
@@ -130,8 +82,9 @@ ROUND_ROBIN:
     JMP TEMP_UNYIELD
 
 TEMP_UNYIELD:
-    UNYIELD
     PUSH T4         # pushes T4 so if an interrupt occured it won't overwrite it
+    UNYIELD
+    MOVI I2 1
     YIELD
     JMP ROUND_ROBIN
 
@@ -140,13 +93,13 @@ WRAP_ARROUND:
     MOV T4 T6
     ADDI T4 1
     PUSH T4
-    CALL GET_TASK_SIZE
+    CALL _get_task_size
     JMP ROUND_ROBIN
 
 FOUND_TASK:
     CALL __get_active_task_location
     STOREB T4 T6            # Set Active Task
-    CALL GET_TASK_SIZE
+    CALL _get_task_size
 
 
     MUL T4 T6
@@ -204,13 +157,21 @@ _yield:                 # cooperative yield( willingly from the current lbl)
     YIELD
     MOVI I2 5
     CALL SAVE_TASK
+    MOVI I2 0
     JMP _scheduler
 
 _interrupt:
     YIELD
+    CMPI I2 1       # if I2 is set to 1 it means the round robin loop was interrupted so Saving the task again isn't necesarry/ would crash the program
+    JZ BLOCK_SAVE
     MOVI I2 0
     CALL SAVE_TASK
     JMP SETUP_INTERRUPT_HANDLER
+
+BLOCK_SAVE:
+    MOVI I2 0
+    JMP SETUP_INTERRUPT_HANDLER
+
 
 
 
@@ -218,7 +179,7 @@ SAVE_TASK:
     CALL _get_active_task
     SUBI T6 1
     MOV T5 T6           # save activeTaskNum
-    CALL GET_TASK_SIZE
+    CALL _get_task_size
     MUL T5 T6           # get the offset
     CALL _get_task_start
     ADD T5 T6           # set to correct addr
@@ -272,7 +233,7 @@ _spawn:         # creates a task and saves it
     CMPI T6 9
     JC TASKS_FULL
 
-    CALL GET_TASK_SIZE          # set- up PC
+    CALL _get_task_size          # set- up PC
     MUL T5 T6                   # where can we start to write offset
     CALL _get_task_start
     ADD T5 T6                   # actual start addr
@@ -298,7 +259,7 @@ _spawn:         # creates a task and saves it
     CALL _get_task_len
     ADDI T6 1
     MOV T5 T6
-    CALL __get_task_len_pos
+    CALL _get_task_len_pos
     STOREB T5 T6    # update lenght += 1
     RET
 

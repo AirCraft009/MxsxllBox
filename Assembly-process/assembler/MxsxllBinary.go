@@ -13,7 +13,7 @@ func SaveObjectFile(obj *ObjectFile, w io.Writer) error {
 	binary.Write(w, binary.LittleEndian, uint16(len(obj.Code)))
 	binary.Write(w, binary.LittleEndian, uint16(len(obj.Symbols)))
 	binary.Write(w, binary.LittleEndian, uint16(len(obj.Relocs)))
-	if obj.UserFile {
+	if obj.Entry {
 		w.Write([]byte{1})
 	} else {
 		w.Write([]byte{0})
@@ -59,13 +59,13 @@ func ReadObjectFile(path string) (*ObjectFile, error) {
 	var symbolCount uint16
 	var codeLen uint16
 	var relocCount uint16
-	var userFile byte
+	var entryfile byte
 
 	//.Read reads from r in this case buf into arg2 so &codelen
 	binary.Read(buf, binary.LittleEndian, &codeLen)
 	binary.Read(buf, binary.LittleEndian, &symbolCount)
 	binary.Read(buf, binary.LittleEndian, &relocCount)
-	binary.Read(buf, binary.LittleEndian, &userFile)
+	binary.Read(buf, binary.LittleEndian, &entryfile)
 
 	code := make([]byte, codeLen)
 	buf.Read(code)
@@ -104,5 +104,5 @@ func ReadObjectFile(path string) (*ObjectFile, error) {
 		relocs[i].Lbl = string(name)
 	}
 
-	return &ObjectFile{Code: code, Symbols: symbols, Relocs: relocs, Globals: globals, UserFile: userFile == 1}, nil
+	return &ObjectFile{Code: code, Symbols: symbols, Relocs: relocs, Globals: globals, Entry: entryfile == 1}, nil
 }

@@ -29,11 +29,11 @@ type Parser struct {
 }
 
 type ObjectFile struct {
-	Code     []byte
-	Symbols  map[string]uint16
-	Relocs   []RelocationEntry
-	Globals  map[uint16]bool
-	UserFile bool
+	Code    []byte
+	Symbols map[string]uint16
+	Relocs  []RelocationEntry
+	Globals map[uint16]bool
+	Entry   bool
 }
 
 type RelocationEntry struct {
@@ -43,11 +43,11 @@ type RelocationEntry struct {
 
 func newObjectFile() *ObjectFile {
 	return &ObjectFile{
-		Code:     nil,
-		Symbols:  make(map[string]uint16),
-		Relocs:   make([]RelocationEntry, 0),
-		Globals:  make(map[uint16]bool),
-		UserFile: false,
+		Code:    nil,
+		Symbols: make(map[string]uint16),
+		Relocs:  make([]RelocationEntry, 0),
+		Globals: make(map[uint16]bool),
+		Entry:   false,
 	}
 }
 
@@ -318,8 +318,8 @@ func FirstPass(data [][]string, parser *Parser) (*Parser, [][]string) {
 				PC += uint16(ad)
 			}
 			continue
-		} else if len(line) == 1 && strings.Contains(line[0], ".program") {
-			parser.ObjFile.UserFile = true
+		} else if len(line) == 1 && strings.Contains(line[0], ".entry") {
+			parser.ObjFile.Entry = true
 			continue
 		}
 

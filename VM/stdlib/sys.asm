@@ -2,18 +2,6 @@
 #Bitmap_End = 9087 incl
 #Writeable_Heap = 9629
 
-_get_bitmap_start:
-    MOVI O6 8192
-    RET
-
-_get_bitmap_end:
-    MOVI O6 9087
-    RET
-
-_get_writeable_heap:
-    MOVI O6 9629
-    RET
-
 
 _alloc:                     # O2 is the ammount O1 will be the start
                             # Allocates number of bytes*blocksize(16)
