@@ -197,12 +197,13 @@ SAVE_TASK:
     ADD T6 I2           # add the offset of CALL instruction or nothing depending on if it was yield or interrupt
     STOREW T6 T5
 
-    GF T6
-    PUSH T6             # save the flags for later
-
     ADDI T5 2
     GSP T6              # get Stack Pointer
+    
     STOREW T6 T5
+
+    GF T6               # get flags
+    PUSH T6             # save the flags for later after getting the stack pointer
     ADDI T5 2
     MOVI T1 0
 
@@ -260,7 +261,7 @@ _spawn:         # creates a task and saves it
     ADD T5 T6                   # actual start addr
     STOREW O1 T5                # store beginning of task
 
-    ADDI T5 2                   #set- up Stack
+    ADDI T5 2                   # set- up Stack
     CALL _get_split_stack_size
     MOV T1 T6
     CALL _get_task_len

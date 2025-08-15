@@ -365,6 +365,7 @@ func handleStoreB(cpu *CPU, instructions *HandlerInstructions) {
 	val := byte(cpu.Registers[instructions.Rx] & 0xFF)
 	if instructions.Addr == 0 {
 
+		cpu.Mem.WriteByte(cpu.Registers[instructions.Ry], val)
 		cpu.PC += instructionSizeLong
 		return
 	}

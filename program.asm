@@ -1,10 +1,8 @@
 .entry
 YIELD
 MOVA O1 print_1
-PRINT O1
 CALL _spawn
 MOVA O1 print_2
-PRINT O1
 CALL _spawn
 JMP _init_scheduler
 

@@ -1,5 +1,5 @@
 _get_stack_start:
-    MOVI T6 32768
+    MOVI T6 32767
     RET
 
 _get_split_stack_size:
