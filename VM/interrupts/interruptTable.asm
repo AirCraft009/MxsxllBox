@@ -10,5 +10,6 @@ _keyboard_handler:
     RET
 
 _timer_handler:
-    MOVI T3 2
-    JMP
+    POP T3
+    JMP _scheduler
+ 

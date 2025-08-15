@@ -365,9 +365,6 @@ func handleStoreB(cpu *CPU, instructions *HandlerInstructions) {
 	val := byte(cpu.Registers[instructions.Rx] & 0xFF)
 	if instructions.Addr == 0 {
 
-		if cpu.Mem.WriteByte(cpu.Registers[instructions.Ry], val) {
-			fmt.Println("Task-len overwride")
-		}
 		cpu.PC += instructionSizeLong
 		return
 	}

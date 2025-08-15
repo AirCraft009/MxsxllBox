@@ -23,6 +23,8 @@ func main() {
 	}()
 	go KeyboardBuffer.WriteKeyboardToBuffer(vm)
 	fmt.Println("Program started")
+	go cpu2.InitTicker(vm)
+	go cpu2.InitTicker(vm)
 	go vm.Run()
 
 	select {}

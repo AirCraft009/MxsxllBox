@@ -86,6 +86,7 @@ TEMP_UNYIELD:
     UNYIELD
     MOVI I2 1
     YIELD
+    MOVI I2 0
     JMP ROUND_ROBIN
 
 WRAP_ARROUND:
@@ -156,7 +157,7 @@ RESTORE_REGS_LOOP:
 _yield:                 # cooperative yield( willingly from the current lbl)
     YIELD
     MOVI I2 5
-    CALL SAVE_TASK
+    CALL SAVE_TASK_YIELD
     MOVI I2 0
     JMP _scheduler
 
@@ -165,10 +166,17 @@ _interrupt:
     CMPI I2 1       # if I2 is set to 1 it means the round robin loop was interrupted so Saving the task again isn't necesarry/ would crash the program
     JZ BLOCK_SAVE
     MOVI I2 0
-    CALL SAVE_TASK
+
+    MOVI O1 1      # make sure task is saved as ready
+    CALL SAVE_TASK_INTERRUPT
     JMP SETUP_INTERRUPT_HANDLER
 
 BLOCK_SAVE:
+    CALL _get_active_task
+    MOV T1 T6
+    CALL _get_state_location
+    MOVI T6 1
+    STOREB T1 T6        # make sure that the task is saved as ready
     MOVI I2 0
     JMP SETUP_INTERRUPT_HANDLER
 
@@ -183,28 +191,41 @@ SAVE_TASK:
     MUL T5 T6           # get the offset
     CALL _get_task_start
     ADD T5 T6           # set to correct addr
+
     POP T2              # when save_task is called from yield or interrupt this saves the return addr of it
     POP T6              # pop the return addr/currPC
-    GF T4
     ADD T6 I2           # add the offset of CALL instruction or nothing depending on if it was yield or interrupt
     STOREW T6 T5
+
+    GF T6
+    PUSH T6             # save the flags for later
+
     ADDI T5 2
     GSP T6              # get Stack Pointer
     STOREW T6 T5
     ADDI T5 2
     MOVI T1 0
 
+
     CALL SAVE_REGS_LOOP
+    POP T6             # get the flags again
 
     PUSH T2
 
-    STOREB T4 T5    # save flags from earlier
+    STOREB T6 T5    # save flags from earlier
     ADDI T5 1       # move to state
-    MOV T1 O1       # set state
+    RET
+
+SAVE_TASK_INTERRUPT:
+    CALL SAVE_TASK
+    MOVI T1 1       # set state
     STOREB T1 T5
     RET
 
-
+SAVE_TASK_YIELD:
+    CALL SAVE_TASK
+    STOREB O1 T5
+    RET
 
 
 

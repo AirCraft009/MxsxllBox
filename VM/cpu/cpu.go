@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 )
 
 type id uint16
@@ -12,8 +13,6 @@ type id uint16
 const (
 	JmpOffset                = 5
 	InterruptHandlerLocation = 23965
-	TaskRegs                 = 6
-	Wordsize                 = 2
 )
 const (
 	KeyboardInterrupt id = (1 + iota) * JmpOffset
@@ -33,6 +32,18 @@ type CPU struct {
 	InterruptId      id
 	Interrupt        bool //makes sure that the interrupt is executed after the next step
 	Yielding         bool
+	HardwareTimer    *time.Ticker
+}
+
+func InitTicker(cpu *CPU) {
+	cpu.HardwareTimer = time.NewTicker(10 * time.Millisecond)
+	for {
+		select {
+		case _ = <-cpu.HardwareTimer.C:
+			cpu.InterruptPending = true
+			cpu.InterruptId = TimerInterrupt
+		}
+	}
 }
 
 func NewCPU(mem *Memory) *CPU {
@@ -132,5 +143,6 @@ func (cpu *CPU) Run() {
 	for !cpu.Halted {
 		cpu.Step()
 	}
+	cpu.HardwareTimer.Stop()
 	os.Exit(0)
 }
