@@ -157,19 +157,16 @@ RESTORE_REGS_LOOP:
 _yield:                 # cooperative yield( willingly from the current lbl)
     YIELD
     MOVI I2 5
-    CALL SAVE_TASK_YIELD
-    MOVI I2 0
-    JMP _scheduler
+    JMP SAVE_TASK_YIELD
+
 
 _interrupt:
     YIELD
     CMPI I2 1       # if I2 is set to 1 it means the round robin loop was interrupted so Saving the task again isn't necesarry/ would crash the program
     JZ BLOCK_SAVE
     MOVI I2 0
+    JMP SAVE_TASK_INTERRUPT
 
-    MOVI O1 1      # make sure task is saved as ready
-    CALL SAVE_TASK_INTERRUPT
-    JMP SETUP_INTERRUPT_HANDLER
 
 BLOCK_SAVE:
     CALL _get_active_task
@@ -221,12 +218,13 @@ SAVE_TASK_INTERRUPT:
     CALL SAVE_TASK
     MOVI T1 1       # set state
     STOREB T1 T5
-    RET
+    JMP SETUP_INTERRUPT_HANDLER
 
 SAVE_TASK_YIELD:
     CALL SAVE_TASK
     STOREB O1 T5
-    RET
+    MOVI I2 0
+    JMP _scheduler
 
 
 
