@@ -2,6 +2,7 @@ package cpu
 
 import (
 	"MxsxllBox/Assembly-process/assembler"
+	"MxsxllBox/helper"
 	"fmt"
 	"os"
 	"sync"
@@ -20,19 +21,20 @@ const (
 )
 
 type CPU struct {
-	Registers        [NumRegisters]uint16
-	PC               uint16
-	SP               uint16
-	Flags            Flags
-	Mem              *Memory
-	Halted           bool
-	Handlers         map[byte]func(cpu *CPU, instruction *HandlerInstructions)
-	Mutex            sync.Mutex
-	InterruptPending bool
-	InterruptId      id
-	Interrupt        bool //makes sure that the interrupt is executed after the next step
-	Yielding         bool
-	HardwareTimer    *time.Ticker
+	Registers         [NumRegisters]uint16
+	PC                uint16
+	SP                uint16
+	Flags             Flags
+	Mem               *Memory
+	Halted            bool
+	Handlers          map[byte]func(cpu *CPU, instruction *HandlerInstructions)
+	Mutex             sync.Mutex
+	InterruptPending  bool
+	InterruptId       id
+	Interrupt         bool //makes sure that the interrupt is executed after the next step
+	HardwareTimer     *time.Ticker
+	PrevInterruptMask byte
+	InterruptMask     byte
 }
 
 func InitTicker(cpu *CPU) {
@@ -111,12 +113,14 @@ func NewCPU(mem *Memory) *CPU {
 	cpu.Handlers[SRFN] = handleSrfn
 	cpu.Handlers[YIELD] = handleYield
 	cpu.Handlers[UNYIELD] = handleUnyield
+	cpu.Handlers[STINTI] = handleSTINTI
+	cpu.Handlers[STINT] = handleSTINT
 
 	return cpu
 }
 
 func (cpu *CPU) Step() {
-	if cpu.InterruptPending && !cpu.Yielding {
+	if cpu.InterruptPending && helper.IsInterruptActivated(int(cpu.InterruptId), cpu.InterruptMask) {
 		cpu.Interrupt = true
 	}
 
@@ -130,7 +134,6 @@ func (cpu *CPU) Step() {
 	if cpu.Interrupt {
 		cpu.Registers[assembler.RegMap["I1"]] = uint16(cpu.InterruptId)
 		cpu.SP -= 2
-		fmt.Println(cpu.PC)
 		cpu.Mem.WriteWord(cpu.SP, cpu.PC)
 		cpu.PC = InterruptHandlerLocation
 		cpu.Mutex.Lock()

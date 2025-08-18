@@ -60,5 +60,7 @@ const (
 	SRFN     byte = 0x38
 	YIELD    byte = 0x39 // doesn't actually yield only makes it so that yielding isn't interrupted
 	UNYIELD  byte = 0x3A // ensures that the yielding flag is false
+	STINTI   byte = 0x3B
+	STINT    byte = 0x3C
 	HALT     byte = 0xFF //stop the program
 )

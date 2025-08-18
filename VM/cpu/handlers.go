@@ -61,14 +61,27 @@ func handleOr(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.PC += instructionSizeShort
 }
 
+func handleSTINTI(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.InterruptMask = byte(instructions.Addr)
+	cpu.PrevInterruptMask = cpu.InterruptMask
+	cpu.PC += instructionSizeLong
+}
+
+func handleSTINT(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.InterruptMask = byte(instructions.Rx)
+	cpu.PrevInterruptMask = cpu.InterruptMask
+	cpu.PC += instructionSizeShort
+}
+
 func handleYield(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.PrevInterruptMask = cpu.InterruptMask
+	cpu.InterruptMask = 0x00
 	cpu.PC += 1
-	cpu.Yielding = true
 }
 
 func handleUnyield(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.InterruptMask = cpu.PrevInterruptMask
 	cpu.PC += 1
-	cpu.Yielding = false
 }
 
 func handleGf(cpu *CPU, instructions *HandlerInstructions) {
