@@ -156,8 +156,48 @@ RESTORE_REGS_LOOP:
 
 _yield:                 # cooperative yield( willingly from the current lbl)
     YIELD
+    GF I2               # save the flags temporarily
+    CMPI O1 9           # see if the yield-code is equal to termination(9)
+    JZ MARK_TASK_AS_DELETED
+    SF I2               # if task isn't terminated reset flags
     MOVI I2 5
     JMP SAVE_TASK_YIELD
+
+MARK_TASK_AS_DELETED:
+    CALL _get_active_task
+    MOV T1 T6
+    CALL _get_task_len      # see if len has to be shortened
+    CMP T1 T6
+    JZ  SHORTEN_TASK
+
+    CALL _get_state_location
+    STOREB O1 T1        # store the termination
+    CALL CALC_PC_FOR_ACTIVE_TASK
+    MOVI T6 0
+    STOREW T1 T6        # also change the PC to 0 this can't be because the bootloader is always at 0
+    MOVI I2 0
+    JMP _scheduler
+
+SHORTEN_TASK:
+    MOV T2 T6
+    CALL _get_task_len_pos
+    SUBI T2 1
+    STOREB T2 T6
+    MOVI I2 0
+    JMP _scheduler
+
+CALC_PC_FOR_ACTIVE_TASK:
+    CALL _get_active_task
+    MOV T1 T6
+    JMP CALC_PC_FOR_TASK    # will return because of the RET statement in CALC_PC_FOR_TASK
+
+CALC_PC_FOR_TASK:     # T1 has the task
+    SUBI T1 1
+    CALL _get_task_size
+    MUL T1 T6
+    CALL _get_task_start
+    ADD T1 T6
+    RET
 
 
 _interrupt:
@@ -227,6 +267,40 @@ SAVE_TASK_YIELD:
     JMP _scheduler
 
 
+FIND_NEXT_EMPTY_TASK:
+    MOVI T2 0
+    CALL _get_task_len
+    JMP FIND_NEXT_EMPTY_TASK_LOOP
+
+FIND_NEXT_EMPTY_TASK_LOOP:
+    CALL _get_task_len
+    CMP T2 T6
+    JZ UPDATE_LEN
+
+
+    MOV T1 T2
+    ADDI T1 1
+    CALL CALC_PC_FOR_TASK
+    LOADW T1 T1
+    CMPI T1 0       # see if task is "emtpy"
+    JZ RETURN_TO_SPAWN
+
+    ADDI T2 1
+
+    JMP FIND_NEXT_EMPTY_TASK_LOOP
+
+UPDATE_LEN:
+    ADDI T2 1
+    CALL _get_task_len_pos
+    STOREB T2 T6
+    SUBI T2 1
+    MOV T5 T2
+    RET
+
+
+RETURN_TO_SPAWN:
+    MOV T5 T2
+    RET
 
 
 _spawn:         # creates a task and saves it
@@ -246,12 +320,7 @@ _spawn:         # creates a task and saves it
 
     GF T4
 
-    CALL _get_task_len
-    MOV T5 T6
-    ADDI T6 1
-
-    CMPI T6 9
-    JC TASKS_FULL
+    CALL FIND_NEXT_EMPTY_TASK
 
     CALL _get_task_size          # set- up PC
     MUL T5 T6                   # where can we start to write offset
@@ -263,6 +332,7 @@ _spawn:         # creates a task and saves it
     CALL _get_split_stack_size
     MOV T1 T6
     CALL _get_task_len
+    SUBI T6 1
     MUL T1 T6
     CALL _get_stack_start
     SUB T6 T1
@@ -276,11 +346,6 @@ _spawn:         # creates a task and saves it
     ADDI T5 1       # move to state
     MOVI T1 1       # set base state to ready maybe change
     STOREB T1 T5
-    CALL _get_task_len
-    ADDI T6 1
-    MOV T5 T6
-    CALL _get_task_len_pos
-    STOREB T5 T6    # update lenght += 1
     RET
 
 

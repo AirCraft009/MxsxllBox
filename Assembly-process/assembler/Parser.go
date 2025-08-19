@@ -118,6 +118,8 @@ func newParser() *Parser {
 	parser.Parsers["SRFN"] = parseFormatOPRegReg
 	parser.Parsers["YIELD"] = parseFormatOP
 	parser.Parsers["UNYIELD"] = parseFormatOP
+	parser.Parsers["STINTI"] = parseFormatOPAddr
+	parser.Parsers["STINT"] = parseFormatOPReg
 
 	return parser
 }

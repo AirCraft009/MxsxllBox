@@ -60,6 +60,8 @@ var OpCodes = map[string]byte{
 	"SRFN":     0x38,
 	"YIELD":    0x39,
 	"UNYIELD":  0x3A,
+	"STINTI":   0x3B,
+	"STINT":    0x3C,
 	"HALT":     0xFF,
 }
 
@@ -129,6 +131,7 @@ var OffsetMap = map[string]byte{
 	"RS":       3,
 	"LS":       3,
 	"OR":       3,
+	"STINT":    3,
 	"AND":      3,
 	"FREE":     3,
 	"CMP":      3,
@@ -159,5 +162,6 @@ var OffsetMap = map[string]byte{
 	"JG":       5,
 	"JGE":      5,
 	"TSTI":     5,
+	"STINTI":   5,
 	"MOVA":     5,
 }
