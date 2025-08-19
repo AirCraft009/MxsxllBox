@@ -61,6 +61,11 @@ func handleOr(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.PC += instructionSizeShort
 }
 
+func handleXor(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Registers[instructions.Rx] ^= cpu.Registers[instructions.Ry]
+	cpu.PC += instructionSizeShort
+}
+
 func handleSTINTI(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.InterruptMask = byte(instructions.Addr)
 	cpu.PrevInterruptMask = cpu.InterruptMask
@@ -145,12 +150,12 @@ func handleAnd(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleRs(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.Registers[instructions.Rx] <<= cpu.Registers[instructions.Ry]
+	cpu.Registers[instructions.Rx] >>= cpu.Registers[instructions.Ry]
 	cpu.PC += instructionSizeShort
 }
 
 func handleLs(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.Registers[instructions.Rx] >>= cpu.Registers[instructions.Ry]
+	cpu.Registers[instructions.Rx] <<= cpu.Registers[instructions.Ry]
 	cpu.PC += instructionSizeShort
 }
 

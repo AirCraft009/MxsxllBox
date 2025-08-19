@@ -115,6 +115,7 @@ func NewCPU(mem *Memory) *CPU {
 	cpu.Handlers[UNYIELD] = handleUnyield
 	cpu.Handlers[STINTI] = handleSTINTI
 	cpu.Handlers[STINT] = handleSTINT
+	cpu.Handlers[XOR] = handleXor
 
 	return cpu
 }

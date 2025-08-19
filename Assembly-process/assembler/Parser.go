@@ -120,6 +120,7 @@ func newParser() *Parser {
 	parser.Parsers["UNYIELD"] = parseFormatOP
 	parser.Parsers["STINTI"] = parseFormatOPAddr
 	parser.Parsers["STINT"] = parseFormatOPReg
+	parser.Parsers["XOR"] = parseFormatOPRegReg
 
 	return parser
 }

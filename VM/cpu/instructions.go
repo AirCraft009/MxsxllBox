@@ -62,6 +62,6 @@ const (
 	UNYIELD  byte = 0x3A // ensures that the yielding flag is false
 	STINTI   byte = 0x3B
 	STINT    byte = 0x3C
-	SETPX
-	HALT byte = 0xFF //stop the program
+	XOR      byte = 0x3D
+	HALT     byte = 0xFF //stop the program
 )
