@@ -1,3 +1,24 @@
+_get_video_start:
+    MOVI O6 32768
+    RET
+
+_get_video_end:
+    MOVI O6 49151
+    RET
+
+_get_Dimension:     # the native resolution is 256 x 256 but is upscaled by 4
+    MOVI O6 257     # add 1 to make offset calc easier
+    RET
+
+_get_Bpp:
+    MOVI O6 2
+    RET
+
+_get_Ppb:   # Pixel per byte
+    MOVI O6 4
+    RET
+
+
 _get_stack_start:
     MOVI T6 32767
     RET

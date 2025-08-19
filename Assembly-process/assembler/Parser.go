@@ -329,7 +329,7 @@ func FirstPass(data [][]string, parser *Parser) (*Parser, [][]string) {
 		if !ok {
 			fmt.Println(line[0])
 			fmt.Println(PC)
-			panic("unknown")
+			panic("unknown Offset")
 		}
 		PC += uint16(ad)
 	}

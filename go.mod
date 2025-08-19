@@ -6,6 +6,7 @@ toolchain go1.23.6
 
 require (
 	fyne.io/fyne/v2 v2.6.2
+	github.com/veandco/go-sdl2 v0.4.40
 	golang.org/x/term v0.33.0
 )
 
