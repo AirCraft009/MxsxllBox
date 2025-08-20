@@ -102,14 +102,14 @@ func CompileAndLinkFiles(files map[string]uint16, Name string) (code []byte, deb
 func setBasePaths(fileName string) map[string]uint16 {
 	paths := make(map[string]uint16, 6)
 	paths[fileName] = 0x00
-	paths["\\VM\\stdlib\\io.asm"] = cpu.ProgramStdLibStart
-	paths["\\VM\\stdlib\\math.asm"] = cpu.ProgramStdLibStart
-	paths["\\VM\\stdlib\\string.asm"] = cpu.ProgramStdLibStart
-	paths["\\VM\\stdlib\\sys.asm"] = cpu.ProgramStdLibStart
-	paths["\\VM\\stdlib\\utils.asm"] = cpu.ProgramStdLibStart
-	paths["\\VM\\interrupts\\interruptTable.asm"] = cpu.Interrupttable
-	paths["\\VM\\scheduler\\scheduler.asm"] = 300
-	paths["\\VM\\helper\\helper.asm"] = 300
+	paths["\\VM\\OS\\stdlib\\io.asm"] = cpu.ProgramStdLibStart
+	paths["\\VM\\OS\\stdlib\\math.asm"] = cpu.ProgramStdLibStart
+	paths["\\VM\\OS\\stdlib\\string.asm"] = cpu.ProgramStdLibStart
+	paths["\\VM\\OS\\stdlib\\sys.asm"] = cpu.ProgramStdLibStart
+	paths["\\VM\\OS\\stdlib\\utils.asm"] = cpu.ProgramStdLibStart
+	paths["\\VM\\OS\\interrupts\\interruptTable.asm"] = cpu.Interrupttable
+	paths["\\VM\\OS\\scheduler\\scheduler.asm"] = 300
+	paths["\\VM\\OS\\helper\\helper.asm"] = 300
 	return paths
 }
 
