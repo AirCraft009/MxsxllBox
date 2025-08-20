@@ -5,6 +5,10 @@ import (
 )
 
 const (
+	HardDrive = 1000 * 8
+)
+
+const (
 	MemorySize = 1024 * 64 // 64 KB total memory
 
 	// ProgramStart ───── Code Region (8 KB) ─────
@@ -47,8 +51,9 @@ const (
 )
 
 type Memory struct {
-	Data       [MemorySize]byte
-	keyboardMu sync.Mutex
+	Data            [MemorySize]byte
+	NonVolatileData [MemorySize]byte
+	keyboardMu      sync.Mutex
 }
 
 func isKeyboardRegion(addr uint16) bool {
