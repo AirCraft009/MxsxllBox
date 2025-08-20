@@ -8,26 +8,25 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-// for now 2bpp
 const (
-	VM_BLACK = byte(iota)
-	VM_WHITE
-	VM_RED
-	VM_BLUE
+	VmBlack = byte(iota)
+	VmWhite
+	VmRed
+	VmBlue
 )
 
 const (
-	SCREEN_BLACK = uint32(0x000000FF)
-	SCREEN_WHITE = uint32(0xFFFFFFFF)
-	SCREEN_RED   = uint32(0xFF0000FF)
-	SCREEN_BLUE  = uint32(0x0000FFFF)
+	Black = 0xFF000000
+	White = 0xFFFFFFFF
+	Red   = 0xFF0000FF
+	Blue  = 0xFFFF0000
 )
 
 var (
 	title         = "MxsxllBox-VM"
 	width         = int32(256)
 	height        = int32(256)
-	upscale       = 4
+	upscale       = int32(4)
 	Bpp           = 2
 	PpB           = 4
 	transitionMap = make(map[byte]uint32)
@@ -37,6 +36,8 @@ var (
 
 type Screen struct {
 	Window   *sdl.Window
+	Renderer *sdl.Renderer
+	Texture  *sdl.Texture
 	LastDraw time.Time
 }
 
@@ -47,35 +48,61 @@ func checkError(err error) {
 }
 
 func NewScreen() *Screen {
-	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, width, height, sdl.WINDOW_SHOWN)
+	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, width*upscale, height*upscale, sdl.WINDOW_SHOWN)
 	checkError(err)
 	renderer, err = sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
 	checkError(err)
-	tex = renderer.CreateTexture()
-	return &Screen{Window: window, LastDraw: time.Now()}
+	tex, err = renderer.CreateTexture(sdl.PIXELFORMAT_ARGB8888, sdl.TEXTUREACCESS_STREAMING, width, height)
+	checkError(err)
+	return &Screen{Window: window, Renderer: renderer, Texture: tex, LastDraw: time.Now()}
 }
 
 func init() {
-	transitionMap[VM_BLACK] = SCREEN_BLACK
-	transitionMap[VM_WHITE] = SCREEN_WHITE
-	transitionMap[VM_RED] = SCREEN_RED
-	transitionMap[VM_BLUE] = SCREEN_BLUE
+	transitionMap[VmBlack] = Black
+	transitionMap[VmWhite] = White
+	transitionMap[VmRed] = Red
+	transitionMap[VmBlue] = Blue
 }
 
 func ExtractPixels(VideoBuffer []byte) (pixels []uint32) {
-	for i := 0; i < len(VideoBuffer)*PpB; i++ {
-		pixels = append(pixels, transitionMap[VideoBuffer[i]])
+	for i, j, p := 0, 0, 0; i < len(VideoBuffer)*PpB; i++ {
+		isoPx := (VideoBuffer[j] >> (p * 2)) & 3
+		pixels = append(pixels, transitionMap[isoPx])
+		p = (p + 1) % PpB
+		if p == 0 {
+			j++
+		}
 	}
 	return pixels
 }
 
-// Refresh doesn't really do anything only refreshes so the image changes redrawing is handled by the Vm
-func (s *Screen) Refresh(Cpu *cpu.CPU, tex *sdl.Texture) {
+func (s *Screen) Refresh(Cpu *cpu.CPU) {
 	pixels := ExtractPixels(Cpu.Mem.Data[cpu.VideoStart:cpu.VideoEnd])
-	err := tex.Update(nil, unsafe.Pointer(&pixels), upscale)
+	err := s.Texture.Update(nil, unsafe.Pointer(&pixels[0]), int(width*4))
 	checkError(err)
+	err = s.Renderer.Clear()
+	checkError(err)
+	dst := sdl.Rect{X: 0, Y: 0, W: width * upscale, H: height * upscale}
+	err = s.Renderer.Copy(s.Texture, nil, &dst)
+	checkError(err)
+	s.Renderer.Present()
 }
 
 func (s *Screen) Run(Cpu *cpu.CPU) {
-
+	defer s.Window.Destroy()
+	defer s.Renderer.Destroy()
+	defer s.Texture.Destroy()
+	for !Cpu.Halted {
+		s.Refresh(Cpu)
+		s.LastDraw = time.Now()
+		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+			switch event.(type) {
+			case *sdl.QuitEvent:
+				println("Quit")
+				Cpu.Halted = true
+				break
+			}
+		}
+		sdl.Delay(33)
+	}
 }

@@ -7,7 +7,7 @@ _get_video_end:
     RET
 
 _get_Dimension:     # the native resolution is 256 x 256 but is upscaled by 4
-    MOVI O6 257     # add 1 to make offset calc easier
+    MOVI O6 256     # add 1 to make offset calc easier
     RET
 
 _get_Bpp:
