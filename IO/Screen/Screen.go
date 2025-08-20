@@ -2,6 +2,7 @@ package Screen
 
 import (
 	"MxsxllBox/VM/cpu"
+	"fmt"
 	"time"
 	"unsafe"
 
@@ -30,8 +31,7 @@ var (
 	Bpp           = 2
 	PpB           = 4
 	transitionMap = make(map[byte]uint32)
-	renderer      *sdl.Renderer
-	tex           *sdl.Texture
+	focused       bool
 )
 
 type Screen struct {
@@ -48,12 +48,15 @@ func checkError(err error) {
 }
 
 func NewScreen() *Screen {
-	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, width*upscale, height*upscale, sdl.WINDOW_SHOWN)
+	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, width*upscale, height*upscale, sdl.WINDOW_SHOWN|sdl.WINDOW_ALWAYS_ON_TOP)
 	checkError(err)
-	renderer, err = sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
+	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
 	checkError(err)
-	tex, err = renderer.CreateTexture(sdl.PIXELFORMAT_ARGB8888, sdl.TEXTUREACCESS_STREAMING, width, height)
+	tex, err := renderer.CreateTexture(sdl.PIXELFORMAT_ARGB8888, sdl.TEXTUREACCESS_STREAMING, width, height)
 	checkError(err)
+	window.Raise()
+	window.SetAlwaysOnTop(true)
+
 	return &Screen{Window: window, Renderer: renderer, Texture: tex, LastDraw: time.Now()}
 }
 
@@ -64,20 +67,23 @@ func init() {
 	transitionMap[VmBlue] = Blue
 }
 
-func ExtractPixels(VideoBuffer []byte) (pixels []uint32) {
-	for i, j, p := 0, 0, 0; i < len(VideoBuffer)*PpB; i++ {
-		isoPx := (VideoBuffer[j] >> (p * 2)) & 3
-		pixels = append(pixels, transitionMap[isoPx])
-		p = (p + 1) % PpB
-		if p == 0 {
-			j++
+func ExtractPixels(VideoBuffer []byte) []uint32 {
+	pixels := make([]uint32, len(VideoBuffer)*PpB)
+	for i, b := range VideoBuffer {
+		for p := 0; p < 4; p++ {
+			isoPx := (b >> (p * 2)) & 3
+			pixels[i*PpB+p] = transitionMap[isoPx]
 		}
 	}
 	return pixels
 }
 
 func (s *Screen) Refresh(Cpu *cpu.CPU) {
-	pixels := ExtractPixels(Cpu.Mem.Data[cpu.VideoStart:cpu.VideoEnd])
+	pixels := ExtractPixels(Cpu.Mem.Data[cpu.VideoStart : cpu.VideoEnd+1])
+	if len(pixels) != int(width*height) {
+		fmt.Println("Pixels length mismatch", len(pixels))
+		return
+	}
 	err := s.Texture.Update(nil, unsafe.Pointer(&pixels[0]), int(width*4))
 	checkError(err)
 	err = s.Renderer.Clear()
@@ -93,13 +99,25 @@ func (s *Screen) Run(Cpu *cpu.CPU) {
 	defer s.Renderer.Destroy()
 	defer s.Texture.Destroy()
 	for !Cpu.Halted {
-		s.Refresh(Cpu)
-		s.LastDraw = time.Now()
+		if focused {
+			s.Refresh(Cpu)
+			s.LastDraw = time.Now()
+
+		}
+
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch event.(type) {
+			switch e := event.(type) {
 			case *sdl.QuitEvent:
-				println("Quit")
 				Cpu.Halted = true
+				break
+			case *sdl.WindowEvent:
+				switch e.Event {
+				case sdl.WINDOWEVENT_FOCUS_GAINED:
+					focused = true
+				case sdl.WINDOWEVENT_FOCUS_LOST:
+					focused = false
+				}
+			default:
 				break
 			}
 		}

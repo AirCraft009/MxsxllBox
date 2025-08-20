@@ -16,10 +16,8 @@ func main() {
 
 	screen := Screen.NewScreen()
 	go KeyboardBuffer.WriteKeyboardToBuffer(vm)
-	go screen.Run(vm)
 	fmt.Println("Program started")
 	go cpu2.InitTicker(vm)
 	go vm.Run()
-
-	select {}
+	screen.Run(vm)
 }

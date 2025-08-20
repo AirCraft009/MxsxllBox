@@ -68,7 +68,7 @@ DRAW_RECT_LOOP:
     CMP O2 O6
     JZ END_RECT
 
-    CALL _draw_line
+    CALL _draw_line_hori
     ADDI O2 1
     POP O6
     JMP DRAW_RECT_LOOP
@@ -76,18 +76,45 @@ DRAW_RECT_LOOP:
 END_RECT:
     RET
 
+LINE_SETUP:
+        POP O6
+        PUSH O4             # push the original lenght to recover at the end
+        PUSH O1             #-""-
+        PUSH O2             # -""-
+        PUSH O3             # -""-
+        PUSH O6
+        RET
 
-_draw_line:             # x(O1), y(O2), colorval(O3) len(O4) pos refers to the left side
-    PUSH O4             # push the original lenght to recover at the end
-    PUSH O1             #-""-
-    PUSH O2             # -""-
-    PUSH O3             # -""-
+_draw_line_vert:        # x(O1), y(O2), colorval(O3) len(O4) pos refers to the top
+    CALL LINE_SETUP
+    ADD O4 O2
+    PUSH O1
+    PUSH O3
+    JMP DRAW_LINE_VERT_LOOP
+
+
+DRAW_LINE_VERT_LOOP:
+    MOV O5 O2
+    CMP O2 O4
+    JZ END_LINE
+
+    CALL _setP_xy
+    MOV O2 O5
+    ADDI O2 1           # goto next line
+    POP O3
+    POP O1
+    PUSH O1
+    PUSH O3
+    JMP DRAW_LINE_VERT_LOOP
+
+_draw_line_hori:        # x(O1), y(O2), colorval(O3) len(O4) pos refers to the left side
+    CALL LINE_SETUP
     ADD O4 O1           # add to be able to check progress
     PUSH O2             # Push O2 on the stack to temp-save it
     PUSH O3
-    JMP DRAW_LINE_LOOP
+    JMP DRAW_LINE_HORI_LOOP
 
-DRAW_LINE_LOOP:
+DRAW_LINE_HORI_LOOP:
     MOV O5 O1
     CMP O1 O4
     JZ END_LINE
@@ -99,7 +126,7 @@ DRAW_LINE_LOOP:
     POP O2
     PUSH O2
     PUSH O3
-    JMP DRAW_LINE_LOOP
+    JMP DRAW_LINE_HORI_LOOP
 
 END_LINE:
     POP O3      # POP TEMP
