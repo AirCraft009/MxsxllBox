@@ -1,13 +1,13 @@
 BOOTLOADER:
-YIELD
 MOVA O1 SimOtherStuff
 CALL _spawn
 MOVA O1 DrawInput
 CALL _spawn
-UNYIELD
+STINT 01111111
 JMP _init_scheduler
 
 SimOtherStuff:
+    PRINT O1
     JMP SimOtherStuff
 
 DrawInput:
@@ -27,9 +27,6 @@ FINISH_DRAWING:
     CALL _draw_char
     ADDI R1 1
     ADDI O1 8
-    PUSH O1
-    MOVI O1 2
-    CALL _yield
     JMP DRAW_NEW_CHAR
 
 NewLine:
