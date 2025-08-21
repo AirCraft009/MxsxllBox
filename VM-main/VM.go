@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	mem := &cpu2.Memory{}
+	mem := cpu2.NewMemory()
 
 	copy(mem.Data[:], linker.CompileForOs("program.asm", "EchoKeys"))
 	vm := cpu2.NewCPU(mem)

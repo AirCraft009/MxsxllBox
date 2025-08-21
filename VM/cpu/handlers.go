@@ -307,12 +307,12 @@ func handlePrintstr(cpu *CPU, instructions *HandlerInstructions) {
 func handlePush(cpu *CPU, instruction *HandlerInstructions) {
 	val := cpu.Registers[instruction.Rx]
 	cpu.SP -= 2
-	cpu.Mem.WriteWord(cpu.SP, val)
+	cpu.Mem.WriteWordStack(cpu.SP, val)
 	cpu.PC += instructionSizeShort
 }
 
 func handlePop(cpu *CPU, instruction *HandlerInstructions) {
-	addr := cpu.Mem.ReadWord(cpu.SP)
+	addr := cpu.Mem.ReadWordStack(cpu.SP)
 	cpu.Registers[instruction.Rx] = addr
 	cpu.PC += instructionSizeShort
 	cpu.SP += 2
@@ -320,12 +320,12 @@ func handlePop(cpu *CPU, instruction *HandlerInstructions) {
 
 func handleCall(cpu *CPU, instruction *HandlerInstructions) {
 	cpu.SP -= 2
-	cpu.Mem.WriteWord(cpu.SP, cpu.PC)
+	cpu.Mem.WriteWordStack(cpu.SP, cpu.PC)
 	handleJmp(cpu, instruction)
 }
 
 func handleRet(cpu *CPU, instruction *HandlerInstructions) {
-	instruction.Addr = cpu.Mem.ReadWord(cpu.SP) + instructionSizeLong
+	instruction.Addr = cpu.Mem.ReadWordStack(cpu.SP) + instructionSizeLong
 	cpu.PC += instructionSizeLong
 	cpu.SP += 2
 	handleJmp(cpu, instruction)

@@ -12,6 +12,7 @@ import (
 type id uint16
 
 const (
+	NumRegisters             = 32
 	JmpOffset                = 5
 	InterruptHandlerLocation = 23965
 )
@@ -20,6 +21,11 @@ const (
 	TimerInterrupt
 )
 
+type Flags struct {
+	Zero     bool
+	Carry    bool
+	OverFlow bool
+}
 type CPU struct {
 	Registers         [NumRegisters]uint16
 	PC                uint16

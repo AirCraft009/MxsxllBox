@@ -1,24 +1,45 @@
-package fonts
+package main
 
-type Character struct {
-	Bitmap  [8]byte
-	ByteVal byte
-}
+import (
+	"bytes"
+	"fmt"
+	"os"
+)
 
-type Font struct {
-	name       string
-	Characters []*Character
-}
-
-func newFont(name string) *Font {
-	return &Font{
-		name: name,
+func main() {
+	data, err := os.ReadFile("font8x8_basic.bin")
+	if err != nil {
+		panic(err)
 	}
+
+	buf := bytes.NewBuffer(data)
+	realchar := 8 * 89
+	waste := make([]byte, realchar)
+	_, err = buf.Read(waste)
+	if err != nil {
+		panic(err)
+	}
+	characterBuf := make([]byte, 8)
+	_, err = buf.Read(characterBuf)
+	if err != nil {
+		panic(err)
+	}
+
+	render(characterBuf)
 }
 
-func newCharacter(bitmap [8]byte, byteVal byte) *Character {
-	return &Character{
-		Bitmap:  bitmap,
-		ByteVal: byteVal,
+func render(bitmap []byte) {
+	var x, y int
+	var set byte
+	for x = 0; x < 8; x++ {
+		for y = 0; y < 8; y++ {
+			set = bitmap[x] & (1 << y)
+			if set == 0 {
+				fmt.Printf(" ")
+			} else {
+				fmt.Printf("%c", 'x')
+			}
+		}
+		fmt.Printf("\n")
 	}
 }

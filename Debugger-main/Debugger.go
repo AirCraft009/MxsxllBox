@@ -103,7 +103,7 @@ func main() {
 	breakpoints := make(map[int]bool)
 
 	code, labels := linker.CompileForDebug("program.asm", "EchoKeys")
-	mem := &cpu.Memory{}
+	mem := cpu.NewMemory()
 	copy(mem.Data[:], code)
 	vm := cpu.NewDebugCpu(mem)
 	go KeyboardBuffer.WriteKeyboardToBuffer(vm.Cpu)

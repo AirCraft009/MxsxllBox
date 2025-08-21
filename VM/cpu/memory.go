@@ -1,11 +1,13 @@
 package cpu
 
 import (
+	"os"
 	"sync"
 )
 
 const (
-	HardDrive = 1000 * 8
+	HardDriveSize = 2 * 1073741824 //2  GB
+	ROMSize       = 16 * 1024      // the rom is 8 KB of storage I'm mapping to
 )
 
 const (
@@ -27,8 +29,8 @@ const (
 	InterruptTableSIze = HeapEnd - Interrupttable
 	BlockSize          = 0x10
 
-	// StackStart ───── Stack (8 KB) ─────
-	StackStart = 0x600
+	// Start ─────  (8 KB) ─────
+	StackStart = 0x6000
 	StackEnd   = 0x7FFF
 	StackInit  = StackEnd
 
@@ -51,16 +53,81 @@ const (
 )
 
 type Memory struct {
-	Data            [MemorySize]byte
-	NonVolatileData [MemorySize]byte
-	keyboardMu      sync.Mutex
+	Data       [MemorySize]byte
+	ROM        [ROMSize]byte
+	keyboardMu sync.Mutex
+}
+
+func NewMemory() *Memory {
+	data, err := os.ReadFile("types.go")
+	if err != nil {
+		panic(err)
+	}
+	return &Memory{
+		Data:       [MemorySize]byte{},
+		ROM:        [16384]byte(data),
+		keyboardMu: sync.Mutex{},
+	}
 }
 
 func isKeyboardRegion(addr uint16) bool {
 	return addr >= 0xC000 && addr <= 0xC020
 }
+func isStackRegion(addr uint16) bool {
+	return addr >= StackStart && addr <= StackEnd
+}
+
+func isCodeRegion(addr uint16) bool {
+	return addr <= ProgramEnd
+}
+
+// the stack is memMapped to a rom section for strings
 
 func (mem *Memory) ReadByte(addr uint16) byte {
+	if isCodeRegion(addr) {
+		return mem.ROM[addr]
+	}
+	if isStackRegion(addr) {
+		return mem.ROM[ProgramStart+uint16(addr-StackStart)]
+	}
+	return mem.ReadByteStack(addr)
+}
+
+func (mem *Memory) ReadWord(addr uint16) uint16 {
+	if isCodeRegion(addr) {
+		hi := mem.ROM[addr]
+		lo := mem.ROM[addr+1]
+		return uint16(hi)<<8 | uint16(lo)
+	}
+	if isStackRegion(addr) || isStackRegion(addr+1) {
+		hi := mem.ROM[ProgramStart+uint16(addr-StackStart)]
+		lo := mem.ROM[ProgramStart+(addr+1)-uint16(ProgramStart)]
+		return uint16(hi)<<8 | uint16(lo)
+	}
+	return mem.ReadWordStack(addr)
+}
+
+func (mem *Memory) WriteByte(addr uint16, value byte) {
+	if isCodeRegion(addr) {
+		return
+	}
+	if isStackRegion(addr) {
+		return
+	}
+	mem.WriteByteStack(addr, value)
+}
+
+func (mem *Memory) WriteWord(addr uint16, val uint16) {
+	if isCodeRegion(addr) {
+		return
+	}
+	if isStackRegion(addr) || isStackRegion(addr+1) {
+		return
+	}
+	mem.WriteWordStack(addr, val)
+}
+
+func (mem *Memory) ReadByteStack(addr uint16) byte {
 	if isKeyboardRegion(addr) {
 		mem.keyboardMu.Lock()
 		defer mem.keyboardMu.Unlock()
@@ -68,7 +135,7 @@ func (mem *Memory) ReadByte(addr uint16) byte {
 	return mem.Data[addr]
 }
 
-func (mem *Memory) ReadWord(addr uint16) uint16 {
+func (mem *Memory) ReadWordStack(addr uint16) uint16 {
 	if isKeyboardRegion(addr) || isKeyboardRegion(addr+1) {
 		mem.keyboardMu.Lock()
 		defer mem.keyboardMu.Unlock()
@@ -86,33 +153,20 @@ func (mem *Memory) ReadReg(addr uint16) (byte, byte) {
 	return mem.Data[addr], mem.Data[addr+1]
 }
 
-func (mem *Memory) WriteByte(addr uint16, value byte) (taskLenOverwrite bool) {
+func (mem *Memory) WriteByteStack(addr uint16, value byte) {
 	if isKeyboardRegion(addr) {
 		mem.keyboardMu.Lock()
 		defer mem.keyboardMu.Unlock()
 	}
 
-	if addr == 9149 {
-		taskLenOverwrite = true
-	}
-
 	mem.Data[addr] = value
-	return taskLenOverwrite
 }
 
-func (mem *Memory) WriteWord(addr uint16, val uint16) {
+func (mem *Memory) WriteWordStack(addr uint16, val uint16) {
 	if isKeyboardRegion(addr) || isKeyboardRegion(addr+1) {
 		mem.keyboardMu.Lock()
 		defer mem.keyboardMu.Unlock()
 	}
-
 	mem.Data[addr] = byte(val >> 8)
 	mem.Data[addr+1] = byte(val & 0xFF)
-}
-
-func (mem *Memory) LoadProgram(program []uint16) {
-	for i, word := range program {
-		mem.Data[i*2] = byte(word & 0xFF) // low byte first
-		mem.Data[i*2+1] = byte(word >> 8)
-	}
 }

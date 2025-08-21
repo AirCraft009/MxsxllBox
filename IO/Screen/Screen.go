@@ -48,14 +48,13 @@ func checkError(err error) {
 }
 
 func NewScreen() *Screen {
-	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, width*upscale, height*upscale, sdl.WINDOW_SHOWN|sdl.WINDOW_ALWAYS_ON_TOP)
+	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, width*upscale, height*upscale, sdl.WINDOW_SHOWN)
 	checkError(err)
 	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
 	checkError(err)
 	tex, err := renderer.CreateTexture(sdl.PIXELFORMAT_ARGB8888, sdl.TEXTUREACCESS_STREAMING, width, height)
 	checkError(err)
 	window.Raise()
-	window.SetAlwaysOnTop(true)
 
 	return &Screen{Window: window, Renderer: renderer, Texture: tex, LastDraw: time.Now()}
 }
