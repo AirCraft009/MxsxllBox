@@ -3,9 +3,10 @@ package KeyboardBuffer
 import "C"
 import (
 	"MxsxllBox/VM/cpu"
-	"golang.org/x/term"
 	"os"
 	"sync"
+
+	"golang.org/x/term"
 )
 
 type RingBuffer struct {

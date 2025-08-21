@@ -54,18 +54,19 @@ const (
 
 type Memory struct {
 	Data       [MemorySize]byte
-	ROM        [ROMSize]byte
+	ROM        []byte
 	keyboardMu sync.Mutex
 }
 
 func NewMemory() *Memory {
-	data, err := os.ReadFile("types.go")
+	wd, err := os.Getwd()
+	data, err := os.ReadFile(wd + "/VM/cpu/ROM.mem")
 	if err != nil {
 		panic(err)
 	}
 	return &Memory{
 		Data:       [MemorySize]byte{},
-		ROM:        [16384]byte(data),
+		ROM:        data,
 		keyboardMu: sync.Mutex{},
 	}
 }
@@ -101,7 +102,7 @@ func (mem *Memory) ReadWord(addr uint16) uint16 {
 	}
 	if isStackRegion(addr) || isStackRegion(addr+1) {
 		hi := mem.ROM[ProgramStart+uint16(addr-StackStart)]
-		lo := mem.ROM[ProgramStart+(addr+1)-uint16(ProgramStart)]
+		lo := mem.ROM[ProgramStart+(addr+1)-uint16(StackStart)]
 		return uint16(hi)<<8 | uint16(lo)
 	}
 	return mem.ReadWordStack(addr)

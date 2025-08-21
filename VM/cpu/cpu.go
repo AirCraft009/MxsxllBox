@@ -55,6 +55,7 @@ func InitTicker(cpu *CPU) {
 }
 
 func NewCPU(mem *Memory) *CPU {
+	WritetoRom("font8x8_basic.bin", 0)
 	cpu := &CPU{
 		Mem:      mem,
 		SP:       StackInit, // stack grows downward
@@ -139,6 +140,7 @@ func (cpu *CPU) Step() {
 	}
 
 	if cpu.Interrupt {
+		fmt.Printf("Interrupt %d\n", cpu.InterruptId)
 		cpu.Registers[assembler.RegMap["I1"]] = uint16(cpu.InterruptId)
 		cpu.SP -= 2
 		cpu.Mem.WriteWord(cpu.SP, cpu.PC)

@@ -33,7 +33,7 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 		fmt.Printf("PC: %d\n", cpu.PC)
 		panic("stack out of memory")
 	}
-	opcode = cpu.Mem.ReadByte(cpu.PC)
+	opcode = cpu.Mem.ReadByteStack(cpu.PC)
 	regs1, flagbyte := cpu.Mem.ReadReg(cpu.PC + 1)
 	rx, ry, addresnec := helper.DecodeRegs(regs1, flagbyte)
 	/**
@@ -50,7 +50,7 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	*/
 	var addr uint16
 	if addresnec {
-		addr = cpu.Mem.ReadWord(cpu.PC + instructionSizeShort)
+		addr = cpu.Mem.ReadWordStack(cpu.PC + instructionSizeShort)
 	}
 	instructions = newHandlerInstructions(rx, ry, addr)
 	return opcode, instructions
