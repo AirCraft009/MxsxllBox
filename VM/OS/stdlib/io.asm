@@ -200,6 +200,35 @@ CONTINUE_DRAW_LINE_MASK_LOOP:
         JMP DRAW_LINE_MASK_LOOP
 
 
+_draw_string:       # O1(x) O2(y) O3(colorval) O4(stringpos)
+    LOADW O6 O4     # Load len into O6
+    ADDI O4 2       # Goto first char
+    MOV O5 O4
+    ADD O5 O6       # set to the end addr
+    JMP DRAW_STRING_LOOP
 
+DRAW_STRING_LOOP:
+    CMP O4 O5
+    JZ END_DRAWING_STRING
+    PUSH O4
+    PUSH O5
+    LOADB O4 O4
+    CALL _draw_char
+    POP O5
+    POP O4
+    ADDI O4 1
+    CALL _get_Dimension
+    SUBI O6 16               # subtract 8(lenght of a char) so that if O1 is Greater then we can go to the next line
+    CMP O1 O6
+    JGE NEWLINE
+    ADDI O1 8
+    JMP DRAW_STRING_LOOP
 
+NEWLINE:
+    MOVI O1 8
+    ADDI O2 8
+    JMP DRAW_STRING_LOOP
+
+END_DRAWING_STRING:
+    RET
 

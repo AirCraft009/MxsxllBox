@@ -108,8 +108,8 @@ func setBasePaths(fileName string) map[string]uint16 {
 	paths["\\VM\\OS\\stdlib\\sys.asm"] = cpu.ProgramStdLibStart
 	paths["\\VM\\OS\\stdlib\\utils.asm"] = cpu.ProgramStdLibStart
 	paths["\\VM\\OS\\interrupts\\interruptTable.asm"] = cpu.Interrupttable
-	paths["\\VM\\OS\\scheduler\\scheduler.asm"] = 300
-	paths["\\VM\\OS\\helper\\helper.asm"] = 300
+	paths["\\VM\\OS\\scheduler\\scheduler.asm"] = 2048
+	paths["\\VM\\OS\\helper\\helper.asm"] = 2048
 	return paths
 }
 

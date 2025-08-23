@@ -1,6 +1,8 @@
 _strcpy:
     LOADW O3 O1        # O3 = length
-    ADDI O3 1
+    STOREW O3 O2
+    ADDI O2 2
+    ADDI O1 2
     JMP STRCPY_LOOP
 
 
@@ -29,16 +31,18 @@ END_STRLEN:
 
 
 
-_strcmp:            # sets the 0 - Flag if they're equal, Carry - Flag if higher
+_strcmp:             # sets the 0 - Flag if they're equal, Carry - Flag if higher
     LOADW O3 O1      # load strlen 1
     LOADW O4 O2      # load strlen 2
     CMP O3 O4
     JNZ END_STRCMP
+    ADDI O1 1
+    ADDI O2 1
     JMP STRCMP_LOOP
 
 
 STRCMP_LOOP:
-    TSTI O3 0
+    CMPI O3 0
     JZ END_STRCMP
 
     ADDI O1 1
@@ -54,15 +58,16 @@ STRCMP_LOOP:
 
 
 END_STRCMP:
+    CMP O4 O5   # got cleared after the conditional jump
     RET
 
 
 
 _strcat:
-    LOADB O4 O1          # O4 = firstString lenght
-    LOADB O5 O2          # O5 = secondStringlenght
+    LOADW O4 O1          # O4 = firstString lenght
+    LOADW O5 O2          # O5 = secondStringlenght
     ADD O4 O5           # 04 = combinedStringLenght
-    STOREB O4 O1         # Write combinedLenght to start of string
+    STOREW O4 O1         # Write combinedLenght to start of string
     ADD O1 O5           # Add len(firstString) to start of firststring; O1 = ptr(to last byte)
     ADDI O1 1           # O1 = ptr(first free byte)
     CALL _strcpy             # _strcpy copies str2 to O1

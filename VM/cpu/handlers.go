@@ -295,10 +295,10 @@ func handleJnc(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handlePrintstr(cpu *CPU, instructions *HandlerInstructions) {
-	lenght := cpu.Mem.ReadByte(cpu.Registers[instructions.Rx])
+	lenght := cpu.Mem.ReadWord(cpu.Registers[instructions.Rx])
 	outPutStr := ""
 	for i := uint16(1); i <= uint16(lenght); i++ {
-		outPutStr += string(cpu.Mem.ReadByte(cpu.Registers[instructions.Rx] + i))
+		outPutStr += string(cpu.Mem.ReadByte(cpu.Registers[instructions.Rx] + i + 1))
 	}
 	fmt.Println(outPutStr)
 	cpu.PC += instructionSizeShort

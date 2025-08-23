@@ -125,6 +125,13 @@ func newParser() *Parser {
 	return parser
 }
 
+func checkMalformedInstruction(parameters []string, currpc uint16) {
+	parameterlen := OffsetMap[parameters[0]]
+	if int(parameterlen) > (len(parameters)) {
+		panic(fmt.Sprintf("Malformed instruction %s; at %d: \nexpecting at least: %d parameters; got %d.", parameters[0], currpc, parameterlen, len(parameters)-1))
+	}
+}
+
 func parseFormatOP(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	return currPC + 1, []byte{OpCodes[parameters[OpCLoc]]}, nil
 }
@@ -173,21 +180,19 @@ func formatString(parameters []string) (formatted [][]string) {
 	ADDI reg2 0
 	STOREB reg1 reg2
 	*/
-	ascii := make([]byte, length+2)
 	formatted = [][]string{
 		{"MOVI", rx, strconv.Itoa(length)},
-		{"STOREW", rx, ry}}
-
-	for i, part := range inputString {
-		ascii[i] = byte(part)
+		{"STOREW", rx, ry},
+		{"ADDI", ry, "1"},
+	}
+	for _, part := range inputString {
 
 		formatted = append(formatted,
-			[]string{"MOVI", rx, strconv.Itoa(int(ascii[i]))},
+			[]string{"MOVI", rx, strconv.Itoa(int(part))},
 			[]string{"ADDI", ry, "1"},
 			[]string{"STOREB", rx, ry},
 		)
 	}
-
 	formatted = append(formatted,
 		[]string{"SUBI", ry, strconv.Itoa(length + 1)})
 	return formatted
@@ -195,6 +200,7 @@ func formatString(parameters []string) (formatted [][]string) {
 
 func parseFormatOPRegReg(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
+	checkMalformedInstruction(parameters, currPC)
 	code = make([]byte, 3)
 	code[OpCLoc] = OpCodes[parameters[OpCLoc]]
 	rx = RegMap[parameters[RegsLoc1]]
