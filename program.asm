@@ -1,38 +1,54 @@
 STINTI 00000010
-MOVA O1 FLAGS_A
+YIELD
+MOVA O1 read_n_print
 CALL _spawn
-MOVA O1 FLAGS_B
+MOVA O1 simbusy
 CALL _spawn
 JMP _init_scheduler
 
-FLAGS_A:
-    MOVI R1 0
-    CMPI R1 0
-    JNZ ERROR_A
+SET_BASE:
+    MOVI O1 0
+    MOVI O2 0
+    MOVI O3 1
+    MOVI R4 0   # newline counter
+    RET
 
-    JMP FLAGS_A
+read_n_print:
+    CALL SET_BASE
+    JMP READ_LOOP
 
-ERROR_A:
-    STINTI 00000000
-    MOVI R2 10
-    PRINT R2
-    GF R1
-    PRINT R1
-    JMP UNDER_ERROR
+READ_LOOP:
+    MOV R1 O1
+    MOV R2 O2
+    MOV R3 O3
+    CALL _readchar
+    JNZ INPUT
+    MOV O1 R1
+    MOV O2 R2
+    MOV O3 R3
+    JMP READ_LOOP
 
-UNDER_ERROR:
-    JMP UNDER_ERROR
+INPUT:
+    MOV O4 O1
+    MOV O1 R1
+    MOV O2 R2
+    MOV O3 R3
+    CALL _draw_char
+    ADDI O1 8
+    ADDI R4 1
+    CMPI R4 32
+    JZ ENTER_NEW_LINE
+    JMP READ_LOOP
 
-ERROR_B:
-    STINTI 00000000
-    MOVI R2 100
-    PRINT R2
-    GF R1
-    PRINT R1
-    JMP UNDER_ERROR
 
-FLAGS_B:
-    MOVI R1 1
-    CMPI R1 0
-    JNC ERROR_B
-    JMP FLAGS_B
+
+ENTER_NEW_LINE:
+    ADDI O2 8
+    MOVI O1 0
+    MOVI R4 0
+    JMP READ_LOOP
+
+
+
+simbusy:
+    JMP simbusy

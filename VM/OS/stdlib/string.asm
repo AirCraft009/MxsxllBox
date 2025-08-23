@@ -1,10 +1,11 @@
 _strcpy:
-    LOADB O3 O1        # O3 = length
+    LOADW O3 O1        # O3 = length
     ADDI O3 1
+    JMP STRCPY_LOOP
 
 
 STRCPY_LOOP:          # Now copy string bytes using O3 as counter
-    TSTI O3 0         # test if length == 0
+    CMPI O3 0         # test if length == 0
     JZ END_STRCPY
 
     LOADB O4 O1       # load byte from src
@@ -20,7 +21,7 @@ END_STRCPY:
     RET
 
 _strlen:
-    LOADB O1 O2      # load lenght into O2
+    LOADW O1 O2      # load lenght into O2
     JMP END_STRLEN
 
 END_STRLEN:
@@ -29,8 +30,8 @@ END_STRLEN:
 
 
 _strcmp:            # sets the 0 - Flag if they're equal, Carry - Flag if higher
-    LOADB O3 O1      # load strlen 1
-    LOADB O4 O2      # load strlen 2
+    LOADW O3 O1      # load strlen 1
+    LOADW O4 O2      # load strlen 2
     CMP O3 O4
     JNZ END_STRCMP
     JMP STRCMP_LOOP
