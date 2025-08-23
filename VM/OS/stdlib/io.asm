@@ -17,6 +17,8 @@ _readchar:
     CMP O1 O2
     JZ END_READCHAR_BUF_EMPTY
 
+    PRINT O1
+    PRINT O2
     ADDI O4 1
     ADD O4 O2
     LOADB O1 O4     # buffer isn't empty so load char val. into O1

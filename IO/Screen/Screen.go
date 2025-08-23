@@ -54,6 +54,7 @@ func NewScreen() *Screen {
 	checkError(err)
 	tex, err := renderer.CreateTexture(sdl.PIXELFORMAT_ARGB8888, sdl.TEXTUREACCESS_STREAMING, width, height)
 	checkError(err)
+	window.SetAlwaysOnTop(true)
 	window.Raise()
 
 	return &Screen{Window: window, Renderer: renderer, Texture: tex, LastDraw: time.Now()}

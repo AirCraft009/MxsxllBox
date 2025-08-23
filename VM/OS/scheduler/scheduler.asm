@@ -100,16 +100,8 @@ WRAP_ARROUND:
 FOUND_TASK:
     CALL __get_active_task_location
     STOREB T4 T6            # Set Active Task
-    CALL _get_task_size
-
-
-    MUL T4 T6
-    MOVI T1 1
-    MUL T1 T6
-    SUB T4 T1              # make sure to go to end of task - 1
-    CALL _get_task_start
-    ADD T4 T6
-
+    CALL CALC_PC_FOR_ACTIVE_TASK
+    MOV T4 T1
     JMP LOAD_TASK
 
 
@@ -125,10 +117,12 @@ LOAD_TASK:                  # Return state of the program to last task
     CALL RESTORE_REGS_LOOP
 
     LOADB T2 T4
-    SF  T2                  # set flags
+    PUSH T2                 # save temp because flags are easily overwritten
     ADDI T4 1               # go to state byte
     MOVI T2 0
     STOREB T2 T4            #store state
+    POP T2
+    SF T2
     UNYIELD
     SPC T3                  # finally set the PC/should jump
 
@@ -156,10 +150,9 @@ RESTORE_REGS_LOOP:
 
 _yield:                 # cooperative yield( willingly from the current lbl)
     YIELD
-    GF I2               # save the flags temporarily
-    CMPI O1 9           # see if the yield-code is equal to termination(9)
+    GF T4                   # save the flags because they're easily overwritten
+    CMPI O1 9               # see if the yield-code is equal to termination(9)
     JZ MARK_TASK_AS_DELETED
-    SF I2               # if task isn't terminated reset flags
     MOVI I2 5
     JMP SAVE_TASK_YIELD
 
@@ -202,6 +195,7 @@ CALC_PC_FOR_TASK:     # T1 has the task
 
 _interrupt:
     YIELD
+    GF T4           # save because flags are easily overwritten
     CMPI I2 1       # if I2 is set to 1 it means the round robin loop was interrupted so Saving the task again isn't necesarry/ would crash the program
     JZ BLOCK_SAVE
     MOVI I2 0
@@ -239,18 +233,15 @@ SAVE_TASK:
     
     STOREW T6 T5
 
-    GF T6               # get flags
-    PUSH T6             # save the flags for later after getting the stack pointer
     ADDI T5 2
     MOVI T1 0
 
 
     CALL SAVE_REGS_LOOP
-    POP T6             # get the flags again
 
     PUSH T2
 
-    STOREB T6 T5    # save flags from earlier
+    STOREB T4 T5    # save flags from earlier
     ADDI T5 1       # move to state
     RET
 

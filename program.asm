@@ -1,43 +1,38 @@
-BOOTLOADER:
-MOVA O1 SimOtherStuff
+STINTI 00000010
+MOVA O1 FLAGS_A
 CALL _spawn
-MOVA O1 DrawInput
+MOVA O1 FLAGS_B
 CALL _spawn
-STINT 01111111
 JMP _init_scheduler
 
-SimOtherStuff:
-    PRINT O1
-    JMP SimOtherStuff
-
-DrawInput:
+FLAGS_A:
     MOVI R1 0
-    MOVI O1 0
-    MOVI O2 0
-    MOVI O4 97
-    MOVI O3 1
-    JMP DRAW_NEW_CHAR
+    CMPI R1 0
+    JNZ ERROR_A
 
-DRAW_NEW_CHAR:
-    CMPI R1 32
-    JZ NewLine
-    JMP FINISH_DRAWING
+    JMP FLAGS_A
 
-FINISH_DRAWING:
-    CALL _draw_char
-    ADDI R1 1
-    ADDI O1 8
-    JMP DRAW_NEW_CHAR
+ERROR_A:
+    STINTI 00000000
+    MOVI R2 10
+    PRINT R2
+    GF R1
+    PRINT R1
+    JMP UNDER_ERROR
 
-NewLine:
-    ADDI O2 8
-    MOVI O1 0
-    MOVI R1 0
-    JMP  FINISH_DRAWING
+UNDER_ERROR:
+    JMP UNDER_ERROR
 
+ERROR_B:
+    STINTI 00000000
+    MOVI R2 100
+    PRINT R2
+    GF R1
+    PRINT R1
+    JMP UNDER_ERROR
 
-
-
-
-
-
+FLAGS_B:
+    MOVI R1 1
+    CMPI R1 0
+    JNC ERROR_B
+    JMP FLAGS_B

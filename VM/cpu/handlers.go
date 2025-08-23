@@ -73,7 +73,7 @@ func handleSTINTI(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleSTINT(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.InterruptMask = byte(instructions.Rx)
+	cpu.InterruptMask = byte(cpu.Registers[instructions.Rx])
 	cpu.PrevInterruptMask = cpu.InterruptMask
 	cpu.PC += instructionSizeShort
 }

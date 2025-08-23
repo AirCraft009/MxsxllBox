@@ -7,17 +7,18 @@ import (
 	"MxsxllBox/VM/cpu"
 	"MxsxllBox/debugging"
 	"fmt"
+	"image/color"
+	"os"
+	_ "strconv"
+	"strings"
+	"time"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
-	"image/color"
-	"os"
-	_ "strconv"
-	"strings"
-	"time"
 )
 
 func buildRegisterPanel(cpuState *cpu.CPU, revRegMap map[uint8]string) (*fyne.Container, [18][2]*widget.Label) {
@@ -36,7 +37,7 @@ func buildRegisterPanel(cpuState *cpu.CPU, revRegMap map[uint8]string) (*fyne.Co
 		addRow(left, right)
 	}
 
-	stackTop := widget.NewLabel(fmt.Sprintf("Stack-top: %d", cpuState.Mem.ReadWord(cpuState.SP)))
+	stackTop := widget.NewLabel(fmt.Sprintf("Stack-top: %d", cpuState.Mem.ReadWordStack(cpuState.SP)))
 	pc := widget.NewLabel(fmt.Sprintf("PC: %d", cpuState.PC))
 	regLabels[len(cpuState.Registers)/2][0] = stackTop
 	regLabels[len(cpuState.Registers)/2][1] = pc
@@ -58,7 +59,7 @@ func updateRegisterPanel(regLabels [18][2]*widget.Label, cpuState *cpu.CPU, revR
 	}
 
 	lastRow := len(regLabels) - 2
-	regLabels[lastRow][0].SetText(fmt.Sprintf("Stack-top: %d", cpuState.Mem.ReadWord(cpuState.SP)))
+	regLabels[lastRow][0].SetText(fmt.Sprintf("Stack-top: %d", cpuState.Mem.ReadWordStack(cpuState.SP)))
 	regLabels[lastRow][1].SetText(fmt.Sprintf("PC: %d", cpuState.PC))
 
 	flagRow := lastRow + 1

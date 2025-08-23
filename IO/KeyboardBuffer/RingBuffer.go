@@ -50,9 +50,6 @@ func WriteKeyboardToBuffer(Cpu *cpu.CPU) {
 
 func (ringBuffer *RingBuffer) write(char byte, Cpu *cpu.CPU) bool {
 	ringBuffer.mutex.Lock()
-	if byte((ringBuffer.writePtr+1)%ringBuffer.lenght) == Cpu.Mem.ReadByte(cpu.ReadPtr) {
-		return false
-	}
 
 	Cpu.Mem.WriteByte(cpu.RingBufferStart+ringBuffer.writePtr, char)
 	ringBuffer.writePtr = (ringBuffer.writePtr + 1) % ringBuffer.lenght
