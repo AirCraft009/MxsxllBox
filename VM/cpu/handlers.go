@@ -5,6 +5,14 @@ import (
 	"fmt"
 )
 
+func constLog2(x uint) int {
+	n := 0
+	for 1<<n < x {
+		n++
+	}
+	return n
+}
+
 const (
 	//for any operation that doesn't use the addr
 	instructionSizeShort = 3
@@ -15,6 +23,8 @@ const (
 	Height              = uint16(256)
 	PpB                 = 4
 	Bpp                 = 2
+	log2PpB             = 2 // log2(4)
+	log2Width           = 8
 )
 
 type HandlerInstructions struct {
@@ -61,25 +71,31 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	return opcode, instructions
 }
 
-func getNewpixel(cpu *CPU, x, y uint16, newPixel byte) (uint16, byte) {
-	y *= Width
-	finalpixelLoc := x + y
-	shiftval := finalpixelLoc % uint16(PpB)     // get the location of the pixel within the respective byte
-	finalbyteLoc := finalpixelLoc / uint16(PpB) // get the actual byte
-	finalbyteLoc += VideoStart
-	oldPixel := cpu.Mem.ReadByte(finalbyteLoc)
-	newPixel <<= shiftval * 2
-	inversePixel := 0xff ^ newPixel
-	oldPixel &= inversePixel
-	newPixel |= oldPixel
-	return finalbyteLoc, newPixel
-}
-
 func handleStorePixel(cpu *CPU, instructions *HandlerInstructions) {
-	x := cpu.Registers[instructions.Rx]
-	y := cpu.Registers[instructions.Ry]
-	newPixel := byte(cpu.Registers[colorReg])
-	cpu.Mem.WriteByte(getNewpixel(cpu, x, y, newPixel))
+	x, y := cpu.Registers[instructions.Rx], cpu.Registers[instructions.Ry]
+	// Compute absolute pixel index
+	finalPixel := x + (y << log2Width) // y*Width → shift
+
+	// Pixel offset inside byte
+	shift := finalPixel & (PpB - 1) // == finalPixel % PpB
+	byteLoc := (finalPixel >> log2PpB) + VideoStart
+
+	// Read VRAM byte
+	old := cpu.Mem.ReadByte(byteLoc)
+
+	// Get 2-bit color from register
+	color := byte(cpu.Registers[colorReg]) & 0x03
+
+	// Shift into place
+	color <<= shift * 2
+
+	// Mask & merge
+	mask := ^(0x03 << (shift * 2))
+	val := (old & byte(mask)) | color
+
+	// Write back
+	cpu.Mem.WriteByte(byteLoc, val)
+
 	cpu.PC += instructionSizeShort
 }
 
