@@ -84,6 +84,7 @@ func (s *Screen) Refresh(Cpu *cpu.CPU) {
 		fmt.Println("Pixels length mismatch", len(pixels))
 		return
 	}
+
 	err := s.Texture.Update(nil, unsafe.Pointer(&pixels[0]), int(width*4))
 	checkError(err)
 	err = s.Renderer.Clear()
@@ -121,6 +122,6 @@ func (s *Screen) Run(Cpu *cpu.CPU) {
 				break
 			}
 		}
-		sdl.Delay(33)
+		sdl.Delay(76)
 	}
 }

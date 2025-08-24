@@ -45,7 +45,7 @@ _setP_i:                # short for set Pixel index(O2) using a relative index 0
     MOD O1 O6           # By moding you can see which bit in the byte has to be targeted
     CALL _get_Bpp       # now multiply that by the Bpp(0*2 = bit(0-1); 1*2 = bit(2-3); ...)
     MUL O1 O6
-    DIVI O2 4           # Divide by 8 to get the actual byte
+    DIVI O2 4           # Divide by 4 to get the actual byte
     CALL _get_video_start
     ADD O2 O6
     LS O3 O1            # leftshift the bits to the correct pos

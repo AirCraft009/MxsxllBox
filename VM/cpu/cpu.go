@@ -153,9 +153,13 @@ func (cpu *CPU) Step() {
 }
 
 func (cpu *CPU) Run() {
+	tStart := time.Now()
 	for !cpu.Halted {
 		cpu.Step()
 	}
+	tEnd := time.Now()
+	dur := tEnd.Sub(tStart)
+	fmt.Printf("The Proccess took %f seconds\n", dur.Seconds())
 	cpu.HardwareTimer.Stop()
 	os.Exit(0)
 }
