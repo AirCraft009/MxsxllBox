@@ -10,6 +10,11 @@ const (
 	instructionSizeShort = 3
 	//for any operation that does use the addr
 	instructionSizeLong = 5
+	colorReg            = 20
+	Width               = uint16(256)
+	Height              = uint16(256)
+	PpB                 = 4
+	Bpp                 = 2
 )
 
 type HandlerInstructions struct {
@@ -54,6 +59,41 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	}
 	instructions = newHandlerInstructions(rx, ry, addr)
 	return opcode, instructions
+}
+
+func getNewpixel(cpu *CPU, x, y uint16, newPixel byte) (uint16, byte) {
+	y *= Width
+	finalpixelLoc := x + y
+	shiftval := finalpixelLoc % uint16(PpB)     // get the location of the pixel within the respective byte
+	finalbyteLoc := finalpixelLoc / uint16(PpB) // get the actual byte
+	finalbyteLoc += VideoStart
+	oldPixel := cpu.Mem.ReadByte(finalbyteLoc)
+	newPixel <<= shiftval * 2
+	inversePixel := 0xff ^ newPixel
+	oldPixel &= inversePixel
+	newPixel |= oldPixel
+	return finalbyteLoc, newPixel
+}
+
+func handleStorePixel(cpu *CPU, instructions *HandlerInstructions) {
+	x := cpu.Registers[instructions.Rx]
+	y := cpu.Registers[instructions.Ry]
+	newPixel := byte(cpu.Registers[colorReg])
+	cpu.Mem.WriteByte(getNewpixel(cpu, x, y, newPixel))
+	cpu.PC += instructionSizeShort
+}
+
+func handleStorePixelFast(cpu *CPU, instructions *HandlerInstructions) {
+	x, y := cpu.Registers[instructions.Rx], cpu.Registers[instructions.Ry]
+	newPixel := byte(cpu.Registers[colorReg])
+	y *= Width
+	finalpixelLoc := x + y
+	finalbyteLoc := finalpixelLoc / uint16(PpB)
+	finalbyteLoc += VideoStart
+	oldPixel := cpu.Mem.ReadByte(finalbyteLoc)
+	newPixel <<= finalpixelLoc % uint16(PpB)
+	newPixel |= oldPixel
+	cpu.Mem.WriteByte(finalbyteLoc, newPixel)
 }
 
 func handleOr(cpu *CPU, instructions *HandlerInstructions) {

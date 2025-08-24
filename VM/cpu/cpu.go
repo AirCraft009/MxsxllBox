@@ -44,10 +44,11 @@ type CPU struct {
 }
 
 func InitTicker(cpu *CPU) {
-	cpu.HardwareTimer = time.NewTicker(10 * time.Millisecond)
+	cpu.HardwareTimer = time.NewTicker(15 * time.Millisecond)
 	for {
 		select {
 		case _ = <-cpu.HardwareTimer.C:
+
 			cpu.InterruptPending = true
 			cpu.InterruptId = TimerInterrupt
 		}
@@ -123,6 +124,8 @@ func NewCPU(mem *Memory) *CPU {
 	cpu.Handlers[STINTI] = handleSTINTI
 	cpu.Handlers[STINT] = handleSTINT
 	cpu.Handlers[XOR] = handleXor
+	cpu.Handlers[STOREPX] = handleStorePixel
+	cpu.Handlers[STOREPXFAST] = handleStorePixel
 
 	return cpu
 }

@@ -25,7 +25,7 @@ const (
 
 var (
 	title         = "MxsxllBox-VM"
-	width         = int32(256)
+	Width         = int32(256)
 	height        = int32(256)
 	upscale       = int32(4)
 	Bpp           = 2
@@ -48,11 +48,11 @@ func checkError(err error) {
 }
 
 func NewScreen() *Screen {
-	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, width*upscale, height*upscale, sdl.WINDOW_SHOWN)
+	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, Width*upscale, height*upscale, sdl.WINDOW_SHOWN)
 	checkError(err)
 	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
 	checkError(err)
-	tex, err := renderer.CreateTexture(sdl.PIXELFORMAT_ARGB8888, sdl.TEXTUREACCESS_STREAMING, width, height)
+	tex, err := renderer.CreateTexture(sdl.PIXELFORMAT_ARGB8888, sdl.TEXTUREACCESS_STREAMING, Width, height)
 	checkError(err)
 	window.SetAlwaysOnTop(true)
 	window.Raise()
@@ -80,16 +80,17 @@ func ExtractPixels(VideoBuffer []byte) []uint32 {
 
 func (s *Screen) Refresh(Cpu *cpu.CPU) {
 	pixels := ExtractPixels(Cpu.Mem.Data[cpu.VideoStart : cpu.VideoEnd+1])
-	if len(pixels) != int(width*height) {
+	if len(pixels) != int(Width*height) {
 		fmt.Println("Pixels length mismatch", len(pixels))
 		return
 	}
 
-	err := s.Texture.Update(nil, unsafe.Pointer(&pixels[0]), int(width*4))
+	err := s.Texture.Update(nil, unsafe.Pointer(&pixels[0]), int(Width*4))
 	checkError(err)
 	err = s.Renderer.Clear()
+	copy(Cpu.Mem.Data[cpu.VideoStart:cpu.VideoEnd+1], make([]byte, cpu.VideoEnd+1-cpu.VideoStart))
 	checkError(err)
-	dst := sdl.Rect{X: 0, Y: 0, W: width * upscale, H: height * upscale}
+	dst := sdl.Rect{X: 0, Y: 0, W: Width * upscale, H: height * upscale}
 	err = s.Renderer.Copy(s.Texture, nil, &dst)
 	checkError(err)
 	s.Renderer.Present()
@@ -122,6 +123,6 @@ func (s *Screen) Run(Cpu *cpu.CPU) {
 				break
 			}
 		}
-		sdl.Delay(76)
+		sdl.Delay(20)
 	}
 }
