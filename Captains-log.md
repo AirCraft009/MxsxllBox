@@ -18,7 +18,8 @@ it isn't a single task but depends on what aplication is using it. <br>
 The most common one being the console.
 
 it reads input with a task that loops reading the keyboard buffer. <br>
-When the task  is spawned it allocates a space in the heap, <br>
+When the task  is spawned ~~it allocates a space in the heap~~, it first writes to a temporary mem region that is 512 Bytes long
+after hitting enter or filling up the whole buffer the command gets executed<br>
 and uses the current cursor postion to find out where the char should be placed in the Videochar table see below
 
 

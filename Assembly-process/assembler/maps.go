@@ -128,12 +128,12 @@ var RegMap = map[string]byte{
 	"K16": 56,
 	"K17": 57,
 	"K18": 58,
-	"K19": 59,
-	"K20": 60,
-	"K21": 61,
-	"K22": 62,
-	"K23": 63,
-	"K24": 64,
+	"OR":  59, // offset register
+	"VS":  60, // holds the lenght/size of the video-char table
+	"RLL": 61, // holds the current roll val
+	"VC":  62, // holds the addr of the video char table
+	"SM":  63, //String Mode
+	"VM":  64, //Video Mode
 }
 
 var OffsetMap = map[string]byte{

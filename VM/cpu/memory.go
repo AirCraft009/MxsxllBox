@@ -47,9 +47,11 @@ const (
 	RingBufferSize  = RingBufferEnd - RingBufferStart
 
 	// ExtraStart ───── Unused / Future Expansion / Paging Tables / Filesystem etc (≈16KB KB) ─────
-	ExtraStart = 0xC021
-	ExtraEnd   = 0xFFFF
-	ExtraSize  = ExtraEnd - ExtraStart
+	ExtraStart          = 0xC021
+	VideoCharTableStart = 0xC021
+	VideoCharTableEnd   = VideoCharTableStart + 1024*2
+	ExtraEnd            = 0xFFFF
+	ExtraSize           = ExtraEnd - ExtraStart
 )
 
 type Memory struct {

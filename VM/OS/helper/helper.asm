@@ -1,3 +1,11 @@
+_get_video_char_table_start:
+    MOVI O6 49185
+    RET
+
+_get_video_char_table_start
+    MOVI O6 2048
+    RET
+
 _get_video_start:
     MOVI O6 32768
     RET

@@ -22,9 +22,8 @@ const (
 )
 
 type Flags struct {
-	Zero     bool
-	Carry    bool
-	OverFlow bool
+	Zero  bool
+	Carry bool
 }
 type CPU struct {
 	Registers         [NumRegisters]uint16
