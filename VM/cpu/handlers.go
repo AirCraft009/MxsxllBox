@@ -5,14 +5,6 @@ import (
 	"fmt"
 )
 
-func constLog2(x uint) int {
-	n := 0
-	for 1<<n < x {
-		n++
-	}
-	return n
-}
-
 const (
 	//for any operation that doesn't use the addr
 	instructionSizeShort = 3
