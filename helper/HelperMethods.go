@@ -88,3 +88,9 @@ func DecodeRegs(reg1, reg2Wflag byte) (rx byte, ry byte, addresNec bool) {
 	addrnec := (reg2Wflag) & 0x01
 	return rx, ry, addrnec != 0x0
 }
+
+func IsInterruptActivated(id int, mask byte) bool {
+	collapsedId := (id / 5) - 1
+	shiftedMask := mask >> collapsedId
+	return shiftedMask%2 == 1
+}

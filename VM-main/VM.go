@@ -3,29 +3,21 @@ package main
 import (
 	"MxsxllBox/Assembly-process/linker"
 	"MxsxllBox/IO/KeyboardBuffer"
+	"MxsxllBox/IO/Screen"
 	cpu2 "MxsxllBox/VM/cpu"
 	"fmt"
-	"runtime/debug"
 )
 
 func main() {
-	mem := &cpu2.Memory{}
+	mem := cpu2.NewMemory()
 
 	copy(mem.Data[:], linker.CompileForOs("program.asm", "EchoKeys"))
 	vm := cpu2.NewCPU(mem)
-	go func() {
-		if r := recover(); r != nil {
-			fmt.Println("Program crashed with panic:", r)
-			fmt.Printf("PC, OpCode: %d, %d\n", vm.PC, vm.Mem.Data[vm.PC])
-			fmt.Printf("stack pointer: %d\n")
-			fmt.Printf("stack trace: %s\n", string(debug.Stack()))
-		}
-	}()
+
+	screen := Screen.NewScreen()
 	go KeyboardBuffer.WriteKeyboardToBuffer(vm)
 	fmt.Println("Program started")
 	go cpu2.InitTicker(vm)
-	go cpu2.InitTicker(vm)
 	go vm.Run()
-
-	select {}
+	screen.Run(vm)
 }

@@ -1,24 +1,22 @@
-.entry
 YIELD
-MOVA O1 print_1
-CALL _spawn
-MOVA O1 print_2
-CALL _spawn
-JMP _init_scheduler
+
+MOVI O3 1
+MOVI O1 16
+MOVI O2 124
+MOVI O4 97
+
+CALL _draw_char
+MOVI O4 130
+ADDI O1 4
+CALL _draw_char
+MOVI O4 112
+ADDI O1 4
+CALL _draw_char
+
+LOOP:
+    JMP LOOP
 
 
-print_1:
-    MOVI O1 10
-    JMP print_1_loop
 
-print_1_loop:
-    PRINT O1
-    JMP print_1_loop
 
-print_2:
-    MOVI O1 11
-    JMP print_2_loop
 
-print_2_loop:
-    PRINT O1
-    JMP print_2_loop

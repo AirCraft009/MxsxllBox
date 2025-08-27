@@ -10,6 +10,13 @@ const (
 	instructionSizeShort = 3
 	//for any operation that does use the addr
 	instructionSizeLong = 5
+	colorReg            = 20
+	Width               = uint16(256)
+	Height              = uint16(256)
+	PpB                 = 4
+	Bpp                 = 2
+	log2PpB             = 2 // log2(4)
+	log2Width           = 8
 )
 
 type HandlerInstructions struct {
@@ -33,7 +40,7 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 		fmt.Printf("PC: %d\n", cpu.PC)
 		panic("stack out of memory")
 	}
-	opcode = cpu.Mem.ReadByte(cpu.PC)
+	opcode = cpu.Mem.ReadByteStack(cpu.PC)
 	regs1, flagbyte := cpu.Mem.ReadReg(cpu.PC + 1)
 	rx, ry, addresnec := helper.DecodeRegs(regs1, flagbyte)
 	/**
@@ -50,10 +57,47 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	*/
 	var addr uint16
 	if addresnec {
-		addr = cpu.Mem.ReadWord(cpu.PC + instructionSizeShort)
+		addr = cpu.Mem.ReadWordStack(cpu.PC + instructionSizeShort)
 	}
 	instructions = newHandlerInstructions(rx, ry, addr)
 	return opcode, instructions
+}
+
+func handleStorePixel(cpu *CPU, instructions *HandlerInstructions) {
+	x, y := cpu.Registers[instructions.Rx], cpu.Registers[instructions.Ry]
+	finalPixel := x + (y << log2Width)
+
+	// Pixel offset inside byte
+	shift := finalPixel & (PpB - 1)
+	byteLoc := (finalPixel >> log2PpB) + VideoStart
+	old := cpu.Mem.ReadByte(byteLoc)
+	color := byte(cpu.Registers[colorReg])
+
+	// Shift into place
+	color <<= shift * 2
+	mask := ^(0x03 << (shift * 2))
+	val := (old & byte(mask)) | color
+	cpu.Mem.WriteByte(byteLoc, val)
+
+	cpu.PC += instructionSizeShort
+}
+
+func handleStoreSection(cpu *CPU, instructions *HandlerInstructions) {
+	x, y := cpu.Registers[instructions.Rx], cpu.Registers[instructions.Ry]
+	finalPixel := x + (y << log2Width)
+
+	byteLoc := (finalPixel >> log2PpB) + VideoStart
+	color := byte(cpu.Registers[colorReg]) & 0x3
+	var fullpattern uint16 // full pattern will be a full byte of the repeating color sequence so if color is 10 fullpattern will be 10101010
+	for i := 0; i < PpB*2; i++ {
+		fullpattern <<= Bpp
+		fullpattern |= uint16(color)
+	}
+	for i := 0; i < 8; i++ {
+		cpu.Mem.WriteWord(byteLoc, fullpattern)
+		byteLoc += Width / PpB
+	}
+	cpu.PC += instructionSizeShort
 }
 
 func handleOr(cpu *CPU, instructions *HandlerInstructions) {
@@ -61,14 +105,32 @@ func handleOr(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.PC += instructionSizeShort
 }
 
+func handleXor(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.Registers[instructions.Rx] ^= cpu.Registers[instructions.Ry]
+	cpu.PC += instructionSizeShort
+}
+
+func handleSTINTI(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.InterruptMask = byte(instructions.Addr)
+	cpu.PrevInterruptMask = cpu.InterruptMask
+	cpu.PC += instructionSizeLong
+}
+
+func handleSTINT(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.InterruptMask = byte(cpu.Registers[instructions.Rx])
+	cpu.PrevInterruptMask = cpu.InterruptMask
+	cpu.PC += instructionSizeShort
+}
+
 func handleYield(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.PrevInterruptMask = cpu.InterruptMask
+	cpu.InterruptMask = 0x00
 	cpu.PC += 1
-	cpu.Yielding = true
 }
 
 func handleUnyield(cpu *CPU, instructions *HandlerInstructions) {
+	cpu.InterruptMask = cpu.PrevInterruptMask
 	cpu.PC += 1
-	cpu.Yielding = false
 }
 
 func handleGf(cpu *CPU, instructions *HandlerInstructions) {
@@ -132,12 +194,12 @@ func handleAnd(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleRs(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.Registers[instructions.Rx] <<= cpu.Registers[instructions.Ry]
+	cpu.Registers[instructions.Rx] >>= cpu.Registers[instructions.Ry]
 	cpu.PC += instructionSizeShort
 }
 
 func handleLs(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.Registers[instructions.Rx] >>= cpu.Registers[instructions.Ry]
+	cpu.Registers[instructions.Rx] <<= cpu.Registers[instructions.Ry]
 	cpu.PC += instructionSizeShort
 }
 
@@ -277,10 +339,10 @@ func handleJnc(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handlePrintstr(cpu *CPU, instructions *HandlerInstructions) {
-	lenght := cpu.Mem.ReadByte(cpu.Registers[instructions.Rx])
+	lenght := cpu.Mem.ReadWord(cpu.Registers[instructions.Rx])
 	outPutStr := ""
 	for i := uint16(1); i <= uint16(lenght); i++ {
-		outPutStr += string(cpu.Mem.ReadByte(cpu.Registers[instructions.Rx] + i))
+		outPutStr += string(cpu.Mem.ReadByte(cpu.Registers[instructions.Rx] + i + 1))
 	}
 	fmt.Println(outPutStr)
 	cpu.PC += instructionSizeShort
@@ -289,12 +351,12 @@ func handlePrintstr(cpu *CPU, instructions *HandlerInstructions) {
 func handlePush(cpu *CPU, instruction *HandlerInstructions) {
 	val := cpu.Registers[instruction.Rx]
 	cpu.SP -= 2
-	cpu.Mem.WriteWord(cpu.SP, val)
+	cpu.Mem.WriteWordStack(cpu.SP, val)
 	cpu.PC += instructionSizeShort
 }
 
 func handlePop(cpu *CPU, instruction *HandlerInstructions) {
-	addr := cpu.Mem.ReadWord(cpu.SP)
+	addr := cpu.Mem.ReadWordStack(cpu.SP)
 	cpu.Registers[instruction.Rx] = addr
 	cpu.PC += instructionSizeShort
 	cpu.SP += 2
@@ -302,12 +364,12 @@ func handlePop(cpu *CPU, instruction *HandlerInstructions) {
 
 func handleCall(cpu *CPU, instruction *HandlerInstructions) {
 	cpu.SP -= 2
-	cpu.Mem.WriteWord(cpu.SP, cpu.PC)
+	cpu.Mem.WriteWordStack(cpu.SP, cpu.PC)
 	handleJmp(cpu, instruction)
 }
 
 func handleRet(cpu *CPU, instruction *HandlerInstructions) {
-	instruction.Addr = cpu.Mem.ReadWord(cpu.SP) + instructionSizeLong
+	instruction.Addr = cpu.Mem.ReadWordStack(cpu.SP) + instructionSizeLong
 	cpu.PC += instructionSizeLong
 	cpu.SP += 2
 	handleJmp(cpu, instruction)

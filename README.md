@@ -244,6 +244,7 @@ Run
 ## Design Decisions
 
 - Memory layout optimized for simplicity and performance
+- Flat system (no real protected kernel) programs can interface directly with hardware, but abstractions are provided
 - Labels aren't assembled into byte code 
 - The pre-Assembled code is outputted in a .obj file
 - The .obj file is then linked together with other .obj files into a  final .bin file

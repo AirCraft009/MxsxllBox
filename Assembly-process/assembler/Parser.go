@@ -118,8 +118,19 @@ func newParser() *Parser {
 	parser.Parsers["SRFN"] = parseFormatOPRegReg
 	parser.Parsers["YIELD"] = parseFormatOP
 	parser.Parsers["UNYIELD"] = parseFormatOP
-
+	parser.Parsers["STINTI"] = parseFormatOPAddr
+	parser.Parsers["STINT"] = parseFormatOPReg
+	parser.Parsers["XOR"] = parseFormatOPRegReg
+	parser.Parsers["DRAWPX"] = parseFormatOPRegReg
+	parser.Parsers["STOREBLOCK"] = parseFormatOPRegReg
 	return parser
+}
+
+func checkMalformedInstruction(parameters []string, currpc uint16) {
+	parameterlen := OffsetMap[parameters[0]]
+	if int(parameterlen) > (len(parameters)) {
+		panic(fmt.Sprintf("Malformed instruction %s; at %d: \nexpecting at least: %d parameters; got %d.", parameters[0], currpc, parameterlen, len(parameters)-1))
+	}
 }
 
 func parseFormatOP(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
@@ -156,7 +167,10 @@ func formatString(parameters []string) (formatted [][]string) {
 	rx = parameters[RegsLoc1]
 	ry = parameters[RegsLoc2]
 	inputStringParts := parameters[StrLoc:len(parameters)]
-	inputString := ""
+	if len(inputStringParts) == 0 {
+		return formatted
+	}
+	var inputString string
 	for _, part := range inputStringParts {
 		inputString += part + " "
 	}
@@ -165,38 +179,32 @@ func formatString(parameters []string) (formatted [][]string) {
 	length := len(inputString)
 	/**
 	Jeder einzelne char wird mit diesen drei Op's dargestellt
-	es ist lenght prefix based bedeutet das ersteByte, welches gelesen wird ist die länge des Strings
+	es ist lenght prefix based bedeutet das erste Word, welches gelesen wird ist die länge des Strings
 	MOVI reg1 part
 	ADDI reg2 0
 	STOREB reg1 reg2
 	*/
-	ascii := make([]byte, length+2)
-	formatted = make([][]string, 0)
-	inputString = inputString + "/"
-	ascii[0] = byte(length)
-	var line []string
-	line = []string{"SUBI", ry, "1"}
-	formatted = append(formatted, line)
-	for i, part := range inputString {
-		line = []string{}
-		ascii[i+1] = byte(part)
-		line = append(line, "MOVI", rx, strconv.Itoa(int(ascii[i]))) //4
-		formatted = append(formatted, line)
-		line = []string{}
-		line = append(line, "ADDI", ry, "1") //4
-		formatted = append(formatted, line)
-		line = []string{}
-		line = append(line, "STOREB", rx, ry) //4
-		formatted = append(formatted, line)
+	formatted = [][]string{
+		{"MOVI", rx, strconv.Itoa(length)},
+		{"STOREW", rx, ry},
+		{"ADDI", ry, "1"},
 	}
-	line = []string{}
-	line = append(line, "SUBI", ry, strconv.Itoa(length))
-	formatted = append(formatted, line)
+	for _, part := range inputString {
+
+		formatted = append(formatted,
+			[]string{"MOVI", rx, strconv.Itoa(int(part))},
+			[]string{"ADDI", ry, "1"},
+			[]string{"STOREB", rx, ry},
+		)
+	}
+	formatted = append(formatted,
+		[]string{"SUBI", ry, strconv.Itoa(length + 1)})
 	return formatted
 }
 
 func parseFormatOPRegReg(parameters []string, currPC uint16, parser *Parser) (pc uint16, code []byte, syntax error) {
 	var rx, ry byte
+	checkMalformedInstruction(parameters, currPC)
 	code = make([]byte, 3)
 	code[OpCLoc] = OpCodes[parameters[OpCLoc]]
 	rx = RegMap[parameters[RegsLoc1]]
@@ -327,7 +335,7 @@ func FirstPass(data [][]string, parser *Parser) (*Parser, [][]string) {
 		if !ok {
 			fmt.Println(line[0])
 			fmt.Println(PC)
-			panic("unknown")
+			panic("unknown Offset")
 		}
 		PC += uint16(ad)
 	}

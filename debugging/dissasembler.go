@@ -95,6 +95,14 @@ func DissasembleForDebugging(code []byte, lblocations map[uint16]string) (file s
 	return file, PcToLine
 }
 
+func ReverseMaps(opcodes map[string]uint8) (reverseMap map[uint8]string) {
+	reverseMap = make(map[uint8]string)
+	for k, v := range opcodes {
+		reverseMap[v] = k
+	}
+	return reverseMap
+}
+
 func init() {
 	// Suppress all standard logs (including Fyne logs using `log.Print`)
 	log.SetOutput(io.Discard)

@@ -2,6 +2,7 @@ package cpu
 
 import (
 	"MxsxllBox/Assembly-process/assembler"
+	"MxsxllBox/helper"
 	"fmt"
 	"os"
 	"sync"
@@ -11,6 +12,7 @@ import (
 type id uint16
 
 const (
+	NumRegisters             = 32
 	JmpOffset                = 5
 	InterruptHandlerLocation = 23965
 )
@@ -19,27 +21,33 @@ const (
 	TimerInterrupt
 )
 
+type Flags struct {
+	Zero  bool
+	Carry bool
+}
 type CPU struct {
-	Registers        [NumRegisters]uint16
-	PC               uint16
-	SP               uint16
-	Flags            Flags
-	Mem              *Memory
-	Halted           bool
-	Handlers         map[byte]func(cpu *CPU, instruction *HandlerInstructions)
-	Mutex            sync.Mutex
-	InterruptPending bool
-	InterruptId      id
-	Interrupt        bool //makes sure that the interrupt is executed after the next step
-	Yielding         bool
-	HardwareTimer    *time.Ticker
+	Registers         [NumRegisters]uint16
+	PC                uint16
+	SP                uint16
+	Flags             Flags
+	Mem               *Memory
+	Halted            bool
+	Handlers          map[byte]func(cpu *CPU, instruction *HandlerInstructions)
+	Mutex             sync.Mutex
+	InterruptPending  bool
+	InterruptId       id
+	Interrupt         bool //makes sure that the interrupt is executed after the next step
+	HardwareTimer     *time.Ticker
+	PrevInterruptMask byte
+	InterruptMask     byte
 }
 
 func InitTicker(cpu *CPU) {
-	cpu.HardwareTimer = time.NewTicker(10 * time.Millisecond)
+	cpu.HardwareTimer = time.NewTicker(15 * time.Millisecond)
 	for {
 		select {
 		case _ = <-cpu.HardwareTimer.C:
+
 			cpu.InterruptPending = true
 			cpu.InterruptId = TimerInterrupt
 		}
@@ -111,12 +119,17 @@ func NewCPU(mem *Memory) *CPU {
 	cpu.Handlers[SRFN] = handleSrfn
 	cpu.Handlers[YIELD] = handleYield
 	cpu.Handlers[UNYIELD] = handleUnyield
+	cpu.Handlers[STINTI] = handleSTINTI
+	cpu.Handlers[STINT] = handleSTINT
+	cpu.Handlers[XOR] = handleXor
+	cpu.Handlers[DRAWPX] = handleStorePixel
+	cpu.Handlers[STOREBLOCK] = handleStoreSection
 
 	return cpu
 }
 
 func (cpu *CPU) Step() {
-	if cpu.InterruptPending && !cpu.Yielding {
+	if cpu.InterruptPending && helper.IsInterruptActivated(int(cpu.InterruptId), cpu.InterruptMask) {
 		cpu.Interrupt = true
 	}
 
@@ -128,9 +141,10 @@ func (cpu *CPU) Step() {
 	}
 
 	if cpu.Interrupt {
+		//fmt.Printf("Interrupt %d\n", cpu.InterruptId)
 		cpu.Registers[assembler.RegMap["I1"]] = uint16(cpu.InterruptId)
 		cpu.SP -= 2
-		cpu.Mem.WriteWord(cpu.SP, cpu.PC)
+		cpu.Mem.WriteWordStack(cpu.SP, cpu.PC)
 		cpu.PC = InterruptHandlerLocation
 		cpu.Mutex.Lock()
 		cpu.InterruptPending = false
@@ -140,9 +154,13 @@ func (cpu *CPU) Step() {
 }
 
 func (cpu *CPU) Run() {
+	tStart := time.Now()
 	for !cpu.Halted {
 		cpu.Step()
 	}
+	tEnd := time.Now()
+	dur := tEnd.Sub(tStart)
+	fmt.Printf("The Proccess took %f seconds\n", dur.Seconds())
 	cpu.HardwareTimer.Stop()
 	os.Exit(0)
 }

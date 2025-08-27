@@ -9,7 +9,7 @@ import (
 )
 
 func SaveObjectFile(obj *ObjectFile, w io.Writer) error {
-	w.Write([]byte("MXOB"))
+	w.Write([]byte("MXBI")) //MxsxllBinary header
 	binary.Write(w, binary.LittleEndian, uint16(len(obj.Code)))
 	binary.Write(w, binary.LittleEndian, uint16(len(obj.Symbols)))
 	binary.Write(w, binary.LittleEndian, uint16(len(obj.Relocs)))
@@ -52,8 +52,8 @@ func ReadObjectFile(path string) (*ObjectFile, error) {
 	if _, err := buf.Read(header); err != nil {
 		return nil, err
 	}
-	if string(header) != "MXOB" {
-		return nil, fmt.Errorf("invalid object file format: missing MXOB header")
+	if string(header) != "MXBI" {
+		return nil, fmt.Errorf("invalid object file format: missing MXBI header")
 	}
 
 	var symbolCount uint16
