@@ -103,7 +103,7 @@ func main() {
 	reverseRegMap := debugging.ReverseMaps(assembler.RegMap)
 	breakpoints := make(map[int]bool)
 
-	code, labels := linker.CompileForDebug("program.asm", "EchoKeys")
+	code, labels := linker.CompileForDebug("program.asm", "MxsxllOS")
 	mem := cpu.NewMemory()
 	copy(mem.Data[:], code)
 	vm := cpu.NewDebugCpu(mem)

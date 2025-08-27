@@ -50,6 +50,9 @@ const (
 	ExtraStart          = 0xC021
 	VideoCharTableStart = 0xC021
 	VideoCharTableEnd   = VideoCharTableStart + 1024*2
+	InputStringLen      = VideoCharTableEnd + 1
+	InputStringMain     = InputStringLen + 2
+	InputStringMainEnd  = InputStringMain + 64
 	ExtraEnd            = 0xFFFF
 	ExtraSize           = ExtraEnd - ExtraStart
 )

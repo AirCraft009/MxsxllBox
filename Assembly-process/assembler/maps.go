@@ -110,7 +110,7 @@ var RegMap = map[string]byte{
 	"CX":  38, // cursor x
 	"CY":  39, // cursor y
 	"CA":  40, // cursor active
-	"K1":  41,
+	"CF":  41, // full cursor x+y
 	"K2":  42,
 	"K3":  43,
 	"K4":  44,
@@ -126,8 +126,8 @@ var RegMap = map[string]byte{
 	"K14": 54,
 	"K15": 55,
 	"K16": 56,
-	"K17": 57,
-	"K18": 58,
+	"SS":  57, //beginn of the String section of the temp inputstring
+	"SL":  58, //location of the temp inputstring lenght
 	"OR":  59, // offset register
 	"VS":  60, // holds the lenght/size of the video-char table
 	"RLL": 61, // holds the current roll val

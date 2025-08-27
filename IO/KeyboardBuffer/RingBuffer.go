@@ -38,7 +38,7 @@ func WriteKeyboardToBuffer(Cpu *cpu.CPU) {
 		if err != nil {
 			panic(err)
 		}
-		if buf[0] < 32 || buf[0] > 126 {
+		if buf[0] > 127 {
 			buf = make([]byte, 1)
 			continue
 		}

@@ -1,8 +1,9 @@
 _render_screen:
+    MOVI O1 8
+    CALL _yield
     MOV R2 VM       # get the video-mode
     MULI R2 5
-    GPC R1
-    ADDI R1 11
+    MOVA R1 render_table
     ADD R1 R2
     SPC R1
 

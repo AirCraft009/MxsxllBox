@@ -11,7 +11,7 @@ import (
 func main() {
 	mem := cpu2.NewMemory()
 
-	copy(mem.Data[:], linker.CompileForOs("program.asm", "EchoKeys"))
+	copy(mem.Data[:], linker.CompileForOs("program.asm", "MxsxllOS"))
 	vm := cpu2.NewCPU(mem)
 
 	screen := Screen.NewScreen()

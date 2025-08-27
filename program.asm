@@ -1,20 +1,4 @@
-YIELD
-
-MOVI O3 1
-MOVI O1 16
-MOVI O2 124
-MOVI O4 97
-
-CALL _draw_char
-MOVI O4 130
-ADDI O1 4
-CALL _draw_char
-MOVI O4 112
-ADDI O1 4
-CALL _draw_char
-
-LOOP:
-    JMP LOOP
+JMP _BOOT
 
 
 
