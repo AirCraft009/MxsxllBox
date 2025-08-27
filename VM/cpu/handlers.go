@@ -73,43 +73,39 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 
 func handleStorePixel(cpu *CPU, instructions *HandlerInstructions) {
 	x, y := cpu.Registers[instructions.Rx], cpu.Registers[instructions.Ry]
-	// Compute absolute pixel index
-	finalPixel := x + (y << log2Width) // y*Width → shift
+	finalPixel := x + (y << log2Width)
 
 	// Pixel offset inside byte
-	shift := finalPixel & (PpB - 1) // == finalPixel % PpB
+	shift := finalPixel & (PpB - 1)
 	byteLoc := (finalPixel >> log2PpB) + VideoStart
-
-	// Read VRAM byte
 	old := cpu.Mem.ReadByte(byteLoc)
-
-	// Get 2-bit color from register
-	color := byte(cpu.Registers[colorReg]) & 0x03
+	color := byte(cpu.Registers[colorReg])
 
 	// Shift into place
 	color <<= shift * 2
-
-	// Mask & merge
 	mask := ^(0x03 << (shift * 2))
 	val := (old & byte(mask)) | color
-
-	// Write back
 	cpu.Mem.WriteByte(byteLoc, val)
 
 	cpu.PC += instructionSizeShort
 }
 
-func handleStorePixelFast(cpu *CPU, instructions *HandlerInstructions) {
+func handleStoreSection(cpu *CPU, instructions *HandlerInstructions) {
 	x, y := cpu.Registers[instructions.Rx], cpu.Registers[instructions.Ry]
-	newPixel := byte(cpu.Registers[colorReg])
-	y *= Width
-	finalpixelLoc := x + y
-	finalbyteLoc := finalpixelLoc / uint16(PpB)
-	finalbyteLoc += VideoStart
-	oldPixel := cpu.Mem.ReadByte(finalbyteLoc)
-	newPixel <<= finalpixelLoc % uint16(PpB)
-	newPixel |= oldPixel
-	cpu.Mem.WriteByte(finalbyteLoc, newPixel)
+	finalPixel := x + (y << log2Width)
+
+	byteLoc := (finalPixel >> log2PpB) + VideoStart
+	color := byte(cpu.Registers[colorReg]) & 0x3
+	var fullpattern uint16 // full pattern will be a full byte of the repeating color sequence so if color is 10 fullpattern will be 10101010
+	for i := 0; i < PpB*2; i++ {
+		fullpattern <<= Bpp
+		fullpattern |= uint16(color)
+	}
+	for i := 0; i < 8; i++ {
+		cpu.Mem.WriteWord(byteLoc, fullpattern)
+		byteLoc += Width / PpB
+	}
+	cpu.PC += instructionSizeShort
 }
 
 func handleOr(cpu *CPU, instructions *HandlerInstructions) {

@@ -7,13 +7,15 @@ import (
 )
 
 func main() {
-	data, err := os.ReadFile("font8x8_basic.bin")
+	wd, _ := os.Getwd()
+	path := wd + "/VM/fonts/"
+	data, err := os.ReadFile(path + "font8x8_basic.bin")
 	if err != nil {
 		panic(err)
 	}
 
 	buf := bytes.NewBuffer(data)
-	realchar := 8 * 89
+	realchar := 8 * 95
 	waste := make([]byte, realchar)
 	_, err = buf.Read(waste)
 	if err != nil {

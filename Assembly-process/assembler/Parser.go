@@ -123,7 +123,7 @@ func newParser() *Parser {
 	parser.Parsers["XOR"] = parseFormatOPRegReg
 	parser.Parsers["STOREPX"] = parseFormatOPRegReg
 	parser.Parsers["STOREPXFAST"] = parseFormatOPRegReg
-
+	parser.Parsers["STOREBLOCK"] = parseFormatOPRegReg
 	return parser
 }
 
@@ -168,6 +168,9 @@ func formatString(parameters []string) (formatted [][]string) {
 	rx = parameters[RegsLoc1]
 	ry = parameters[RegsLoc2]
 	inputStringParts := parameters[StrLoc:len(parameters)]
+	if len(inputStringParts) == 0 {
+		return formatted
+	}
 	var inputString string
 	for _, part := range inputStringParts {
 		inputString += part + " "

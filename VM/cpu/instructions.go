@@ -65,5 +65,6 @@ const (
 	XOR         byte = 0x3D
 	STOREPX     byte = 0x3E
 	STOREPXFAST byte = 0x3F
+	STOREBLOCK  byte = 0x40
 	HALT        byte = 0xFF //stop the program
 )

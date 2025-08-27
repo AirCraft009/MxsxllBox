@@ -88,7 +88,7 @@ func (s *Screen) Refresh(Cpu *cpu.CPU) {
 	err := s.Texture.Update(nil, unsafe.Pointer(&pixels[0]), int(Width*4))
 	checkError(err)
 	err = s.Renderer.Clear()
-	copy(Cpu.Mem.Data[cpu.VideoStart:cpu.VideoEnd+1], make([]byte, cpu.VideoEnd+1-cpu.VideoStart))
+	//copy(Cpu.Mem.Data[cpu.VideoStart:cpu.VideoEnd+1], make([]byte, cpu.VideoEnd+1-cpu.VideoStart)) delete the framebuffer for speed testing
 	checkError(err)
 	dst := sdl.Rect{X: 0, Y: 0, W: Width * upscale, H: height * upscale}
 	err = s.Renderer.Copy(s.Texture, nil, &dst)
@@ -123,6 +123,6 @@ func (s *Screen) Run(Cpu *cpu.CPU) {
 				break
 			}
 		}
-		sdl.Delay(20)
+		sdl.Delay(15)
 	}
 }

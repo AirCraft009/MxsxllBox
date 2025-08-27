@@ -29,7 +29,7 @@ const (
 	InterruptTableSIze = HeapEnd - Interrupttable
 	BlockSize          = 0x10
 
-	// Start ─────  (8 KB) ─────
+	// StackStart ─────  (8 KB) ─────
 	StackStart = 0x6000
 	StackEnd   = 0x7FFF
 	StackInit  = StackEnd

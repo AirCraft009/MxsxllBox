@@ -56,7 +56,6 @@ func InitTicker(cpu *CPU) {
 }
 
 func NewCPU(mem *Memory) *CPU {
-	WritetoRom("font8x8_basic.bin", 0)
 	cpu := &CPU{
 		Mem:      mem,
 		SP:       StackInit, // stack grows downward
@@ -126,6 +125,7 @@ func NewCPU(mem *Memory) *CPU {
 	cpu.Handlers[XOR] = handleXor
 	cpu.Handlers[STOREPX] = handleStorePixel
 	cpu.Handlers[STOREPXFAST] = handleStorePixel
+	cpu.Handlers[STOREBLOCK] = handleStoreSection
 
 	return cpu
 }

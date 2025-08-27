@@ -65,6 +65,7 @@ var OpCodes = map[string]byte{
 	"XOR":         0x3D,
 	"STOREPX":     0x3E,
 	"STOREPXFAST": 0x3F,
+	"STOREBLOCK":  0x40,
 	"HALT":        0xFF,
 }
 
@@ -134,10 +135,11 @@ var OffsetMap = map[string]byte{
 	"ALLOC":       3,
 	"RS":          3,
 	"STOREPX":     3,
+	"STOREPXFAST": 3,
 	"LS":          3,
 	"OR":          3,
 	"STINT":       3,
-	"STOREPXFAST": 3,
+	"STOREBLOCK":  3,
 	"AND":         3,
 	"FREE":        3,
 	"CMP":         3,
