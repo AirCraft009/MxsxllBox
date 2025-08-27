@@ -123,8 +123,7 @@ func NewCPU(mem *Memory) *CPU {
 	cpu.Handlers[STINTI] = handleSTINTI
 	cpu.Handlers[STINT] = handleSTINT
 	cpu.Handlers[XOR] = handleXor
-	cpu.Handlers[STOREPX] = handleStorePixel
-	cpu.Handlers[STOREPXFAST] = handleStorePixel
+	cpu.Handlers[DRAWPX] = handleStorePixel
 	cpu.Handlers[STOREBLOCK] = handleStoreSection
 
 	return cpu

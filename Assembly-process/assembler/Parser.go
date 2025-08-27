@@ -121,8 +121,7 @@ func newParser() *Parser {
 	parser.Parsers["STINTI"] = parseFormatOPAddr
 	parser.Parsers["STINT"] = parseFormatOPReg
 	parser.Parsers["XOR"] = parseFormatOPRegReg
-	parser.Parsers["STOREPX"] = parseFormatOPRegReg
-	parser.Parsers["STOREPXFAST"] = parseFormatOPRegReg
+	parser.Parsers["DRAWPX"] = parseFormatOPRegReg
 	parser.Parsers["STOREBLOCK"] = parseFormatOPRegReg
 	return parser
 }

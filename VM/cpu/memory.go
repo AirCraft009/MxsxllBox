@@ -45,11 +45,11 @@ const (
 	RingBufferStart = 0xC002
 	RingBufferEnd   = 0xC020 //N = 30
 	RingBufferSize  = RingBufferEnd - RingBufferStart
-	ReservedEnd     = 0xDFFF
 
-	// ExtraStart ───── Unused / Future Expansion / Paging Tables / Filesystem etc (8 KB) ─────
-	ExtraStart = 0xE000
+	// ExtraStart ───── Unused / Future Expansion / Paging Tables / Filesystem etc (≈16KB KB) ─────
+	ExtraStart = 0xC021
 	ExtraEnd   = 0xFFFF
+	ExtraSize  = ExtraEnd - ExtraStart
 )
 
 type Memory struct {

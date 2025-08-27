@@ -99,7 +99,7 @@ DRAW_MASK_LINE_LOOP:
     MODI O6 2
     CMPI O6 1               # see if it's !even /the last bit is a 1
     JNZ CONTINUE_LOOP
-    STOREPX O1 O2
+    DRAWPX O1 O2
     JMP CONTINUE_LOOP
 
 CONTINUE_LOOP:
