@@ -1,49 +1,48 @@
 _render_screen:
-    MOVI O1 8
+JMP RENDER_TABLE
+
+RENDER_TABLE:
+    JMP render_chars
+
+
+render_chars:
+    MOVI O1 1           # will change to the video-intrr.
     CALL _yield
-    MOV R2 VM       # get the video-mode
-    MULI R2 5
-    MOVA R1 render_table
-    ADD R1 R2
-    SPC R1
+    MOVI R3 15          # offset var to check if the offset flag is check
+    MOV R4 VC           # the location of the current pos
+    MOVI R5 0           # counter
+    MOV R6 VS           # size
+    DIVI R6 2
+    MOVI O1 0           # x
+    MOVI O2 0           # y
+    MOVI O3 1           # color
+    JMP RENDER_CHAR_LOOP
 
-render_table:
-JMP render_grid
-# JMP render_pixels
-# JMP render_optimized
-# JMP render_dirty
-
-render_grid:
-    MOV R1 VC
-    MOVI O3 1
-    MOVI R2 0
-    MOVI OR 0
-    JMP RENDER_TABLE_LOOP
-
-RENDER_TABLE_LOOP:
-    CMP VS R2
-    JZ END_RENDER
-
-    LOADW R3 R1     # get the pos of the string
-    CMPI R3 0
-    JZ EMPTY_CELL
-    CMPI OR 1
-    JZ SKIP_OFFSET
-    MOV O1 R1
-    MOV O2 R1
-    MODI O1 64      # x cord/8
-    DIVI O2 64      # y cord/8
-    MULI O1 8
-    MULI O2 8
-    MOV R4 R3
-    MOVI R5 15
-    RS R4 R5       # 16th bit is the offset bit
-    MOV OR R4      # MOV it into the offset register
+RENDER_CHAR_LOOP:
+    MOVI R7 1
+    CMP R5 R6
+    JZ render_chars
+    LOADW O4 R4         # load the val
+    CMPI O4 0           # if zero the cell can be skipped always
+    JZ UPDATE
     CALL _draw_string
-    ADDI R1 2
-    JMP RENDER_TABLE_LOOP
+    LOADW R7 O4         # get the len
+    JMP RENDER_CHAR_LOOP
 
-SKIP_OFFSET:
-    MULI O3 2
-    ADD R1 O3       # skip
-    JMP RENDER_TABLE_LOOP
+UPDATE:
+    ADD R5 R7
+    MULI R7 2
+    ADD R4 R7
+    MULI R7 4
+    ADD O1 R7
+    MODI O1 256
+    CMPI O1 0
+    JZ UPDATE_LINE
+    JMP RENDER_CHAR_LOOP
+
+UPDATE_LINE:
+    ADDI O2 8
+    JMP RENDER_CHAR_LOOP
+
+
+

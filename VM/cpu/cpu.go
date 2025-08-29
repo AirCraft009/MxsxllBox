@@ -12,7 +12,7 @@ import (
 type id uint16
 
 const (
-	NumRegisters             = 32
+	NumRegisters             = 64
 	JmpOffset                = 5
 	InterruptHandlerLocation = 23965
 )
@@ -141,7 +141,6 @@ func (cpu *CPU) Step() {
 	}
 
 	if cpu.Interrupt {
-		//fmt.Printf("Interrupt %d\n", cpu.InterruptId)
 		cpu.Registers[assembler.RegMap["I1"]] = uint16(cpu.InterruptId)
 		cpu.SP -= 2
 		cpu.Mem.WriteWordStack(cpu.SP, cpu.PC)

@@ -110,7 +110,7 @@ var RegMap = map[string]byte{
 	"CX":  38, // cursor x
 	"CY":  39, // cursor y
 	"CA":  40, // cursor active
-	"CF":  41, // full cursor x+y
+	"K1":  41,
 	"K2":  42,
 	"K3":  43,
 	"K4":  44,
@@ -125,15 +125,14 @@ var RegMap = map[string]byte{
 	"K13": 53,
 	"K14": 54,
 	"K15": 55,
-	"K16": 56,
-	"SS":  57, //beginn of the String section of the temp inputstring
-	"SL":  58, //location of the temp inputstring lenght
-	"OR":  59, // offset register
-	"VS":  60, // holds the lenght/size of the video-char table
-	"RLL": 61, // holds the current roll val
-	"VC":  62, // holds the addr of the video char table
-	"SM":  63, //String Mode
-	"VM":  64, //Video Mode
+	"SS":  56, //beginn of the String section of the temp inputstring
+	"SL":  57, //location of the temp inputstring lenght
+	"OR":  58, // offset register
+	"VS":  59, // holds the lenght/size of the video-char table
+	"RLL": 60, // holds the current roll val
+	"VC":  61, // holds the addr of the video char table
+	"SM":  62, //String Mode
+	"VM":  63, //Video Mode
 }
 
 var OffsetMap = map[string]byte{

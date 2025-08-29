@@ -1,37 +1,44 @@
-_read_input:
-    MOV R1 SS       # R1 will be the ptr to the next open spot
-    MOV R2 SL       # R2 will hold the len location
-    MOVI R0 0       # R0 will hold the current lenght of the string
-    STOREW R0 R2    # init the string to zero so the screen doesn't display old data
-    STOREW R2 CF    # store the location of the string
-    MOV R4 CF
-    ADDI R4 2       # R4 is the location of the next word where the offset is saved
-    JMP READ_INPUT_LOOP
+_read_line:
+    MOVI R0 0       # R0 is the counter/len
+    MOV R1 SL       # R1 has the len pos
+    MOV R2 VS       # R2 has the size/cmp for end
+    MOV R3 VC       # R3 is the pointer to the location
+    MOV R4 SS       # R4 holds the  position of the stringsection
+    MOV R5 R3
+    ADDI R5 2       # R5 is the location of the offset
+    STOREW SL R3
+    JMP READ_LINE_LOOP
 
-READ_INPUT_LOOP:
+
+READ_LINE_LOOP:
     CALL _read_char
-    JZ END_TASK
+    JZ END_READ
 
-    CMPI O1 10          # will later be set to 32 to check for any special chars 10 is \n
-    JZ HANDLE_NEWLINE   # will be switched to a table that handles all special chars
-    JNC READ_INPUT_LOOP # rn all other chars will be ignored
-    YIELD
-    STOREB O1 R1
-    STOREW R4 R0
+    CMPI O1 13      # temporary check for newline
+    JZ NEWLINE
+    STOREB O1 R4
+    STOREW R0 R1
+    ADDI R4 1
     ADDI R0 1
-    STOREW R0 R2
-    UNYIELD
-    JMP READ_INPUT_LOOP
+    JMP READ_LINE_LOOP
 
 
-END_TASK:
+END_READ:
     MOVI O1 2
     CALL _yield
-    JMP READ_INPUT_LOOP
+    JMP READ_LINE_LOOP
 
-HANDLE_NEWLINE:
-    DIVI R4 64
-    ADDI R4 1
-    MULI R4 64
-    MOV CF R4
-    JMP READ_INPUT_LOOP
+NEWLINE:
+    ADDI CY 8
+    MOVI CX 0
+    DIVI R0 16          # divide by 16 to calc in blocks
+    ADDI R0 1
+    MOV O2 R0
+    CALL _alloc
+    MOV O2 O1
+    MOV O1 SL
+    YIELD
+    CALL _strcpy        # copy string from temp  to allcoated space
+    STOREW SL 0        # store 0 at stringlen
+    UNYIELD
+    JMP _read_line

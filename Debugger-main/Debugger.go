@@ -22,14 +22,14 @@ import (
 )
 
 func buildRegisterPanel(cpuState *cpu.CPU, revRegMap map[uint8]string) (*fyne.Container, [18][2]*widget.Label) {
-	var regLabels [len(cpuState.Registers)/2 + 2][2]*widget.Label
+	var regLabels [18][2]*widget.Label
 	var rows []fyne.CanvasObject
 
 	addRow := func(left, right *widget.Label) {
 		rows = append(rows, container.NewHBox(layout.NewSpacer(), left, layout.NewSpacer(), right, layout.NewSpacer()))
 	}
 
-	for i := 0; i < len(cpuState.Registers); i += 2 {
+	for i := 0; i < 18; i += 2 {
 		left := widget.NewLabel(fmt.Sprintf("%s: %d", revRegMap[uint8(i)], cpuState.Registers[i]))
 		right := widget.NewLabel(fmt.Sprintf("%s: %d", revRegMap[uint8(i+1)], cpuState.Registers[i+1]))
 		regLabels[i/2][0] = left
