@@ -29,7 +29,7 @@ func buildRegisterPanel(cpuState *cpu.CPU, revRegMap map[uint8]string) (*fyne.Co
 		rows = append(rows, container.NewHBox(layout.NewSpacer(), left, layout.NewSpacer(), right, layout.NewSpacer()))
 	}
 
-	for i := 0; i < 18; i += 2 {
+	for i := 0; i < 32; i += 2 {
 		left := widget.NewLabel(fmt.Sprintf("%s: %d", revRegMap[uint8(i)], cpuState.Registers[i]))
 		right := widget.NewLabel(fmt.Sprintf("%s: %d", revRegMap[uint8(i+1)], cpuState.Registers[i+1]))
 		regLabels[i/2][0] = left
@@ -39,21 +39,21 @@ func buildRegisterPanel(cpuState *cpu.CPU, revRegMap map[uint8]string) (*fyne.Co
 
 	stackTop := widget.NewLabel(fmt.Sprintf("Stack-top: %d", cpuState.Mem.ReadWordStack(cpuState.SP)))
 	pc := widget.NewLabel(fmt.Sprintf("PC: %d", cpuState.PC))
-	regLabels[len(cpuState.Registers)/2][0] = stackTop
-	regLabels[len(cpuState.Registers)/2][1] = pc
+	regLabels[16][0] = stackTop
+	regLabels[16][1] = pc
 	addRow(stackTop, pc)
 
 	cFlag := widget.NewLabel(fmt.Sprintf("C-flag: %t", cpuState.Flags.Carry))
 	zFlag := widget.NewLabel(fmt.Sprintf("Z-flag: %t", cpuState.Flags.Zero))
-	regLabels[len(cpuState.Registers)/2+1][0] = cFlag
-	regLabels[len(cpuState.Registers)/2+1][1] = zFlag
+	regLabels[17][0] = cFlag
+	regLabels[17][1] = zFlag
 	addRow(cFlag, zFlag)
 
 	return container.NewVBox(rows...), regLabels
 }
 
 func updateRegisterPanel(regLabels [18][2]*widget.Label, cpuState *cpu.CPU, revRegMap map[uint8]string) {
-	for i := 0; i < len(cpuState.Registers); i++ {
+	for i := 0; i < 32; i++ {
 		row, col := i/2, i%2
 		regLabels[row][col].SetText(fmt.Sprintf("%s: %d", revRegMap[uint8(i)], cpuState.Registers[i]))
 	}

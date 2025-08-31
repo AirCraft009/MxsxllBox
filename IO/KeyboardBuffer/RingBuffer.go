@@ -42,7 +42,6 @@ func WriteKeyboardToBuffer(Cpu *cpu.CPU) {
 			buf = make([]byte, 1)
 			continue
 		}
-
 		ringBuffer.write(buf[0], Cpu)
 		Cpu.InterruptPending = true
 		Cpu.InterruptId = cpu.KeyboardInterrupt

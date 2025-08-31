@@ -6,13 +6,13 @@ RENDER_TABLE:
 
 
 render_chars:
-    MOVI O1 1           # will change to the video-intrr.
+    MOVI O1 2           # will change to the video-intrr.
     CALL _yield
     MOVI R3 15          # offset var to check if the offset flag is check
     MOV R4 VC           # the location of the current pos
     MOVI R5 0           # counter
     MOV R6 VS           # size
-    DIVI R6 2
+    DIVI R6 2           # divide because the size  is in bytes and we count words
     MOVI O1 0           # x
     MOVI O2 0           # y
     MOVI O3 1           # color
@@ -27,7 +27,8 @@ RENDER_CHAR_LOOP:
     JZ UPDATE
     CALL _draw_string
     LOADW R7 O4         # get the len
-    JMP RENDER_CHAR_LOOP
+    ADDI R7 1
+    JMP UPDATE
 
 UPDATE:
     ADD R5 R7

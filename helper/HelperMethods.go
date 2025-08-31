@@ -92,5 +92,6 @@ func DecodeRegs(reg1, reg2Wflag byte) (rx byte, ry byte, addresNec bool) {
 func IsInterruptActivated(id int, mask byte) bool {
 	collapsedId := (id / 5) - 1
 	shiftedMask := mask >> collapsedId
+	//fmt.Printf("mask: %d, shiftedMask: %d, id: %d\n", mask, shiftedMask, id)
 	return shiftedMask%2 == 1
 }

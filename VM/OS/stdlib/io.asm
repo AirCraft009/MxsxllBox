@@ -16,7 +16,6 @@ _read_char:
 
     CMP O1 O2
     JZ END_READCHAR_BUF_EMPTY
-
     ADDI O4 1
     ADD O4 O2
     LOADB O1 O4     # buffer isn't empty so load char val. into O1
@@ -44,7 +43,6 @@ DRAW_STRING_LOOP:
     JZ END_STRING_LOOP
     PUSH O5
     PUSH O6
-
     LOADB O4 O5
     CALL _draw_char
     POP O6

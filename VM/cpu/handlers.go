@@ -112,6 +112,7 @@ func handleXor(cpu *CPU, instructions *HandlerInstructions) {
 
 func handleSTINTI(cpu *CPU, instructions *HandlerInstructions) {
 	cpu.InterruptMask = byte(instructions.Addr)
+	fmt.Printf("Interrupt Mask: %d\n", cpu.InterruptMask)
 	cpu.PrevInterruptMask = cpu.InterruptMask
 	cpu.PC += instructionSizeLong
 }
@@ -123,7 +124,6 @@ func handleSTINT(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleYield(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.PrevInterruptMask = cpu.InterruptMask
 	cpu.InterruptMask = 0x00
 	cpu.PC += 1
 }
@@ -447,6 +447,7 @@ func handleStoreW(cpu *CPU, instructions *HandlerInstructions) {
 		cpu.PC += instructionSizeLong
 		return
 	}
+	fmt.Println(instructions.Addr)
 	cpu.Mem.WriteWord(instructions.Addr, val)
 	cpu.PC += instructionSizeLong
 }
