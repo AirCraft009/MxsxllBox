@@ -31,7 +31,16 @@ var (
 	Bpp           = 2
 	PpB           = 4
 	transitionMap = make(map[byte]uint32)
-	focused       bool
+	keyMap        = map[sdl.Keycode]byte{
+		sdl.K_RETURN:    13,
+		sdl.K_TAB:       9,
+		sdl.K_BACKSPACE: 8,
+		sdl.K_ESCAPE:    27,
+		sdl.K_UP:        1,
+		sdl.K_DOWN:      3,
+		sdl.K_LEFT:      2,
+		sdl.K_RIGHT:     4,
+	}
 )
 
 type Screen struct {
@@ -39,6 +48,7 @@ type Screen struct {
 	Renderer *sdl.Renderer
 	Texture  *sdl.Texture
 	LastDraw time.Time
+	Keymap   map[sdl.Keycode]byte
 }
 
 func checkError(err error) {
@@ -57,7 +67,7 @@ func NewScreen() *Screen {
 	window.SetAlwaysOnTop(true)
 	window.Raise()
 
-	return &Screen{Window: window, Renderer: renderer, Texture: tex, LastDraw: time.Now()}
+	return &Screen{Window: window, Renderer: renderer, Texture: tex, LastDraw: time.Now(), Keymap: keyMap}
 }
 
 func init() {
@@ -94,35 +104,4 @@ func (s *Screen) Refresh(Cpu *cpu.CPU) {
 	err = s.Renderer.Copy(s.Texture, nil, &dst)
 	checkError(err)
 	s.Renderer.Present()
-}
-
-func (s *Screen) Run(Cpu *cpu.CPU) {
-	defer s.Window.Destroy()
-	defer s.Renderer.Destroy()
-	defer s.Texture.Destroy()
-	for !Cpu.Halted {
-		if focused {
-			s.Refresh(Cpu)
-			s.LastDraw = time.Now()
-
-		}
-
-		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch e := event.(type) {
-			case *sdl.QuitEvent:
-				Cpu.Halted = true
-				break
-			case *sdl.WindowEvent:
-				switch e.Event {
-				case sdl.WINDOWEVENT_FOCUS_GAINED:
-					focused = true
-				case sdl.WINDOWEVENT_FOCUS_LOST:
-					focused = false
-				}
-			default:
-				break
-			}
-		}
-		sdl.Delay(15)
-	}
 }

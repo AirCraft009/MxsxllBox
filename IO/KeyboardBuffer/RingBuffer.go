@@ -16,15 +16,16 @@ type RingBuffer struct {
 	mutex    sync.Mutex
 }
 
-func newRingBuffer() *RingBuffer {
+func NewRingBuffer() *RingBuffer {
 	return &RingBuffer{
 		lenght: cpu.RingBufferSize,
 		mutex:  sync.Mutex{},
 	}
 }
 
+// WriteKeyboardToBuffer : old method used with stdin
 func WriteKeyboardToBuffer(Cpu *cpu.CPU) {
-	ringBuffer := newRingBuffer()
+	ringBuffer := NewRingBuffer()
 
 	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
@@ -42,18 +43,19 @@ func WriteKeyboardToBuffer(Cpu *cpu.CPU) {
 			buf = make([]byte, 1)
 			continue
 		}
-		ringBuffer.write(buf[0], Cpu)
-		Cpu.InterruptPending = true
-		Cpu.InterruptId = cpu.KeyboardInterrupt
+		ringBuffer.Write(buf[0], Cpu)
 	}
 }
 
-func (ringBuffer *RingBuffer) write(char byte, Cpu *cpu.CPU) bool {
+func (ringBuffer *RingBuffer) Write(char byte, Cpu *cpu.CPU) bool {
 	ringBuffer.mutex.Lock()
 
 	Cpu.Mem.WriteByte(cpu.RingBufferStart+ringBuffer.writePtr, char)
 	ringBuffer.writePtr = (ringBuffer.writePtr + 1) % ringBuffer.lenght
 	Cpu.Mem.WriteByte(cpu.WritePtr, byte(ringBuffer.writePtr))
 	defer ringBuffer.mutex.Unlock()
+
+	Cpu.InterruptPending = true
+	Cpu.InterruptId = cpu.KeyboardInterrupt
 	return true
 }

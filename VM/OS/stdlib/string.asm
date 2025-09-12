@@ -24,12 +24,16 @@ END_STRCPY:
 
 _strlen:
     LOADW O1 O2      # load lenght into O2
-    JMP END_STRLEN
-
-END_STRLEN:
     RET
 
 
+
+
+
+ERROR_OVERFLOW:
+    MOVI O2 100
+    PRINT O2
+    RET
 
 _strcmp:             # sets the 0 - Flag if they're equal, Carry - Flag if higher
     LOADW O3 O1      # load strlen 1

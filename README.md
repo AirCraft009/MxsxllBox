@@ -227,6 +227,49 @@ Run
 | 6    | `unused`:                                               |
 | 7    | `terminated`: (the tasks isn't supposed to run anymore) |
 
+## Special Characters
+
+- the strings in the vm are ASCII-chars
+- I extended them to 256 to represent boxes
+- the chars 0 - 31 are special and unprintable
+- they have special actions like '\n' or '\t'
+
+### Chararcter Table
+| charNum | description                                                                                |
+|---------|--------------------------------------------------------------------------------------------|
+| 0       | null-byte: often used for null terminated strings<br/> tho it has no use here.             |
+| 1       | up-arrow: used in consoles and files, <br/> to navigate the cursors                        |
+| 2       | left-arrow: -""-                                                                           |
+| 3       | down-arrow: -""-                                                                           |
+| 4       | right-arrow: -""-                                                                          |
+| 5       |                                                                                            |
+| 6       |                                                                                            |
+| 7       |                                                                                            |
+| 8       | back-space: used when deleting                                                             |
+| 9       | tab: enters the number of bytes in the TB reg <br/> that's can be changed in the settings. |
+| 10      |                                                                                            |
+| 11      |                                                                                            |
+| 12      |                                                                                            |
+| 13      | enter: used to create newlines and finish commands.                                        |
+| 14      |                                                                                            |
+| 15      |                                                                                            |
+| 16      |                                                                                            |
+| 17      |                                                                                            |
+| 18      |                                                                                            |
+| 19      |                                                                                            |
+| 20      |                                                                                            |
+| 21      |                                                                                            |
+| 22      |                                                                                            |
+| 23      |                                                                                            |
+| 24      |                                                                                            |
+| 25      |                                                                                            |
+| 26      |                                                                                            |
+| 27      | escape: used to go back in menues and close apps                                           |
+| 28      |                                                                                            |
+| 29      |                                                                                            |
+| 30      |                                                                                            |
+| 31      |                                                                                            |
+
 ## Debugger
 
 - opens a window where a decompiled version of the script is shown

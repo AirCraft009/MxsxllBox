@@ -16,9 +16,8 @@ READ_LOOP:
     CALL _read_char
     JZ END
 
-    CMPI O1 13
-    JZ NEWLINE
-    PRINT O1
+    CMPI O1 32
+    JL SPECIAL_CHAR_CALLER
     ADDI R0 1
     STOREW R0 SL
     STOREB O1 R4
@@ -30,16 +29,28 @@ END:
     CALL _yield
     JMP READ_LOOP
 
-NEWLINE:
-    ADDI R0 2       # add 2 for the lenght
-    DIVI R0 16      # Divide by the block size
-    ADDI R0 1       # add 1 to make sure there's enough space
-    MOV O2 R0
-    CALL _alloc     # allocate the space
-    MOV O2 O1
-    MOV O1 SL
-    CALL _strcpy    # copy string to new location
-    STOREW O2 R5
-    ADDI R5 64
-    STOREW K1 SL
-    JMP _read_line
+SPECIAL_CHAR_CALLER:
+    CALL _handle_special_char
+    JMP  READ_LOOP
+
+
+_strinsert:         # insert a char val in O1 into string val O2 at pos O3
+    LOADW O4 O2     # get the lenght into O4
+    PUSH O4
+    PUSH O3
+    PUSH O2
+    SUB O4 O3
+    JC ERROR_OVERFLOW   # if it overflows (O3 >  O4)
+    MOV O6 O1
+    MOV O2 O1           # setup for memcpy
+    ADDI O2 1
+    MOV O3 O4
+    CALL _memcpy
+    POP O2
+    POP O3              # restore position
+    POP O4
+    ADD O3 O2
+    ADDI O4 1           # add 1 to prev len
+    STOREW O4 O2
+    STOREB O6 O3        # insert the char
+    RET

@@ -4,6 +4,7 @@ import (
 	assembler2 "MxsxllBox/Assembly-process/assembler"
 	"MxsxllBox/VM/cpu"
 	"MxsxllBox/helper"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -51,6 +52,7 @@ func LinkModules(filePaths map[string]uint16) (code []byte, debugLocations map[u
 			objFile.Code[relo.Offset] = hi
 			objFile.Code[relo.Offset+1] = lo
 		}
+		fmt.Println(len(objFile.Code))
 		finalCode = helper.ConcactSliceAtIndex(finalCode, objFile.Code, int(location))
 	}
 	return finalCode, debugLocations, nil
@@ -90,7 +92,6 @@ func CompileAndLinkFiles(files map[string]uint16, Name string) (code []byte, deb
 	if err != nil {
 		panic(err)
 	}
-
 	if Name == "" {
 		panic("Empty Name")
 	}
@@ -113,6 +114,7 @@ func setBasePaths(fileName string) map[string]uint16 {
 	paths["\\VM\\OS\\Renderer\\renderer.asm"] = 500
 	paths["\\VM\\OS\\scheduler\\scheduler.asm"] = 500
 	paths["\\VM\\OS\\helper\\helper.asm"] = 500
+	paths["\\VM\\OS\\console\\char-handler"] = 500
 	return paths
 }
 

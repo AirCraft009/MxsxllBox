@@ -2,8 +2,7 @@ package main
 
 import (
 	"MxsxllBox/Assembly-process/linker"
-	"MxsxllBox/IO/KeyboardBuffer"
-	"MxsxllBox/IO/Screen"
+	"MxsxllBox/IO"
 	cpu2 "MxsxllBox/VM/cpu"
 	"fmt"
 )
@@ -14,10 +13,9 @@ func main() {
 	copy(mem.Data[:], linker.CompileForOs("program.asm", "MxsxllOS"))
 	vm := cpu2.NewCPU(mem)
 
-	screen := Screen.NewScreen()
-	go KeyboardBuffer.WriteKeyboardToBuffer(vm)
+	inputs := IO.NewScreenKeyboardBuffer()
 	fmt.Println("Program started")
 	go cpu2.InitTicker(vm)
 	go vm.Run()
-	screen.Run(vm)
+	inputs.Run(vm)
 }

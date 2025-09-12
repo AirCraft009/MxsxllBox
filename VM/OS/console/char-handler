@@ -1,0 +1,64 @@
+_handle_special_char:
+    JMP HANDLE_CONSOLE
+
+
+HANDLE_CONSOLE:
+    MULI O1 5
+    ADDI O1 9
+    GPC R11
+    ADD R11 O1
+    SPC R11
+    JMP NULL_BYTE
+    JMP UP_ARROW
+    JMP LEFT_ARROW
+    JMP DOWN_ARROW
+    JMP RIGHT_ARROW
+    JMP NULL_BYTE
+    JMP NULL_BYTE
+    JMP NULL_BYTE
+    JMP BACK_SPACE
+    JMP TAB
+    JMP NULL_BYTE
+    JMP NULL_BYTE
+    JMP NULL_BYTE
+    JMP ENTER
+
+NULL_BYTE:
+    RET
+
+UP_ARROW:
+    SUBI R4 32
+    RET
+
+LEFT_ARROW:
+    SUBI R4 1
+    RET
+
+DOWN_ARROW:
+    ADDI R4 32
+    RET
+
+RIGHT_ARROW:
+    ADDI R4 1
+    RET
+
+BACK_SPACE:
+    RET
+
+TAB:
+    RET
+
+ENTER:
+    ADDI R0 2       # add 2 for the lenght
+    DIVI R0 16      # Divide by the block size
+    ADDI R0 1       # add 1 to make sure there's enough space
+    MOV O2 R0
+    CALL _alloc     # allocate the space
+    MOV O2 O1
+    MOV O1 SL
+    CALL _strcpy    # copy string to new location
+    STOREW O2 R5
+    ADDI R5 64
+    STOREW K1 SL
+    RET
+
