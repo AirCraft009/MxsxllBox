@@ -3,6 +3,7 @@ _handle_special_char:
 
 
 HANDLE_CONSOLE:
+    CLZ
     MULI O1 5
     ADDI O1 9
     GPC R11
@@ -32,14 +33,17 @@ UP_ARROW:
 
 LEFT_ARROW:
     SUBI R4 1
+    STZ
     RET
 
 DOWN_ARROW:
     ADDI R4 32
+    STZ
     RET
 
 RIGHT_ARROW:
     ADDI R4 1
+    STZ
     RET
 
 BACK_SPACE:

@@ -31,6 +31,7 @@ END:
 
 SPECIAL_CHAR_CALLER:
     CALL _handle_special_char
+    JZ READ_LOOP
     JMP  _read_line
 
 
