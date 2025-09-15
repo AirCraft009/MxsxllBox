@@ -31,7 +31,7 @@ END:
 
 SPECIAL_CHAR_CALLER:
     CALL _handle_special_char
-    JMP  READ_LOOP
+    JMP  _read_line
 
 
 _strinsert:         # insert a char val in O1 into string val O2 at pos O3
@@ -53,4 +53,8 @@ _strinsert:         # insert a char val in O1 into string val O2 at pos O3
     ADDI O4 1           # add 1 to prev len
     STOREW O4 O2
     STOREB O6 O3        # insert the char
+    RET
+
+
+ERROR_OVERFLOW:
     RET
