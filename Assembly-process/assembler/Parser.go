@@ -34,6 +34,7 @@ type ObjectFile struct {
 	Relocs  []RelocationEntry
 	Globals map[uint16]bool
 	Entry   bool
+	Imports []string
 }
 
 type RelocationEntry struct {
@@ -326,6 +327,8 @@ func FirstPass(data [][]string, parser *Parser) (*Parser, [][]string) {
 		} else if len(line) == 1 && strings.Contains(line[0], ".entry") {
 			parser.ObjFile.Entry = true
 			continue
+		} else if strings.Contains(line[0], "import") {
+			parser.ObjFile.Imports = append(parser.ObjFile.Imports, line[1])
 		}
 
 		ad, ok := getOffset(line[0])

@@ -1,5 +1,17 @@
 # MxsxllBox VM
 
+## Why I'm stopping this project 
+
+- I was not very informed because I did alot of research with AI
+- I built up a lot of technical debt because of bad practices
+- the scale of the project is to limited
+  - 64 KB ram isn't that much I'd rather want a dynamic ammount
+  - I want networking capabilities
+  - I want better font support 
+  - a real Memory-system
+  - Better Performance
+  - 
+
 ## Overview
 
 MxsxllBox is a custom virtual machine (VM) designed with a 64 KB memory space divided into several segments, supporting a simple instruction set and features like labels, branching, function calls, and dynamic memory management.\
