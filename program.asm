@@ -1,1 +1,4 @@
-JMP _BOOT
+#include stdlib/math.asm
+
+start:
+jmp start
