@@ -8,7 +8,9 @@ It has 32 Registers 18 general purpose(R), 6 Registers for syscalls(O), 6 for th
 ## Dependency: SDL2
 
 - download [SDL2-devel-2.32.0-os_specific_format](https://github.com/libsdl-org/SDL/releases/tag/release-2.32.0)
+- uncompress it 
 - place it at the project root
+- Rename it to SDL2
 - run BuildMain.bat / buildMain.sh
 
 ## How to run
