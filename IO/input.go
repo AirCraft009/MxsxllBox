@@ -26,7 +26,7 @@ func (s *ScreenKeyboardBuffer) Run(Cpu *cpu.CPU) {
 	defer s.Screen.Renderer.Destroy()
 	defer s.Screen.Texture.Destroy()
 
-	// enable text input (so SDL sends TextInputEvent)
+	// enable text input (so SDL2 sends TextInputEvent)
 	sdl.StartTextInput()
 	defer sdl.StopTextInput()
 
