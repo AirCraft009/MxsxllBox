@@ -1,4 +1,5 @@
-#include stdlib/math.asm
+#include stdlib/math.obj
+#include stdlib/scheduling.obj
 
-start:
-jmp start
+_start:
+    JMP _start

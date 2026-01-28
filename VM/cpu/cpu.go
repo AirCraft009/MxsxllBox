@@ -1,7 +1,6 @@
 package cpu
 
 import (
-	"MxsxllBox/Assembly-process/assembler"
 	"MxsxllBox/helper"
 	"fmt"
 	"os"
@@ -15,6 +14,7 @@ const (
 	NumRegisters             = 64
 	JmpOffset                = 5
 	InterruptHandlerLocation = 23965
+	I1                       = 24
 )
 const (
 	KeyboardInterrupt id = (1 + iota) * JmpOffset
@@ -141,7 +141,7 @@ func (cpu *CPU) Step() {
 	}
 
 	if cpu.Interrupt {
-		cpu.Registers[assembler.RegMap["I1"]] = uint16(cpu.InterruptId)
+		cpu.Registers[I1] = uint16(cpu.InterruptId)
 		cpu.SP -= 2
 		cpu.Mem.WriteWordStack(cpu.SP, cpu.PC)
 		cpu.PC = InterruptHandlerLocation
