@@ -1,11 +1,10 @@
 package main
 
 import (
-	"MxsxllBox/Assembly-process/assembler"
-	"MxsxllBox/Assembly-process/linker"
-	"MxsxllBox/IO/KeyboardBuffer"
-	"MxsxllBox/VM/cpu"
-	"MxsxllBox/debugging"
+	"MxsxllBox/internal/IO/KeyboardBuffer"
+	cpu2 "MxsxllBox/internal/VM/cpu"
+	"MxsxllBox/internal/debugging"
+	"errors"
 	"fmt"
 	"image/color"
 	"os"
@@ -19,9 +18,11 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
+
+	"github.com/AirCraft009/mcc/pkg"
 )
 
-func buildRegisterPanel(cpuState *cpu.CPU, revRegMap map[uint8]string) (*fyne.Container, [18][2]*widget.Label) {
+func buildRegisterPanel(cpuState *cpu2.CPU, revRegMap map[uint8]string) (*fyne.Container, [18][2]*widget.Label) {
 	var regLabels [18][2]*widget.Label
 	var rows []fyne.CanvasObject
 
@@ -52,7 +53,7 @@ func buildRegisterPanel(cpuState *cpu.CPU, revRegMap map[uint8]string) (*fyne.Co
 	return container.NewVBox(rows...), regLabels
 }
 
-func updateRegisterPanel(regLabels [18][2]*widget.Label, cpuState *cpu.CPU, revRegMap map[uint8]string) {
+func updateRegisterPanel(regLabels [18][2]*widget.Label, cpuState *cpu2.CPU, revRegMap map[uint8]string) {
 	for i := 0; i < 32; i++ {
 		row, col := i/2, i%2
 		regLabels[row][col].SetText(fmt.Sprintf("%s: %d", revRegMap[uint8(i)], cpuState.Registers[i]))
@@ -100,16 +101,30 @@ func buildCodeView(lines []string, breakpoints map[int]bool) ([]fyne.CanvasObjec
 }
 
 func main() {
-	reverseRegMap := debugging.ReverseMaps(assembler.RegMap)
+	if len(os.Args) != 2 {
+		fmt.Println("MxsxllBox-debugger Usage: ./Debugger-main.exe path to program")
+		return
+	}
+	DebugFile := os.Args[1]
+
+	binary, debugLabels, isDebug, err := pkg.ReadMxBinary(DebugFile)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	if !isDebug {
+		panic(errors.New("MxsxllBox-debugger: " + DebugFile + " is not a debug file\n compile it again with --debug"))
+	}
+
+	reverseRegMap := debugging.ReverseMaps(pkg.RegMap)
 	breakpoints := make(map[int]bool)
 
-	code, labels := linker.CompileForDebug("program.asm", "MxsxllOS")
-	mem := cpu.NewMemory()
-	copy(mem.Data[:], code)
-	vm := cpu.NewDebugCpu(mem)
+	mem := cpu2.NewMemory()
+	copy(mem.Data[:], binary)
+	vm := cpu2.NewDebugCpu(mem)
 	go KeyboardBuffer.WriteKeyboardToBuffer(vm.Cpu)
 
-	disasm, pcMap := debugging.DissasembleForDebugging(code, labels)
+	disasm, pcMap := debugging.DissasembleForDebugging(binary, debugLabels)
 	lines := strings.Split(disasm, "\n")
 	fmt.Println(lines[pcMap[616]])
 
