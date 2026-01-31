@@ -10,14 +10,16 @@ It has 32 Registers 18 general purpose(R), 6 Registers for syscalls(O), 6 for th
 
 - download [SDL2-devel-2.32.0-os_specific_format](https://github.com/libsdl-org/SDL/releases/tag/release-2.32.0)
 - uncompress it 
-- place it at the project root or somewhere else and add it to PATH
+- place it at the project root 
+  - you can also place it somewhere else and put /include & /lib on your PATH
+  - I haven't tested this yet
 - Rename it to SDL2
 - place SDL2.dll into project root or add it to PATH
 
 ## How to run
 
-- ./VM-main.exe inputfile
-- ./Debugger-main.exe inputfile
+- ./buildHelper/buildMain.bat
+- go build -v -o debugger.exe ./Debugger-main
 
 ---
 
