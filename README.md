@@ -1,4 +1,4 @@
-# github.com/AirCraft009/MxsxllBox VM
+# MxsxllBox
     
 ## Overview
 
@@ -188,7 +188,7 @@ It has 32 Registers 18 general purpose(R), 6 Registers for syscalls(O), 6 for th
 - `_init_scheduler`: gives control to the scheduler only used once at the beginning
 
 > To avoid a single  action like redrawing the screen | reading the keyboard-buffer "hogging" all resources \
-> the scheduler can save the current context/state of the vm meaning(regs, PC, SP and flags) to memory.\
+> the scheduler can save the current context/state of the cpu meaning(regs, PC, SP and flags) to memory.\
 > To then give another Task the oportunity to continue. \
 > This can occur with the help of `_yield`: which willingly gives up control,\
 > a code can be moved into O2(see `Yield Table`) this code confirms if the task is IO,\
@@ -215,7 +215,7 @@ It has 32 Registers 18 general purpose(R), 6 Registers for syscalls(O), 6 for th
 
 ## Special Characters
 
-- the strings in the vm are ASCII-chars
+- the strings in the controller are ASCII-chars
 - I extended them to 256 to represent boxes
 - the chars 0 - 31 are special and unprintable
 - they have special actions like '\n' or '\t'
@@ -284,7 +284,7 @@ It has 32 Registers 18 general purpose(R), 6 Registers for syscalls(O), 6 for th
 
 ## Current Status
 
-- VM running with working jumps, calls, arithmetic
+- MxsxllBox running with working jumps, calls, arithmetic
 - RET instruction fixed to correctly return from calls
 - String Support lenght based indexing
 - String functions like `_strcpy`
