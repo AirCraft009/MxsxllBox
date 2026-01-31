@@ -8,6 +8,8 @@
 - `_init_scheduler`: gives control to the scheduler only used once at the beginning
 - All CPU flags are saved
 - Registers R0 - R17, O1 - O6 and T1 are saved
+- T1 - T6 are used in the scheduler to handle tasks they should never be used in user code
+- All other registers aren't saved on a context switch
 
 
 ### Yield Table
