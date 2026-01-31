@@ -2,7 +2,7 @@
     
 ## Overview
 
-github.com/AirCraft009/MxsxllBox is an emulator of a 16 bit microcontroller. Designed with a 64 KB memory space divided into several segments, supporting a simple instruction set and features like labels, branching, function calls, and dynamic memory management.\
+MxsxllBox is an emulator of a 16 bit microcontroller. Designed with a 64 KB memory space divided into several segments, supporting a simple instruction set and features like labels, branching, function calls, and dynamic memory management.\
 It has 32 Registers 18 general purpose(R), 6 Registers for syscalls(O), 6 for the Scheduler(T) and 2 for an interrupt(I)
 
 ## Dependencies
@@ -18,16 +18,6 @@ It has 32 Registers 18 general purpose(R), 6 Registers for syscalls(O), 6 for th
 
 - ./VM-main.exe inputfile
 - ./Debugger-main.exe inputfile
-
-## Dynamic Memory Allocation
-
-- Heap size: 16 KB
-- writeable Heap size: 14 KB
-- Uses a **bitmap allocator** with block size of 16 bytes
-- Metadata stored in the first word of an allocation block
-- `alloc`: requests block counts (multiples of 16 bytes)
-- `free`: returns blocks to the heap
-- Bitmap is stored at the beginning of Heap after the tasks
 
 ---
 

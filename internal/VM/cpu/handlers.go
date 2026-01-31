@@ -2,6 +2,7 @@ package cpu
 
 import (
 	"fmt"
+
 	"github.com/AirCraft009/MxsxllBox/internal/helper"
 )
 
@@ -409,6 +410,7 @@ func handleStore(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleLoadB(cpu *CPU, instructions *HandlerInstructions) {
+	// this method can handle both register and immediate
 	if instructions.Addr == 0 && cpu.Registers[instructions.Ry] != 0 {
 		addr := cpu.Registers[instructions.Ry]
 		cpu.Registers[instructions.Rx] = uint16(cpu.Mem.ReadByte(addr))
