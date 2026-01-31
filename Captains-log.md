@@ -1,12 +1,5 @@
 ## A collection of thoughts
 
-### Aug 16, 2025
-> The old captains log was lost(so ein dreck es regt mich noch immer auf)\
-> I reset my computer and forgot to push so I lost a few hours of progress.\
-> But I had this file on my .gitignore so it was never pushed.
-> I lost all progress on the file on that day,\
-> and stopped writing
-
 
 ### Aug 27, 2025
 

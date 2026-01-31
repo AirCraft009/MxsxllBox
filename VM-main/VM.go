@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/AirCraft009/MxsxllBox/internal/IO"
 	"github.com/AirCraft009/MxsxllBox/internal/VM/cpu"
-	"os"
 )
 
 func main() {

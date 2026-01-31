@@ -6,7 +6,7 @@ func DecodeAddr(hi byte, lo byte) uint16 {
 
 func DecodeRegs(reg1, reg2Wflag byte) (rx byte, ry byte, addresNec bool) {
 	/**
-	old: theory still applies{
+	!!!old: theory still applies{
 		new config:
 		rx = bits 8-4
 		ry = bits 3-0
