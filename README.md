@@ -16,7 +16,8 @@ It has 32 Registers 18 general purpose(R), 6 Registers for syscalls(O), 6 for th
 
 ## How to run
 
-- ./VM-main.exe inputfile -o outputfile 
+- ./VM-main.exe inputfile
+- ./Debugger-main.exe inputfile
 
 ## Memory Layout
 
