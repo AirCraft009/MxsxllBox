@@ -2,10 +2,11 @@ package cpu
 
 import (
 	"fmt"
-	"github.com/AirCraft009/MxsxllBox/internal/helper"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/AirCraft009/MxsxllBox/internal/helper"
 )
 
 type id uint16
