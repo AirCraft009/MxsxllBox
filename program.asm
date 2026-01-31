@@ -1,5 +1,5 @@
 #include stdlib/math.obj
-#include stdlib/scheduling.obj
 
 _start:
-    JMP _start
+    ADDI R0 1
+    PRINT R0    JMP _start

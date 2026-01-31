@@ -1,8 +1,8 @@
 package main
 
 import (
-	"MxsxllBox/IO"
-	cpu2 "MxsxllBox/VM/cpu"
+	"MxsxllBox/internal/IO"
+	"MxsxllBox/internal/VM/cpu"
 	"fmt"
 	"os"
 )
@@ -13,18 +13,18 @@ func main() {
 		return
 	}
 	fmt.Println(os.Args[1])
-	mem := cpu2.NewMemory()
+	mem := cpu.NewMemory()
 	data, err := os.ReadFile(os.Args[1])
 	if err != nil {
 		panic(err)
 		return
 	}
 	copy(mem.Data[:], data)
-	vm := cpu2.NewCPU(mem)
+	vm := cpu.NewCPU(mem)
 
 	inputs := IO.NewScreenKeyboardBuffer()
 	fmt.Println("Program started")
-	go cpu2.InitTicker(vm)
+	go cpu.InitTicker(vm)
 	go vm.Run()
 	inputs.Run(vm)
 }
