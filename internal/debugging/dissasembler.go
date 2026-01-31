@@ -1,12 +1,13 @@
 package debugging
 
 import (
-	"MxsxllBox/Assembly-process/assembler"
-	"MxsxllBox/helper"
+	"MxsxllBox/internal/helper"
 	"io"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/AirCraft009/mcc/pkg"
 )
 
 const (
@@ -36,8 +37,8 @@ func condenseNop(index int, code []byte) (newIndex, nopCount int) {
 func DissasembleForDebugging(code []byte, lblocations map[uint16]string) (file string, PcToLine map[uint16]int) {
 	PcToLine = make(map[uint16]int)
 
-	revOpCodes := ReverseMaps(assembler.OpCodes)
-	revRegMap := ReverseMaps(assembler.RegMap)
+	revOpCodes := ReverseMaps(pkg.OpCodes)
+	revRegMap := ReverseMaps(pkg.RegMap)
 	var line string
 	var nopCount int
 	for i := 0; i < len(code); i += 0 {
@@ -45,7 +46,7 @@ func DissasembleForDebugging(code []byte, lblocations map[uint16]string) (file s
 		var args []string
 		ByteInstruction := code[i]
 		instruction := revOpCodes[ByteInstruction]
-		offset := assembler.OffsetMap[instruction]
+		offset := pkg.OffsetMap[instruction]
 		if lbl, ok := lblocations[uint16(i)]; ok {
 			line = "\n" + lbl + "\n"
 			PcToLine[uint16(i)] += len(strings.Split(line, "\n")) - 1
