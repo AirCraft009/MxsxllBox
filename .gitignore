@@ -1,2 +1,6 @@
 *.mem
+*.asm
+*.dll
 /SDL2/
+program.exe
+*.bin
