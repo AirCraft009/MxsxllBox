@@ -16,6 +16,16 @@ It has 32 Registers 18 general purpose(R), 6 Registers for syscalls(O), 6 for th
 - Rename it to SDL2
 - place SDL2.dll into project root or add it to PATH
 
+## Build
+- set CGO_ENABLED=1
+- set CC=gcc
+- set CXX=g++
+- set CGO_CFLAGS=-I%cd%/SDL2/.../include   (... replace with your sdl implementation dir)
+- set CGO_LDFLAGS=-L%cd%/SDL2/.../ -lSDL2
+- optionally
+  - go clean -cache -modcache
+- go build -v ./VM-main
+
 ## How to run
 
 - ./buildHelper/buildMain.bat

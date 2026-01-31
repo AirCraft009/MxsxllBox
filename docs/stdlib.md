@@ -1,0 +1,1 @@
+You can find the stdlib docs [here](https://github.com/AirCraft009/mcc/blob/master/doc/stdlib.md)
