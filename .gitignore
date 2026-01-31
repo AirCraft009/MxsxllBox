@@ -3,5 +3,6 @@
 *.dll
 *.exe
 *.bin
+/.idea/
 /SDL2/
 /buildHelper/
