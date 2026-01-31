@@ -1,8 +1,8 @@
 package Screen
 
 import (
-	cpu2 "MxsxllBox/internal/VM/cpu"
 	"fmt"
+	cpu2 "github.com/AirCraft009/MxsxllBox/internal/VM/cpu"
 	"time"
 	"unsafe"
 
@@ -24,7 +24,7 @@ const (
 )
 
 var (
-	title         = "MxsxllBox-VM"
+	title         = "github.com/AirCraft009/MxsxllBox-VM"
 	Width         = int32(256)
 	height        = int32(256)
 	upscale       = int32(4)

@@ -1,7 +1,7 @@
 package debugging
 
 import (
-	"MxsxllBox/internal/helper"
+	"github.com/AirCraft009/MxsxllBox/internal/helper"
 	"io"
 	"log"
 	"strconv"

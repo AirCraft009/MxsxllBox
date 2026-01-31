@@ -2,7 +2,7 @@ package KeyboardBuffer
 
 import "C"
 import (
-	cpu2 "MxsxllBox/internal/VM/cpu"
+	cpu2 "github.com/AirCraft009/MxsxllBox/internal/VM/cpu"
 	"os"
 	"sync"
 

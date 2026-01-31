@@ -1,8 +1,8 @@
-# MxsxllBox VM
+# github.com/AirCraft009/MxsxllBox VM
     
 ## Overview
 
-MxsxllBox is an emulator of a 16 bit microcontroller. Designed with a 64 KB memory space divided into several segments, supporting a simple instruction set and features like labels, branching, function calls, and dynamic memory management.\
+github.com/AirCraft009/MxsxllBox is an emulator of a 16 bit microcontroller. Designed with a 64 KB memory space divided into several segments, supporting a simple instruction set and features like labels, branching, function calls, and dynamic memory management.\
 It has 32 Registers 18 general purpose(R), 6 Registers for syscalls(O), 6 for the Scheduler(T) and 2 for an interrupt(I)
 
 ## Dependency: SDL2

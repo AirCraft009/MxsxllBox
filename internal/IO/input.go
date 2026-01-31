@@ -1,9 +1,9 @@
 package IO
 
 import (
-	"MxsxllBox/internal/IO/KeyboardBuffer"
-	"MxsxllBox/internal/IO/Screen"
-	"MxsxllBox/internal/VM/cpu"
+	"github.com/AirCraft009/MxsxllBox/internal/IO/KeyboardBuffer"
+	"github.com/AirCraft009/MxsxllBox/internal/IO/Screen"
+	"github.com/AirCraft009/MxsxllBox/internal/VM/cpu"
 	"time"
 
 	"github.com/veandco/go-sdl2/sdl"

@@ -1,8 +1,8 @@
 package cpu
 
 import (
-	"MxsxllBox/internal/helper"
 	"fmt"
+	"github.com/AirCraft009/MxsxllBox/internal/helper"
 	"os"
 	"sync"
 	"time"

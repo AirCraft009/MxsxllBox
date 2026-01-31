@@ -1,9 +1,6 @@
 package main
 
 import (
-	"MxsxllBox/internal/IO/KeyboardBuffer"
-	cpu2 "MxsxllBox/internal/VM/cpu"
-	"MxsxllBox/internal/debugging"
 	"errors"
 	"fmt"
 	"image/color"
@@ -11,6 +8,10 @@ import (
 	_ "strconv"
 	"strings"
 	"time"
+
+	"github.com/AirCraft009/MxsxllBox/internal/IO/KeyboardBuffer"
+	cpu2 "github.com/AirCraft009/MxsxllBox/internal/VM/cpu"
+	"github.com/AirCraft009/MxsxllBox/internal/debugging"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -102,7 +103,7 @@ func buildCodeView(lines []string, breakpoints map[int]bool) ([]fyne.CanvasObjec
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Println("MxsxllBox-debugger Usage: ./Debugger-main.exe path to program")
+		fmt.Println("github.com/AirCraft009/MxsxllBox-debugger Usage: ./Debugger-main.exe path to program")
 		return
 	}
 	DebugFile := os.Args[1]
@@ -113,7 +114,7 @@ func main() {
 	}
 
 	if !isDebug {
-		panic(errors.New("MxsxllBox-debugger: " + DebugFile + " is not a debug file\n compile it again with --debug"))
+		panic(errors.New("github.com/AirCraft009/MxsxllBox-debugger: " + DebugFile + " is not a debug file\n compile it again with --debug"))
 	}
 
 	reverseRegMap := debugging.ReverseMaps(pkg.RegMap)

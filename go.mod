@@ -1,4 +1,4 @@
-module MxsxllBox
+module github.com/AirCraft009/MxsxllBox
 
 go 1.25
 

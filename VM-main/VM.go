@@ -1,9 +1,9 @@
 package main
 
 import (
-	"MxsxllBox/internal/IO"
-	"MxsxllBox/internal/VM/cpu"
 	"fmt"
+	"github.com/AirCraft009/MxsxllBox/internal/IO"
+	"github.com/AirCraft009/MxsxllBox/internal/VM/cpu"
 	"os"
 )
 
