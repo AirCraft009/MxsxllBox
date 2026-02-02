@@ -8,7 +8,7 @@ import (
 
 func WritetoRom(filename string, offset int) {
 	wd, _ := os.Getwd()
-	path := "VM/cpu/ROM.mem"
+	path := "internal/MxsxllBox/cpu/ROM.mem"
 	fileToWrite, err := os.OpenFile(filepath.Join(wd, path), os.O_WRONLY, 0666)
 	if err != nil {
 		panic(err)

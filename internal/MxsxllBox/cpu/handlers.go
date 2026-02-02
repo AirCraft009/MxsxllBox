@@ -41,7 +41,7 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 		fmt.Printf("PC: %d\n", cpu.PC)
 		panic("stack out of memory")
 	}
-	opcode = cpu.Mem.ReadByteStack(cpu.PC)
+	opcode = cpu.Mem.ReadByteKeyboardSafe(cpu.PC)
 	regs1, flagbyte := cpu.Mem.ReadReg(cpu.PC + 1)
 	rx, ry, addresnec := helper.DecodeRegs(regs1, flagbyte)
 	/**
@@ -58,7 +58,7 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	*/
 	var addr uint16
 	if addresnec {
-		addr = cpu.Mem.ReadWordStack(cpu.PC + instructionSizeShort)
+		addr = cpu.Mem.ReadWordKeyboardSafe(cpu.PC + instructionSizeShort)
 	}
 	instructions = newHandlerInstructions(rx, ry, addr)
 	return opcode, instructions
@@ -359,12 +359,12 @@ func handlePrintstr(cpu *CPU, instructions *HandlerInstructions) {
 func handlePush(cpu *CPU, instruction *HandlerInstructions) {
 	val := cpu.Registers[instruction.Rx]
 	cpu.SP -= 2
-	cpu.Mem.WriteWordStack(cpu.SP, val)
+	cpu.Mem.WriteWordKeyboardSafe(cpu.SP, val)
 	cpu.PC += instructionSizeShort
 }
 
 func handlePop(cpu *CPU, instruction *HandlerInstructions) {
-	addr := cpu.Mem.ReadWordStack(cpu.SP)
+	addr := cpu.Mem.ReadWordKeyboardSafe(cpu.SP)
 	cpu.Registers[instruction.Rx] = addr
 	cpu.PC += instructionSizeShort
 	cpu.SP += 2
@@ -372,12 +372,12 @@ func handlePop(cpu *CPU, instruction *HandlerInstructions) {
 
 func handleCall(cpu *CPU, instruction *HandlerInstructions) {
 	cpu.SP -= 2
-	cpu.Mem.WriteWordStack(cpu.SP, cpu.PC)
+	cpu.Mem.WriteWordKeyboardSafe(cpu.SP, cpu.PC)
 	handleJmp(cpu, instruction)
 }
 
 func handleRet(cpu *CPU, instruction *HandlerInstructions) {
-	instruction.Addr = cpu.Mem.ReadWordStack(cpu.SP) + instructionSizeLong
+	instruction.Addr = cpu.Mem.ReadWordKeyboardSafe(cpu.SP) + instructionSizeLong
 	cpu.PC += instructionSizeLong
 	cpu.SP += 2
 	handleJmp(cpu, instruction)

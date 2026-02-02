@@ -1,11 +1,12 @@
 package debugging
 
 import (
-	"github.com/AirCraft009/MxsxllBox/internal/helper"
 	"io"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/AirCraft009/MxsxllBox/internal/helper"
 
 	"github.com/AirCraft009/mcc/pkg"
 )
@@ -37,8 +38,8 @@ func condenseNop(index int, code []byte) (newIndex, nopCount int) {
 func DissasembleForDebugging(code []byte, lblocations map[uint16]string) (file string, PcToLine map[uint16]int) {
 	PcToLine = make(map[uint16]int)
 
-	revOpCodes := ReverseMaps(pkg.OpCodes)
-	revRegMap := ReverseMaps(pkg.RegMap)
+	revOpCodes := InvertMaps(pkg.OpCodes)
+	revRegMap := InvertMaps(pkg.RegMap)
 	var line string
 	var nopCount int
 	for i := 0; i < len(code); i += 0 {
@@ -96,7 +97,9 @@ func DissasembleForDebugging(code []byte, lblocations map[uint16]string) (file s
 	return file, PcToLine
 }
 
-func ReverseMaps(opcodes map[string]uint8) (reverseMap map[uint8]string) {
+// InvertMaps
+// returns the map with keys as values and values as keys
+func InvertMaps(opcodes map[string]uint8) (reverseMap map[uint8]string) {
 	reverseMap = make(map[uint8]string)
 	for k, v := range opcodes {
 		reverseMap[v] = k

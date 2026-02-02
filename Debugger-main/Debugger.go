@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/AirCraft009/MxsxllBox/internal/IO/KeyboardBuffer"
-	cpu2 "github.com/AirCraft009/MxsxllBox/internal/VM/cpu"
+	cpu2 "github.com/AirCraft009/MxsxllBox/internal/MxsxllBox/cpu"
 	"github.com/AirCraft009/MxsxllBox/internal/debugging"
 
 	"fyne.io/fyne/v2"
@@ -39,7 +39,7 @@ func buildRegisterPanel(cpuState *cpu2.CPU, revRegMap map[uint8]string) (*fyne.C
 		addRow(left, right)
 	}
 
-	stackTop := widget.NewLabel(fmt.Sprintf("Stack-top: %d", cpuState.Mem.ReadWordStack(cpuState.SP)))
+	stackTop := widget.NewLabel(fmt.Sprintf("Stack-top: %d", cpuState.Mem.ReadWordKeyboardSafe(cpuState.SP)))
 	pc := widget.NewLabel(fmt.Sprintf("PC: %d", cpuState.PC))
 	regLabels[16][0] = stackTop
 	regLabels[16][1] = pc
@@ -61,7 +61,7 @@ func updateRegisterPanel(regLabels [18][2]*widget.Label, cpuState *cpu2.CPU, rev
 	}
 
 	lastRow := len(regLabels) - 2
-	regLabels[lastRow][0].SetText(fmt.Sprintf("Stack-top: %d", cpuState.Mem.ReadWordStack(cpuState.SP)))
+	regLabels[lastRow][0].SetText(fmt.Sprintf("Stack-top: %d", cpuState.Mem.ReadWordKeyboardSafe(cpuState.SP)))
 	regLabels[lastRow][1].SetText(fmt.Sprintf("PC: %d", cpuState.PC))
 
 	flagRow := lastRow + 1
@@ -114,10 +114,12 @@ func main() {
 	}
 
 	if !isDebug {
-		panic(errors.New("github.com/AirCraft009/MxsxllBox-debugger: " + DebugFile + " is not a debug file\n compile it again with --debug"))
+		panic(errors.New("MxsxllBox-debugger: " + DebugFile + " is not a debug file\n compile it again with --debug"))
 	}
 
-	reverseRegMap := debugging.ReverseMaps(pkg.RegMap)
+	fmt.Println(debugLabels)
+
+	reverseRegMap := debugging.InvertMaps(pkg.RegMap)
 	breakpoints := make(map[int]bool)
 
 	mem := cpu2.NewMemory()
@@ -126,8 +128,9 @@ func main() {
 	go KeyboardBuffer.WriteKeyboardToBuffer(vm.Cpu)
 
 	disasm, pcMap := debugging.DissasembleForDebugging(binary, debugLabels)
+	fmt.Println(disasm)
+	fmt.Println(pcMap)
 	lines := strings.Split(disasm, "\n")
-	fmt.Println(lines[pcMap[616]])
 
 	currentLine := 0
 	stepChan := make(chan struct{}, 1)

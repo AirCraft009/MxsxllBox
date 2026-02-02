@@ -65,7 +65,7 @@ type Memory struct {
 
 func NewMemory() *Memory {
 	wd, err := os.Getwd()
-	data, err := os.ReadFile(wd + "/VM/cpu/ROM.mem")
+	data, err := os.ReadFile(wd + "/internal/MxsxllBox/cpu/ROM.mem")
 	if err != nil {
 		panic(err)
 	}
@@ -96,7 +96,7 @@ func (mem *Memory) ReadByte(addr uint16) byte {
 	if isStackRegion(addr) {
 		return mem.ROM[ProgramStart+uint16(addr-StackStart)]
 	}
-	return mem.ReadByteStack(addr)
+	return mem.ReadByteKeyboardSafe(addr)
 }
 
 func (mem *Memory) ReadWord(addr uint16) uint16 {
@@ -110,7 +110,7 @@ func (mem *Memory) ReadWord(addr uint16) uint16 {
 		lo := mem.ROM[ProgramStart+(addr+1)-uint16(StackStart)]
 		return uint16(hi)<<8 | uint16(lo)
 	}
-	return mem.ReadWordStack(addr)
+	return mem.ReadWordKeyboardSafe(addr)
 }
 
 func (mem *Memory) WriteByte(addr uint16, value byte) {
@@ -120,7 +120,7 @@ func (mem *Memory) WriteByte(addr uint16, value byte) {
 	if isStackRegion(addr) {
 		return
 	}
-	mem.WriteByteStack(addr, value)
+	mem.WriteByteKeyboardSafe(addr, value)
 }
 
 func (mem *Memory) WriteWord(addr uint16, val uint16) {
@@ -130,10 +130,15 @@ func (mem *Memory) WriteWord(addr uint16, val uint16) {
 	if isStackRegion(addr) || isStackRegion(addr+1) {
 		return
 	}
-	mem.WriteWordStack(addr, val)
+	mem.WriteWordKeyboardSafe(addr, val)
 }
 
-func (mem *Memory) ReadByteStack(addr uint16) byte {
+// ReadByteKeyboardSafe
+//
+// reads a byte from addr with the constraints:
+// that if addr is in the keyboard buffer region
+// the keyboardMutex is locked
+func (mem *Memory) ReadByteKeyboardSafe(addr uint16) byte {
 	if isKeyboardRegion(addr) {
 		mem.keyboardMu.Lock()
 		defer mem.keyboardMu.Unlock()
@@ -141,7 +146,7 @@ func (mem *Memory) ReadByteStack(addr uint16) byte {
 	return mem.Data[addr]
 }
 
-func (mem *Memory) ReadWordStack(addr uint16) uint16 {
+func (mem *Memory) ReadWordKeyboardSafe(addr uint16) uint16 {
 	if isKeyboardRegion(addr) || isKeyboardRegion(addr+1) {
 		mem.keyboardMu.Lock()
 		defer mem.keyboardMu.Unlock()
@@ -159,7 +164,7 @@ func (mem *Memory) ReadReg(addr uint16) (byte, byte) {
 	return mem.Data[addr], mem.Data[addr+1]
 }
 
-func (mem *Memory) WriteByteStack(addr uint16, value byte) {
+func (mem *Memory) WriteByteKeyboardSafe(addr uint16, value byte) {
 	if isKeyboardRegion(addr) {
 		mem.keyboardMu.Lock()
 		defer mem.keyboardMu.Unlock()
@@ -168,7 +173,7 @@ func (mem *Memory) WriteByteStack(addr uint16, value byte) {
 	mem.Data[addr] = value
 }
 
-func (mem *Memory) WriteWordStack(addr uint16, val uint16) {
+func (mem *Memory) WriteWordKeyboardSafe(addr uint16, val uint16) {
 	if isKeyboardRegion(addr) || isKeyboardRegion(addr+1) {
 		mem.keyboardMu.Lock()
 		defer mem.keyboardMu.Unlock()

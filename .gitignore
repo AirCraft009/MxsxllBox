@@ -4,5 +4,6 @@
 *.exe
 *.bin
 /.idea/
+/.vscode/
 /SDL2/
 /buildHelper/

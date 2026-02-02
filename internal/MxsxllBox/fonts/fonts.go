@@ -8,7 +8,7 @@ import (
 
 func main() {
 	wd, _ := os.Getwd()
-	path := wd + "/VM/fonts/"
+	path := wd + "/MxsxllBox/fonts/"
 	data, err := os.ReadFile(path + "font8x8_basic.bin")
 	if err != nil {
 		panic(err)
