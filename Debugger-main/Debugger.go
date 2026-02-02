@@ -127,7 +127,7 @@ func main() {
 	vm := cpu2.NewDebugCpu(mem)
 	go KeyboardBuffer.WriteKeyboardToBuffer(vm.Cpu)
 
-	disasm, pcMap := debugging.DissasembleForDebugging(binary, debugLabels)
+	disasm, pcMap := debugging.DisassembleForDebugging(binary, debugLabels)
 	fmt.Println(disasm)
 	fmt.Println(pcMap)
 	lines := strings.Split(disasm, "\n")
