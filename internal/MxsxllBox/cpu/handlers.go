@@ -210,12 +210,9 @@ func handleMov(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleModi(cpu *CPU, instructions *HandlerInstructions) {
-	cpu.Flags.Carry = cpu.Registers[instructions.Rx] > cpu.Registers[instructions.Ry]
+	cpu.Flags.Carry = cpu.Registers[instructions.Rx] > instructions.Addr
 	cpu.Registers[instructions.Rx] %= instructions.Addr
-	cpu.Flags.Zero = false
-	if cpu.Registers[instructions.Rx] == 0 {
-		cpu.Flags.Zero = true
-	}
+	cpu.Flags.Zero = cpu.Registers[instructions.Rx] == 0
 	cpu.PC += instructionSizeLong
 }
 

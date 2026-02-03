@@ -1,4 +1,4 @@
-package main
+package debugging
 
 import (
 	"errors"
@@ -11,7 +11,6 @@ import (
 
 	"github.com/AirCraft009/MxsxllBox/internal/IO/KeyboardBuffer"
 	cpu2 "github.com/AirCraft009/MxsxllBox/internal/MxsxllBox/cpu"
-	"github.com/AirCraft009/MxsxllBox/internal/debugging"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -101,12 +100,7 @@ func buildCodeView(lines []string, breakpoints map[int]bool) ([]fyne.CanvasObjec
 	return boxes, backgrounds
 }
 
-func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("github.com/AirCraft009/MxsxllBox-debugger Usage: ./Debugger-main.exe path to program")
-		return
-	}
-	DebugFile := os.Args[1]
+func DebugStart(DebugFile string) {
 
 	binary, debugLabels, isDebug, err := pkg.ReadMxBinary(DebugFile)
 	if err != nil {
@@ -119,7 +113,7 @@ func main() {
 
 	fmt.Println(debugLabels)
 
-	reverseRegMap := debugging.InvertMaps(pkg.RegMap)
+	reverseRegMap := InvertMaps(pkg.RegMap)
 	breakpoints := make(map[int]bool)
 
 	mem := cpu2.NewMemory()
@@ -127,7 +121,7 @@ func main() {
 	vm := cpu2.NewDebugCpu(mem)
 	go KeyboardBuffer.WriteKeyboardToBuffer(vm.Cpu)
 
-	disasm, pcMap := debugging.DisassembleForDebugging(binary, debugLabels)
+	disasm, pcMap := DisassembleForDebugging(binary, debugLabels)
 	fmt.Println(disasm)
 	fmt.Println(pcMap)
 	lines := strings.Split(disasm, "\n")

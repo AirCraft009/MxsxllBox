@@ -5,6 +5,7 @@ go 1.25
 require (
 	fyne.io/fyne/v2 v2.7.2
 	github.com/AirCraft009/mcc v1.1.1
+	github.com/spf13/pflag v1.0.10
 	github.com/veandco/go-sdl2 v0.4.40
 	golang.org/x/term v0.39.0
 )

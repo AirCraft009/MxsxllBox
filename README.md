@@ -5,31 +5,33 @@
 MxsxllBox is an emulator of a 16 bit microcontroller. Designed with a 64 KB memory space divided into several segments, supporting a simple instruction set and features like labels, branching, function calls, and dynamic memory management.\
 It has 32 Registers 18 general purpose(R), 6 Registers for syscalls(O), 6 for the Scheduler(T) and 2 for an interrupt(I)
 
+## Usage
+    ./MxsxllBox.exe InputFile.bin [--debug] 
+    !! Always put flags after the positional inputFile arg 
+
 ## Dependencies
 ### Dependency: SDL2
 
 - download [SDL2-devel-2.32.0-os_specific_format](https://github.com/libsdl-org/SDL/releases/tag/release-2.32.0)
 - uncompress it 
-- place it at the project root 
-  - you can also place it somewhere else and put /include & /lib on your PATH
-  - I haven't tested this yet
+- place it at the project root
 - Rename it to SDL2
 - place SDL2.dll into project root or add it to PATH
 
-## Build
+## Build Windows - Main
 - set CGO_ENABLED=1
 - set CC=gcc
 - set CXX=g++
-- set CGO_CFLAGS=-I%cd%/SDL2/.../include   (... replace with your sdl implementation dir)
+- set CGO_CFLAGS=-I%cd%/SDL2/.../include   (... replace with your sdl implementation dir )
 - set CGO_LDFLAGS=-L%cd%/SDL2/.../ -lSDL2
 - optionally
   - go clean -cache -modcache
-- go build -v ./VM-main
+- go build -v -o MxsxllBox.exe ./VM-main
 
 ## How to run
 
-- ./buildHelper/buildMain.bat
-- go build -v -o debugger.exe ./Debugger-main
+- MxsxllBox
+- 
 
 ---
 
