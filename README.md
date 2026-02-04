@@ -28,6 +28,13 @@ It has 32 Registers 18 general purpose(R), 6 Registers for syscalls(O), 6 for th
   - go clean -cache -modcache
 - go build -v -o MxsxllBox.exe ./VM-main
 
+## Write Code
+
+- Using [MCC](https://github.com/AirCraft009/mcc/) the Assembler for MxsxllBox you can compile Asm
+- All Opcodes are [here](https://github.com/AirCraft009/MxsxllBox/blob/master/docs/instruction-set.md)
+- Documentation of the Stdlib is availalbe [here](https://github.com/AirCraft009/mcc/blob/master/doc/stdlib.md)
+- Even more information about the internals and ABI are at [abi](https://github.com/AirCraft009/MxsxllBox/blob/master/docs/abi.md)
+
 
 ## Debugger
 
