@@ -18,6 +18,13 @@
   - The lenghts are a word
 - Strings can both by printed to console and Screen
 
+### Chapter 1.3 Asm Operand Structure
+
+- Generally The Mxsxll asmebly standard follows the Intel syntax
+  - Operand destination source
+  - MOV R0 R1 (moves the val of R1 into R0)
+  - An exception can be found with [STORE](https://github.com/AirCraft009/MxsxllBox/blob/master/docs/instruction-set.md#important-----readme)
+
 ## Chapter 2 General Calling Conventions
 
 ### Chapter 2.1 Instruction derivs
