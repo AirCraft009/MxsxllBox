@@ -42,5 +42,3 @@ func main() {
 	go vm.Run()
 	inputs.Run(vm)
 }
-
-func syncEEPROM()

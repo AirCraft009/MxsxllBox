@@ -4,9 +4,7 @@
 
 | Segment             | Size  | Address Range       | Description                                |
 |---------------------|-------|---------------------|--------------------------------------------|
-| **Program**         | 8 KB  | `0x0000` – `0x1FFF` | Code and instructions (user + stdlib)      |
-| ├─ User Code        | 6 KB  | `0x0000` – `0x17FF` | User program code                          |
-| └─ Std. Library     | 2 KB  | `0x1800` – `0x1FFF` | Standard library functions                 |
+| **Program**         | 8 KB  | `0x0000` – `0x1FFF` | Code and instructions                      |
 | **Heap**            | 16 KB | `0x2000` – `0x5FFF` |                                            |
 | ├─ Tasks            | 540 B | `0x2381` - `0x259C` | Tasks for Scheduling                       |
 | ├─ Bitmap           | 895 B | `0x2000` - `0x237F` | Bitmap with 16 B blocks                    |
