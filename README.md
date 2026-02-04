@@ -18,7 +18,7 @@ It has 32 Registers 18 general purpose(R), 6 Registers for syscalls(O), 6 for th
 - Rename it to SDL2
 - place SDL2.dll into project root or add it to PATH
 
-## Build Windows - Main
+## Build Windows
 - set CGO_ENABLED=1
 - set CC=gcc
 - set CXX=g++
@@ -27,15 +27,6 @@ It has 32 Registers 18 general purpose(R), 6 Registers for syscalls(O), 6 for th
 - optionally
   - go clean -cache -modcache
 - go build -v -o MxsxllBox.exe ./VM-main
-
-## How to run
-
-- MxsxllBox
-- 
-
----
-
-
 
 
 ## Debugger
@@ -51,3 +42,11 @@ It has 32 Registers 18 general purpose(R), 6 Registers for syscalls(O), 6 for th
 - Set a break point there and not on the lbl name
 - Any Lbls that aren't jmped, called etc. to can't be decompiled
 - Regs, Pc and Stack-Top are visible on the right side of the screen
+
+## Difference to normal Microcontrollers
+
+- Code isn't saved in Flash but RAM
+  - It is segmented and can't be written to during execution via normal means
+  - Thous it is static but not non-volatile
+  - The code has to be provided in form of a MxsxllBin file on every start
+- Unlike most common microcontrollers MxsxllBox doesn't have external pins
