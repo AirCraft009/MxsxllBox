@@ -9,6 +9,7 @@
 - A word refers to 2 bytes or 16 bits of data
 - A doubleword or dw refers to 32 bits of data
 - All registers are one word wide
+- FB refers to [Frame-Buffer](https://de.wikipedia.org/wiki/Framebuffer)
 
 ### Chapter 1.2 Strings
 
@@ -85,6 +86,7 @@ All Opcodes with descriptions can be found [here](https://github.com/AirCraft009
 - Segmented in 9 equally sized blocks
     - each task has its own stack
     - currently accessing memory outside the correct stack segment is possible
+    - If no scheduling is used accessing memory outside the 0th segment is safe behaviour
 
 
 - PUSH & POP
@@ -94,7 +96,7 @@ All Opcodes with descriptions can be found [here](https://github.com/AirCraft009
     
 - normal READ-BYTE/WORD & WRITE-BYTE/WORD
   - these addresses are mapped to [ROM]()
-  - ROM contains the bitmap font
+  - ROM should contain the bitmap font(bytes 0 - 255)
 
 ### Chapter 3.2 - Interacting with the Heap
 
@@ -105,15 +107,47 @@ All Opcodes with descriptions can be found [here](https://github.com/AirCraft009
   - start : 0x259C
   - end: 0x5D9C
 
-- The Heap is managed dynamically
-  - use ``_alloc`` that is included by default
-  - only write to the address returned in O1
 
-!! WRITING TO THE ALLOCATED AREA IS NOT ENFORCED\
-!! YOU ARE ABLE TO WRITE ANYWHERE BUT THIS DATA CAN BE OVERRIDDEN\
-\
-!! READING FROM UNINITIALIZED HEAP IS UNDEFINED\
-\
-!! OUT OF MEMORY IS SIGNIFIED BY O1 RETURNING EMPTY FROM ``_alloc`` 
+- The Heap is managed dynamically
+- use ``_alloc`` from stdlib/sys.obj 
+  - allocates memory on the heap [definition](https://github.com/AirCraft009/mcc/blob/master/doc/stdlib.md#sys-functions)
+  - only write to the address returned in O1
+  - the two bytes preceding O1 are the ammount of blocks this alloc entailed.
+    - if this information gets lost freeing is impossible
+  - !! Allocation is only theoretical not enforced !!
+    - You are able to write to any addr allocated or not though it is strongly discouraged
+
+
+- use ``_free`` from stdlib/sys.obj
+  - frees memory from the heap [definition](https://github.com/AirCraft009/mcc/blob/master/doc/stdlib.md#sys-functions)
+  - double frees are undefined
+    - free reads uninitialized mem (undefined behaviour)
+  - always free the Address that was returned to you by ``_alloc``
+  
+
+### Chapter 3.3 - Interacting with the Framebuffer
+
+- The FB's address-space
+    - start: 0x8000
+    - end: 0xBFFF
+
+- The Frame Buffer is directly connected to the visual output
+
+- Each Byte represents 4 Bytes
+  - 1 Pixel is represented by 2 bits 
+  - each pixel can have 4 different colors
+    - 0/00 : Black
+    - 1/01 : White
+    - 2/10 : Red
+    - 3/11 : Blue
+
+- Singular pixels can be written to with the DRAWPX instruction
+- A section (4 pixels / 1Byte in FB) can be set with the STOREBLOCK instruction
+
+- stdlib/io.obj provides [``_draw_char``](https://github.com/AirCraft009/mcc/blob/master/doc/stdlib.md#io-functions) & [``_draw_string``](https://github.com/AirCraft009/mcc/blob/master/doc/stdlib.md#io-functions)
+  - They allow easy visualisation of chars
+  - They require ROM to be loaded with a 8x8 bitmap font (bytes 0 - 255) 
+
+
 
 
