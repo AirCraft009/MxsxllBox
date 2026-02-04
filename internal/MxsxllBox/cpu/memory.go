@@ -7,7 +7,7 @@ import (
 
 const (
 	HardDriveSize = 2 * 1073741824 //2  GB
-	ROMSize       = 16 * 1024      // the rom is 8 KB of storage I'm mapping to
+	EEPROM        = 16 * 1024      // the rom is 8 KB of storage I'm mapping to
 )
 
 const (
@@ -59,19 +59,19 @@ const (
 
 type Memory struct {
 	Data       [MemorySize]byte
-	ROM        []byte
+	EEPROM     []byte
 	keyboardMu sync.Mutex
 }
 
 func NewMemory() *Memory {
 	wd, err := os.Getwd()
-	data, err := os.ReadFile(wd + "/internal/MxsxllBox/cpu/ROM.mem")
+	data, err := os.ReadFile(wd + "/internal/MxsxllBox/cpu/EEPROM.mem")
 	if err != nil {
 		panic(err)
 	}
 	return &Memory{
 		Data:       [MemorySize]byte{},
-		ROM:        data,
+		EEPROM:     data,
 		keyboardMu: sync.Mutex{},
 	}
 }
@@ -91,23 +91,23 @@ func isCodeRegion(addr uint16) bool {
 
 func (mem *Memory) ReadByte(addr uint16) byte {
 	if isCodeRegion(addr) {
-		return mem.ROM[addr]
+		return mem.EEPROM[addr]
 	}
 	if isStackRegion(addr) {
-		return mem.ROM[ProgramStart+uint16(addr-StackStart)]
+		return mem.EEPROM[ProgramStart+uint16(addr-StackStart)]
 	}
 	return mem.ReadByteKeyboardSafe(addr)
 }
 
 func (mem *Memory) ReadWord(addr uint16) uint16 {
 	if isCodeRegion(addr) {
-		hi := mem.ROM[addr]
-		lo := mem.ROM[addr+1]
+		hi := mem.EEPROM[addr]
+		lo := mem.EEPROM[addr+1]
 		return uint16(hi)<<8 | uint16(lo)
 	}
 	if isStackRegion(addr) || isStackRegion(addr+1) {
-		hi := mem.ROM[ProgramStart+uint16(addr-StackStart)]
-		lo := mem.ROM[ProgramStart+(addr+1)-uint16(StackStart)]
+		hi := mem.EEPROM[ProgramStart+uint16(addr-StackStart)]
+		lo := mem.EEPROM[ProgramStart+(addr+1)-uint16(StackStart)]
 		return uint16(hi)<<8 | uint16(lo)
 	}
 	return mem.ReadWordKeyboardSafe(addr)

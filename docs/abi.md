@@ -95,8 +95,8 @@ All Opcodes with descriptions can be found [here](https://github.com/AirCraft009
 
     
 - normal READ-BYTE/WORD & WRITE-BYTE/WORD
-  - these addresses are mapped to [ROM]()
-  - ROM should contain the bitmap font(bytes 0 - 255)
+  - these addresses are mapped to [EEPROM]()
+  - EEPROM should contain the bitmap font(bytes 0 - 255)
 
 ### Chapter 3.2 - Interacting with the Heap
 
@@ -146,7 +146,7 @@ All Opcodes with descriptions can be found [here](https://github.com/AirCraft009
 
 - stdlib/io.obj provides [``_draw_char``](https://github.com/AirCraft009/mcc/blob/master/doc/stdlib.md#io-functions) & [``_draw_string``](https://github.com/AirCraft009/mcc/blob/master/doc/stdlib.md#io-functions)
   - They allow easy visualisation of chars
-  - They require ROM to be loaded with a 8x8 bitmap font (bytes 0 - 255) 
+  - They require EEPROM to be loaded with a 8x8 bitmap font (bytes 0 - 255) 
 
 
 
