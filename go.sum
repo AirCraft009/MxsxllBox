@@ -6,6 +6,7 @@ github.com/AirCraft009/mcc v1.1.1 h1:BI3WTdonDbk2hJHjCZrIkivlbHveaWHxRP/nobAvj54
 github.com/AirCraft009/mcc v1.1.1/go.mod h1:MYXmybvVIFmdjaITM3JAds9EP5iK0QWcTnLrM0AQyog=
 github.com/AirCraft009/mcc v1.1.2 h1:LtM0mtIK9qi9MI8oJgeOQJ5awF+lRRkFFpAGOIF/FFg=
 github.com/AirCraft009/mcc v1.1.2/go.mod h1:MYXmybvVIFmdjaITM3JAds9EP5iK0QWcTnLrM0AQyog=
+github.com/AirCraft009/mcc v1.1.3-0.20260205164837-da8dc85a838b h1:VPh7jXmJQPuYKf9c7CpcagI9WjcjgQhmSXRn75NiwGo=
 github.com/AirCraft009/mcc v1.1.3-0.20260205164837-da8dc85a838b/go.mod h1:MYXmybvVIFmdjaITM3JAds9EP5iK0QWcTnLrM0AQyog=
 github.com/BurntSushi/toml v1.5.0 h1:W5quZX/G/csjUnuI8SUYlsHs9M38FC7znL0lIO+DvMg=
 github.com/BurntSushi/toml v1.5.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=

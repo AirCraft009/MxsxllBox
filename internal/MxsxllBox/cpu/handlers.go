@@ -22,16 +22,18 @@ const (
 )
 
 type HandlerInstructions struct {
-	Rx   byte
-	Ry   byte
-	Addr uint16
+	Addr    uint16
+	Rx      byte
+	Ry      byte
+	addrNec bool
 }
 
-func newHandlerInstructions(rx byte, ry byte, addr uint16) *HandlerInstructions {
+func newHandlerInstructions(rx byte, ry byte, addr uint16, addrNec bool) *HandlerInstructions {
 	return &HandlerInstructions{
-		Rx:   rx,
-		Ry:   ry,
-		Addr: addr,
+		Rx:      rx,
+		Ry:      ry,
+		Addr:    addr,
+		addrNec: addrNec,
 	}
 }
 
@@ -57,11 +59,9 @@ func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
 	bitwise or
 	adrr = 1011100101101011
 	*/
-	var addr uint16
-	if addresnec {
-		addr = cpu.Mem.ReadWordKeyboardSafe(cpu.PC + instructionSizeShort)
-	}
-	instructions = newHandlerInstructions(rx, ry, addr)
+
+	addr := cpu.Mem.ReadWordKeyboardSafe(cpu.PC + instructionSizeShort)
+	instructions = newHandlerInstructions(rx, ry, addr, addresnec)
 	return opcode, instructions
 }
 
@@ -409,8 +409,9 @@ func handleStore(cpu *CPU, instructions *HandlerInstructions) {
 
 func handleLoadB(cpu *CPU, instructions *HandlerInstructions) {
 	// this method can handle both register and immediate
-	if instructions.Addr == 0 && cpu.Registers[instructions.Ry] != 0 {
-		addr := cpu.Registers[instructions.Ry]
+
+	if !instructions.addrNec {
+		addr := uint16(int16(cpu.Registers[instructions.Ry]) + int16(instructions.Addr))
 		cpu.Registers[instructions.Rx] = uint16(cpu.Mem.ReadByte(addr))
 		cpu.PC += instructionSizeLong
 		return
@@ -420,8 +421,8 @@ func handleLoadB(cpu *CPU, instructions *HandlerInstructions) {
 }
 
 func handleLoadW(cpu *CPU, instructions *HandlerInstructions) {
-	if instructions.Addr == 0 && cpu.Registers[instructions.Ry] != 0 {
-		addr := cpu.Registers[instructions.Ry]
+	if !instructions.addrNec {
+		addr := uint16(int16(cpu.Registers[instructions.Ry]) + int16(instructions.Addr))
 		cpu.Registers[instructions.Rx] = cpu.Mem.ReadWord(addr)
 		cpu.PC += instructionSizeLong
 		return
@@ -432,9 +433,9 @@ func handleLoadW(cpu *CPU, instructions *HandlerInstructions) {
 
 func handleStoreB(cpu *CPU, instructions *HandlerInstructions) {
 	val := byte(cpu.Registers[instructions.Rx] & 0xFF)
-	if instructions.Addr == 0 {
+	if !instructions.addrNec {
 
-		cpu.Mem.WriteByte(cpu.Registers[instructions.Ry], val)
+		cpu.Mem.WriteByte(uint16(int16(cpu.Registers[instructions.Ry])+int16(instructions.Addr)), val)
 		cpu.PC += instructionSizeLong
 		return
 	}
@@ -444,12 +445,12 @@ func handleStoreB(cpu *CPU, instructions *HandlerInstructions) {
 
 func handleStoreW(cpu *CPU, instructions *HandlerInstructions) {
 	val := cpu.Registers[instructions.Rx]
-	if instructions.Addr == 0 && cpu.Registers[instructions.Ry] != 0 {
-		cpu.Mem.WriteWord(cpu.Registers[instructions.Ry], val)
+	if !instructions.addrNec {
+		cpu.Mem.WriteWord(uint16(int16(cpu.Registers[instructions.Ry])+int16(instructions.Addr)), val)
 		cpu.PC += instructionSizeLong
 		return
 	}
-	fmt.Println(instructions.Addr)
+
 	cpu.Mem.WriteWord(instructions.Addr, val)
 	cpu.PC += instructionSizeLong
 }
