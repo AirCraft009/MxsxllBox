@@ -14,8 +14,8 @@ type Flags struct {
 }
 type CPU struct {
 	Registers         [NumRegisters]uint16
-	PC                uint16
-	SP                uint16
+	PC                *uint16
+	SP                *uint16
 	Flags             Flags
 	Mem               *Memory
 	Halted            bool
@@ -43,10 +43,12 @@ func InitTicker(cpu *CPU) {
 
 func NewCPU(mem *Memory) *CPU {
 	cpu := &CPU{
-		Mem:      mem,
-		SP:       pkg.StackInit, // stack grows downward
+		Mem:      mem, // stack grows downward
 		Handlers: make(map[byte]func(cpu *CPU, instruction *HandlerInstructions)),
 	}
+	cpu.Registers[pkg.SPRegister] = pkg.StackInit
+	cpu.SP = &cpu.Registers[pkg.SPRegister]
+	cpu.PC = &cpu.Registers[pkg.PCRegister]
 
 	cpu.Handlers[NOP] = handleNop
 	cpu.Handlers[LOADB] = handleLoadB

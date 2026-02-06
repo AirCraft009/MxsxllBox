@@ -36,9 +36,9 @@ func (cpu *CPU) Step() {
 
 	if cpu.Interrupt {
 		cpu.Registers[I1] = uint16(cpu.InterruptId)
-		cpu.SP -= 2
-		cpu.Mem.WriteWordKeyboardSafe(cpu.SP, cpu.PC)
-		cpu.PC = InterruptHandlerLocation
+		*cpu.SP -= 2
+		cpu.Mem.WriteWordKeyboardSafe(*cpu.SP, *cpu.PC)
+		*cpu.PC = InterruptHandlerLocation
 		cpu.Mutex.Lock()
 		cpu.InterruptPending = false
 		cpu.Interrupt = false

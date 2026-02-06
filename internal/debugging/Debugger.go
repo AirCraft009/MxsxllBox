@@ -37,8 +37,8 @@ func buildRegisterPanel(cpuState *cpu2.CPU, revRegMap map[uint8]string) (*fyne.C
 		addRow(left, right)
 	}
 
-	stackTop := widget.NewLabel(fmt.Sprintf("Stack-top: %d", cpuState.Mem.ReadWordKeyboardSafe(cpuState.SP)))
-	pc := widget.NewLabel(fmt.Sprintf("PC: %d", cpuState.PC))
+	stackTop := widget.NewLabel(fmt.Sprintf("Stack-top: %d", cpuState.Mem.ReadWordKeyboardSafe(*cpuState.SP)))
+	pc := widget.NewLabel(fmt.Sprintf("PC: %d", *cpuState.PC))
 	regLabels[16][0] = stackTop
 	regLabels[16][1] = pc
 	addRow(stackTop, pc)
@@ -59,8 +59,8 @@ func updateRegisterPanel(regLabels [18][2]*widget.Label, cpuState *cpu2.CPU, rev
 	}
 
 	lastRow := len(regLabels) - 2
-	regLabels[lastRow][0].SetText(fmt.Sprintf("Stack-top: %d", cpuState.Mem.ReadWordKeyboardSafe(cpuState.SP)))
-	regLabels[lastRow][1].SetText(fmt.Sprintf("PC: %d", cpuState.PC))
+	regLabels[lastRow][0].SetText(fmt.Sprintf("Stack-top: %d", cpuState.Mem.ReadWordKeyboardSafe(*cpuState.SP)))
+	regLabels[lastRow][1].SetText(fmt.Sprintf("PC: %d", *cpuState.PC))
 
 	flagRow := lastRow + 1
 	regLabels[flagRow][0].SetText(fmt.Sprintf("C-flag: %t", cpuState.Flags.Carry))
@@ -170,7 +170,7 @@ func DebugStart(DebugFile string) {
 			modeBtn.SetText("Mode: Run")
 			go func() { resumeChan <- struct{}{} }()
 		} else {
-			highlight(pcMap[vm.Cpu.PC], true)
+			highlight(pcMap[*vm.Cpu.PC], true)
 			updateRegisterPanel(regLabels, vm.Cpu, reverseRegMap)
 			regPanel.Refresh()
 			mode = "Step"
@@ -199,7 +199,7 @@ func DebugStart(DebugFile string) {
 				select {
 				case <-stepChan:
 					vm.StepDebug()
-					highlight(pcMap[vm.Cpu.PC], true)
+					highlight(pcMap[*vm.Cpu.PC], true)
 					updateRegisterPanel(regLabels, vm.Cpu, reverseRegMap)
 					regPanel.Refresh()
 				case <-time.After(50 * time.Millisecond):
@@ -212,7 +212,7 @@ func DebugStart(DebugFile string) {
 					continue
 				}
 				vm.StepDebug()
-				highlight(pcMap[vm.Cpu.PC], false)
+				highlight(pcMap[*vm.Cpu.PC], false)
 			}
 		}
 	}()

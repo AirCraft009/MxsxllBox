@@ -57,6 +57,9 @@ start:
 - You are able to get the addr of the label via the MOVA instruction
   - this can be used to manipulate memory via memcpy or memset
 
+- You are able to index into data via [label+/-offset], [Register+/-offset]
+  - There can be no whitespaces between the label name and the +/- and the offset
+
 ## Chapter 2 General Calling Conventions
 
 ### Chapter 2.1 Instruction derivs
