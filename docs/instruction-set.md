@@ -5,7 +5,7 @@
 - Due to undecisiveness STORE instructions differ from the rest
 - While all other instruction have the receiving operand left (MOV R0 R1; moves the val of R1 into R0)
 - The STORE instruction stores Register RX into Ry / an immediate addr
-- 
+- Planning to fix but I'd have to rewrite a lot of the stdlib so will hold of rn
 
 ### Instruction Set
 

@@ -3,6 +3,8 @@ package cpu
 import (
 	"sync"
 	"time"
+
+	"github.com/AirCraft009/mcc/pkg"
 )
 
 type Register uint16
@@ -42,7 +44,7 @@ func InitTicker(cpu *CPU) {
 func NewCPU(mem *Memory) *CPU {
 	cpu := &CPU{
 		Mem:      mem,
-		SP:       StackInit, // stack grows downward
+		SP:       pkg.StackInit, // stack grows downward
 		Handlers: make(map[byte]func(cpu *CPU, instruction *HandlerInstructions)),
 	}
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/AirCraft009/MxsxllBox/internal/helper"
+	"github.com/AirCraft009/mcc/pkg"
 )
 
 const (
@@ -35,7 +36,7 @@ func newHandlerInstructions(rx byte, ry byte, addr uint16) *HandlerInstructions 
 }
 
 func getInstruction(cpu *CPU) (opcode byte, instructions *HandlerInstructions) {
-	if cpu.SP < StackStart {
+	if cpu.SP < pkg.StackStart {
 		fmt.Printf("SP: %d\n", cpu.SP)
 		fmt.Println(cpu.Mem.Data[cpu.SP])
 		fmt.Printf("PC: %d\n", cpu.PC)
@@ -70,7 +71,7 @@ func handleStorePixel(cpu *CPU, instructions *HandlerInstructions) {
 
 	// Pixel offset inside byte
 	shift := finalPixel & (PpB - 1)
-	byteLoc := (finalPixel >> log2PpB) + VideoStart
+	byteLoc := (finalPixel >> log2PpB) + pkg.VideoStart
 	old := cpu.Mem.ReadByte(byteLoc)
 	color := byte(cpu.Registers[colorReg])
 
@@ -87,7 +88,7 @@ func handleStoreSection(cpu *CPU, instructions *HandlerInstructions) {
 	x, y := cpu.Registers[instructions.Rx], cpu.Registers[instructions.Ry]
 	finalPixel := x + (y << log2Width)
 
-	byteLoc := (finalPixel >> log2PpB) + VideoStart
+	byteLoc := (finalPixel >> log2PpB) + pkg.VideoStart
 	color := byte(cpu.Registers[colorReg]) & 0x3
 	var fullpattern uint16 // full pattern will be a full byte of the repeating color sequence so if color is 10 fullpattern will be 10101010
 	for i := 0; i < PpB*2; i++ {
@@ -382,7 +383,7 @@ func handleRet(cpu *CPU, instruction *HandlerInstructions) {
 
 func handleReadWriteSize(addr uint16, regAddr uint16) bool {
 	//true means 1 byte access false means full word access
-	return addr >= VideoStart && addr <= VideoEnd || regAddr >= VideoStart && regAddr <= VideoEnd
+	return addr >= pkg.VideoStart && addr <= pkg.VideoEnd || regAddr >= pkg.VideoStart && regAddr <= pkg.VideoEnd
 }
 
 func handleNop(cpu *CPU, instructions *HandlerInstructions) {

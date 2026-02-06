@@ -3,6 +3,8 @@ package KeyboardBuffer
 import "C"
 import (
 	cpu2 "github.com/AirCraft009/MxsxllBox/internal/MxsxllBox/cpu"
+	"github.com/AirCraft009/mcc/pkg"
+
 	"os"
 	"sync"
 
@@ -18,7 +20,7 @@ type RingBuffer struct {
 
 func NewRingBuffer() *RingBuffer {
 	return &RingBuffer{
-		lenght: cpu2.RingBufferSize,
+		lenght: pkg.RingBufferSize,
 		mutex:  sync.Mutex{},
 	}
 }
@@ -50,9 +52,9 @@ func WriteKeyboardToBuffer(Cpu *cpu2.CPU) {
 func (ringBuffer *RingBuffer) Write(char byte, Cpu *cpu2.CPU) bool {
 	ringBuffer.mutex.Lock()
 
-	Cpu.Mem.WriteByte(cpu2.RingBufferStart+ringBuffer.writePtr, char)
+	Cpu.Mem.WriteByte(pkg.RingBufferStart+ringBuffer.writePtr, char)
 	ringBuffer.writePtr = (ringBuffer.writePtr + 1) % ringBuffer.lenght
-	Cpu.Mem.WriteByte(cpu2.WritePtr, byte(ringBuffer.writePtr))
+	Cpu.Mem.WriteByte(pkg.WritePtr, byte(ringBuffer.writePtr))
 	defer ringBuffer.mutex.Unlock()
 
 	Cpu.InterruptPending = true

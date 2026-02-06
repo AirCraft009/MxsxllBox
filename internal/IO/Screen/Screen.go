@@ -2,7 +2,10 @@ package Screen
 
 import (
 	"fmt"
+
 	cpu2 "github.com/AirCraft009/MxsxllBox/internal/MxsxllBox/cpu"
+	"github.com/AirCraft009/mcc/pkg"
+
 	"time"
 	"unsafe"
 
@@ -89,7 +92,7 @@ func ExtractPixels(VideoBuffer []byte) []uint32 {
 }
 
 func (s *Screen) Refresh(Cpu *cpu2.CPU) {
-	pixels := ExtractPixels(Cpu.Mem.Data[cpu2.VideoStart : cpu2.VideoEnd+1])
+	pixels := ExtractPixels(Cpu.Mem.Data[pkg.VideoStart : pkg.VideoEnd+1])
 	if len(pixels) != int(Width*height) {
 		fmt.Println("Pixels length mismatch", len(pixels))
 		return
