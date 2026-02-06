@@ -54,6 +54,8 @@ start:
 - Bounds are not checked
   - you are able to read Word sized data from a byte sized reserved spot.
   - keep in mind, that is undefined behaviour
+- You are able to get the addr of the label via the MOVA instruction
+  - this can be used to manipulate memory via memcpy or memset
 
 ## Chapter 2 General Calling Conventions
 
