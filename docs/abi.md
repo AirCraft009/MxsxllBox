@@ -25,6 +25,36 @@
   - MOV R0 R1 (moves the val of R1 into R0)
   - An exception can be found with [STORE](https://github.com/AirCraft009/MxsxllBox/blob/master/docs/instruction-set.md#important-----readme)
 
+### Chapter 1.4 Interacting with the Bss Section
+
+- The Bss holds uninitialized/zero inited data
+- It's written to via data labels
+  - data labels don't have any executable code but assembler directives
+- Place a .ZERO under the label
+- The number following are the reserved bytes
+  - .ZERO 6 (reserves 6 bytes in bss)
+- It can be accessed via STORE/LOAD instructions
+
+``
+a:
+    .ZERO 2
+
+start:
+    MOVI R0 10
+    STOREW R0 a
+    LOADW R1 a
+    PRINT R1
+    HALT
+``
+
+- In this example it R1 should equal 10
+
+- Assembler directives such as .ZERO are not permitted outside data-labels
+- if padding inside a label is necesarry use the NOP instruction
+- Bounds are not checked
+  - you are able to read Word sized data from a byte sized reserved spot.
+  - keep in mind, that is undefined behaviour
+
 ## Chapter 2 General Calling Conventions
 
 ### Chapter 2.1 Instruction derivs
